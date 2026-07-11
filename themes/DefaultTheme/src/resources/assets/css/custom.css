@@ -1,0 +1,419 @@
+.category-product-div {
+    padding: 5px !important;
+}
+
+.post-content ul {
+    padding-right: 40px;
+}
+.post-content ul li {
+    list-style: unset !important;
+}
+
+.nice-select,
+.nice-select.open .list {
+    width: 100%;
+    width: 325px;
+    border-radius: 8px;
+}
+
+.nice-select .list::-webkit-scrollbar {
+    width: 0;
+}
+
+.nice-select .list {
+    margin-top: 56px !important;
+    top: 100%;
+    border-top: 0;
+    border-radius: 0 0 5px 5px;
+    max-height: 210px;
+    overflow-y: scroll;
+    padding: 52px 0 0;
+}
+
+.nice-select.has-multiple {
+    white-space: inherit;
+    height: auto;
+    padding: 7px 12px;
+    min-height: 53px;
+    line-height: 22px;
+}
+
+.nice-select.has-multiple span.current {
+    border: 1px solid #ccc;
+    background: #eee;
+    padding: 0 10px;
+    border-radius: 3px;
+    display: inline-block;
+    line-height: 24px;
+    font-size: 14px;
+    margin-bottom: 3px;
+    margin-right: 3px;
+}
+
+.nice-select.has-multiple .multiple-options {
+    display: block;
+    line-height: 37px;
+    margin-left: 30px;
+    padding: 0;
+}
+
+.nice-select .nice-select-search-box {
+    box-sizing: border-box;
+    position: absolute;
+    width: 100%;
+    margin-top: 5px;
+    top: 100%;
+    left: 0;
+    z-index: 8;
+    padding: 5px;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    border-radius: 5px 5px 0 0;
+    box-shadow: 0 0 0 1px rgba(68, 88, 112, 0.11);
+    -webkit-transform-origin: 50% 0;
+    -ms-transform-origin: 50% 0;
+    transform-origin: 50% 0;
+    -webkit-transform: scale(0.75) translateY(-21px);
+    -ms-transform: scale(0.75) translateY(-21px);
+    transform: scale(0.75) translateY(-21px);
+    -webkit-transition: all 0.2s cubic-bezier(0.5, 0, 0, 1.25),
+        opacity 0.15s ease-out;
+    transition: all 0.2s cubic-bezier(0.5, 0, 0, 1.25), opacity 0.15s ease-out;
+}
+
+.nice-select .nice-select-search {
+    box-sizing: border-box;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: none;
+    color: #333;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 7px 12px;
+    /* margin: 0 0 10px 0; */
+    width: 100% !important;
+    min-height: 36px;
+    line-height: 22px;
+    height: auto;
+    outline: 0 !important;
+}
+
+.nice-select.open .nice-select-search-box {
+    opacity: 1;
+    z-index: 10;
+    pointer-events: auto;
+    -webkit-transform: scale(1) translateY(0);
+    -ms-transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0);
+}
+
+.remove:hover {
+    color: red;
+}
+
+.discount-timer{
+    direction: ltr;
+    background-color: red;
+    text-align: center;
+    color: white;
+    font-size: 20px;
+    padding: 10px;
+    border-radius: 10px 10px 0px 0px;
+}
+
+.discount-cart{
+    padding-bottom: 3px ;
+    color: black !important;
+    margin-bottom: 3px;
+}
+
+
+
+
+
+
+
+.ariya-home-categories {
+    margin: 28px 0 26px;
+    padding: 0;
+    background: transparent;
+}
+
+.ariya-category-slider-wrap {
+    position: relative;
+    padding: 0 34px;
+}
+
+.ariya-category-slider .owl-stage {
+    display: flex;
+    align-items: flex-start;
+}
+
+.ariya-category-slider .item {
+    text-align: center;
+    background: transparent;
+}
+
+.ariya-category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    padding: 6px 4px;
+    text-decoration: none;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.ariya-category-image {
+    width: 88px;
+    height: 88px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 8px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.ariya-category-image img {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+    display: block;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.ariya-category-title {
+    display: block;
+    width: 100%;
+    text-align: center;
+
+    color: #000;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.8;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ariya-category-item:hover {
+    transform: translateY(-2px);
+}
+
+.ariya-category-item:hover .ariya-category-image img {
+    transform: scale(1.04);
+}
+
+.ariya-category-slider.owl-carousel .owl-nav button.owl-prev,
+.ariya-category-slider.owl-carousel .owl-nav button.owl-next {
+    position: absolute;
+    top: 34px;
+
+    width: 30px;
+    height: 30px;
+
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    color: #8b8b8b;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ariya-category-slider.owl-carousel .owl-nav button.owl-prev {
+    right: -2px;
+}
+
+.ariya-category-slider.owl-carousel .owl-nav button.owl-next {
+    left: -2px;
+}
+
+.ariya-category-slider.owl-carousel .owl-nav button i {
+    font-size: 24px;
+}
+
+@media (max-width: 991px) {
+    .ariya-category-slider-wrap {
+        padding: 0 24px;
+    }
+
+    .ariya-category-image {
+        width: 78px;
+        height: 78px;
+    }
+
+    .ariya-category-image img {
+        width: 74px;
+        height: 74px;
+    }
+
+    .ariya-category-title {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 575px) {
+    .ariya-category-slider-wrap {
+        padding: 0 20px;
+    }
+
+    .ariya-category-image {
+        width: 68px;
+        height: 68px;
+    }
+
+    .ariya-category-image img {
+        width: 64px;
+        height: 64px;
+    }
+
+    .ariya-category-title {
+        font-size: 12.5px;
+    }
+}
+
+
+
+
+
+
+
+
+
+header.main-header .bottom-header .ariya-products-menu-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+header.main-header .bottom-header .ariya-products-menu-icon {
+    font-size: 21px;
+    line-height: 1;
+    color: currentColor;
+}
+
+/* حذف فلش کنار دسته‌بندی کالاها */
+header.main-header .bottom-header .ariya-products-menu-item > a::before,
+header.main-header .bottom-header .ariya-products-menu-item > a::after,
+header.main-header .bottom-header .ariya-products-menu-item::before,
+header.main-header .bottom-header .ariya-products-menu-item::after {
+    content: none;
+    display: none;
+}
+
+
+
+
+
+
+
+
+/* Remove default arrow from products category menu item */
+header.main-header .main-menu > ul.list > li.ariya-products-menu-item > a.nav-link::after,
+header.main-header .main-menu > ul.list > li.ariya-products-menu-item > a.nav-link::before {
+    display: none;
+    content: none;
+    width: 0;
+    height: 0;
+    border: 0;
+    margin: 0;
+}
+
+/* Fix icon/text alignment */
+header.main-header .main-menu > ul.list > li.ariya-products-menu-item > a.ariya-products-menu-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+header.main-header .main-menu > ul.list > li.ariya-products-menu-item > a.ariya-products-menu-link .ariya-products-menu-icon {
+    font-size: 21px;
+    line-height: 1;
+}
+
+
+
+
+
+
+
+/* تبدیل فلش دسته‌بندی کالاها به برگر، بدون تغییر ساختار منو */
+header.main-header .main-menu > ul.list > li.list-item-has-children.position-static > a.nav-link {
+    position: relative;
+    padding-left: 24px;
+}
+
+header.main-header .main-menu > ul.list > li.list-item-has-children.position-static > a.nav-link::after {
+    content: "\F35C";
+    font-family: "Material Design Icons";
+    font-size: 19px;
+    font-weight: normal;
+    line-height: 1;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+
+
+
+
+header.main-header .main-menu ul.list > li > a.ariya-products-nav-link {
+    position: relative;
+    padding-left: 16px;
+    margin-left: 14px;
+}
+
+header.main-header .main-menu ul.list > li > a.ariya-products-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 1px;
+    height: 14px;
+    background: #cfcfcf;
+    transform: translateY(-50%);
+}
+
+
+
+
+.ariya-top-header-gif {
+    width: 100%;
+    height: 80px;
+    overflow: hidden;
+    background: #ffffff;
+    line-height: 0;
+}
+
+.ariya-top-header-gif a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    line-height: 0;
+}
+
+.ariya-top-header-gif img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+
