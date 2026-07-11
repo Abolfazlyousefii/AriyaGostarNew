@@ -1,5 +1,5 @@
 <div class="item">
-    <div class="product-card mobile-product-card mb-3">
+    <div class="product-card mb-3">
         <div class="product-head">
             @if ($product->labels->count())
                 <div class="row">

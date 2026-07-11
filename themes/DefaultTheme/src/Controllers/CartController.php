@@ -87,7 +87,7 @@ class CartController extends Controller
             ]);
         }
 
-        return response(['status' => 'success', 'cart' => view('front::partials.cart')->with('render_cart', $cart)->render(), 'cart_count' => $cart->quantity]);
+        return response(['status' => 'success', 'cart' => view('front::partials.cart')->with('render_cart', $cart)->render()]);
     }
 
     public function update(Request $request)

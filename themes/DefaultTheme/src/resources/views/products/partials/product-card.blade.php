@@ -1,4 +1,4 @@
-<div class="product-card mobile-product-card mb-2 mx-res-0">
+<div class="product-card mb-2 mx-res-0">
     @if ($product->isSpecial())
         <div class="promotion-badge text-right">
             {{ trans('front::messages.categories.special-sale') }}
@@ -29,13 +29,14 @@
         <img data-src="{{ $product->image ? asset($product->image) : asset('/no-image-product.png') }}"
              src="{{ theme_asset('images/600-600.png') }}" alt="{{ $product->title }}"
              style="width: 100%;
-             height: 100%;">
+             height: 100%;
+             object-fit: cover;">
 
     </a>
     <div class="product-card-body">
 
         <h5 class="product-title special-title" style="border-bottom: 1px solid #989898;">
-            <a href="{{ route('front.products.show', ['product' => $product]) }}" title="{{ $product->title }}">{{ $product->title }}</a>
+            <a href="{{ route('front.products.show', ['product' => $product]) }}">{{ $product->title }}</a>
         </h5>
 
         @if ($product->category)
