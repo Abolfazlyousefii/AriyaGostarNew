@@ -89,6 +89,8 @@
             </div>
         @endif
 
+        @include('front::partials.mobile-header')
+
         <!-- Start header -->
         <header class="main-header dt-sl">
 
@@ -141,6 +143,9 @@
         @yield('content')
 
         @include('front::partials.footer')
+
+        @include('front::partials.mobile-search')
+        @include('front::partials.mobile-bottom-navigation')
     </div>
 
     <script>
