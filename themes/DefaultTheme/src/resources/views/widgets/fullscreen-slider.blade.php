@@ -2,6 +2,7 @@
     $variables      = get_widget($widget);
     $main_sliders   = $variables['fullscreen_slider'];
     $mobile_sliders = $variables['mobile_sliders'];
+    $responsive_sliders = $mobile_sliders->count() ? $mobile_sliders : $main_sliders;
 @endphp
 
 <!-- Start Main-Slider -->
@@ -35,15 +36,15 @@
             </section>
         @endif
 
-        @if ($mobile_sliders->count())
+        @if ($responsive_sliders->count())
             <section id="main-slider-res" class=" main-slider carousel slide carousel-fade card d-none show-sm" data-ride="carousel">
                 <ol class="carousel-indicators">
-                    @foreach ($mobile_sliders as $slider)
+                    @foreach ($responsive_sliders as $slider)
                         <li data-target="#main-slider-res" data-slide-to="{{ $loop->index }}" class="{{ $loop->first ? 'active' : '' }}"></li>
                     @endforeach
                 </ol>
                 <div class="carousel-inner">
-                    @foreach ($mobile_sliders as $slider)
+                    @foreach ($responsive_sliders as $slider)
                         <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                             <a class="main-slider-slide" href="{{ $slider->link }}">
                                 <img src="{{ asset($slider->image) }}" alt="{{ $slider->title }}" class="img-fluid">

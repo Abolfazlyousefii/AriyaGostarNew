@@ -7,7 +7,7 @@
 @if ($products->count())
     <div class="row">
         <div class="col-xl-12 col-lg-12">
-            <section class="slider-section dt-sl mb-3">
+            <section class="slider-section dt-sl mb-3 {{ $widget->option('products_type') === 'discount' ? 'ariya-discount-products-widget' : '' }}">
                 <div class="row mb-3">
                     <div class="col-12 px-0 px-sm-3">
                         <div class="section-title text-sm-title title-wide-custom title-wide no-after-title-wide">

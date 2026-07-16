@@ -581,23 +581,29 @@
             }
 
             .ariya-combined-footer .af-main {
-                gap: 14px;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                align-items: start;
+                gap: 8px;
                 padding: 14px 12px;
             }
 
             .ariya-combined-footer .af-about {
-                min-width: 100%;
+                grid-column: 1 / -1;
+                min-width: 0;
             }
 
             .ariya-combined-footer .af-links {
-                flex: 1 1 100%;
+                min-width: 0;
                 display: flex;
-                flex-wrap: wrap;
+                flex-direction: column;
+                flex-wrap: nowrap;
                 gap: 6px;
             }
 
             .ariya-combined-footer .af-link-group {
-                flex: 1 1 180px;
+                flex: 0 0 auto;
+                width: 100%;
                 min-width: 0;
                 border: 1px solid var(--af-border);
                 border-radius: 7px;
@@ -638,13 +644,29 @@
             }
 
             .ariya-combined-footer .af-license-wrap {
-                flex: 1 1 180px;
+                width: 100%;
+                min-width: 0;
             }
 
             .ariya-combined-footer .af-license {
+                width: 100%;
                 padding: 9px;
                 border: 1px solid var(--af-border);
                 border-radius: 7px;
+            }
+
+            .ariya-combined-footer .af-license-contact-row {
+                gap: 4px;
+                font-size: 8.2px;
+            }
+
+            .ariya-combined-footer .af-license-contact-row span {
+                font-size: 7.5px;
+            }
+
+            .ariya-combined-footer .af-license-contact-row strong {
+                font-size: 8px;
+                line-height: 1.45;
             }
 
             .ariya-combined-footer .af-bottom {

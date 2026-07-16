@@ -5,7 +5,7 @@
 
 <!-- Start special products -->
 @if ($products->count())
-    <section class="slider-section mb-3 amazing-section" style="background: {{ $widget->option('block_color', '#ef394e') }}">
+    <section class="slider-section mb-3 amazing-section {{ $widget->option('products_type') === 'discount' ? 'ariya-discount-products-widget' : '' }}" style="background: {{ $widget->option('block_color', '#ef394e') }}">
         <div class="container main-container">
             <div class="row mb-3">
 

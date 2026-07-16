@@ -86,6 +86,20 @@
         }
 
         @media (max-width: 991px) {
+            .ariya-home-categories {
+                margin: 0 0 18px;
+                padding: 12px 0 6px;
+                background: #ffffff;
+            }
+
+            .ariya-home-categories .ariya-category-slider-wrap,
+            .ariya-home-categories .owl-stage-outer,
+            .ariya-home-categories .owl-stage,
+            .ariya-home-categories .owl-item,
+            .ariya-home-categories .item {
+                background: #ffffff;
+            }
+
             .ariya-home-categories .ariya-category-item {
                 min-height: 135px;
             }

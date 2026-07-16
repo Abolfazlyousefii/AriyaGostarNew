@@ -66,7 +66,7 @@
     {!! option('info_header_codes') !!}
 </head>
 
-<body>
+<body class="has-mobile-bottom-navigation">
     <div class="wrapper @yield('wrapper-classes')">
 
 
@@ -88,6 +88,8 @@
                 @endif
             </div>
         @endif
+
+        @include('front::partials.mobile-header')
 
         <!-- Start header -->
         <header class="main-header dt-sl">
@@ -141,6 +143,9 @@
         @yield('content')
 
         @include('front::partials.footer')
+        @include('front::partials.mobile-bottom-navigation')
+        @include('front::partials.mobile-cart')
+        @include('front::partials.mobile-search')
     </div>
 
     <script>
