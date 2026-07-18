@@ -47,6 +47,274 @@ $(document).on('click', '.add-to-cart', function () {
     });
 });
 
+// Quick variant list and multi-model ordering
+(function () {
+    function formatVariantPrice(value) {
+        var number = Number(value || 0);
+
+        if (typeof number_format === 'function') {
+            return number_format(number);
+        }
+
+        return number.toLocaleString('fa-IR');
+    }
+
+    function getRowAttributes($row) {
+        var attributes = $row.data('attributes');
+
+        if (Array.isArray(attributes)) {
+            return attributes;
+        }
+
+        try {
+            return JSON.parse(attributes || '[]');
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function activateVariantRow($row) {
+        if (!$row.length || $row.hasClass('is-unavailable')) {
+            return;
+        }
+
+        var $panel = $row.closest('.variant-order-panel');
+        var salePrice = Number($row.attr('data-sale-price') || 0);
+        var regularPrice = Number($row.attr('data-regular-price') || 0);
+        var discount = Number($row.attr('data-discount') || 0);
+        var minOrder = Number($row.attr('data-min-order') || 1);
+        var maxOrder = Number($row.attr('data-max-order') || 1);
+        var priceId = $row.attr('data-price-id');
+        var title = $row.attr('data-title') || 'مدل اصلی';
+
+        $panel.find('.variant-order-row')
+            .removeClass('is-active')
+            .attr('aria-selected', 'false');
+        $row.addClass('is-active').attr('aria-selected', 'true');
+
+        $('.selected-variant-name').text(title);
+        $('.selected-price-sale').text(formatVariantPrice(salePrice));
+
+        if (discount > 0 && regularPrice > salePrice) {
+            $('.selected-price-regular')
+                .removeClass('d-none')
+                .text(formatVariantPrice(regularPrice));
+            $('.selected-price-discount')
+                .removeClass('d-none')
+                .find('span')
+                .text(discount + '%');
+        } else {
+            $('.selected-price-regular, .selected-price-discount').addClass('d-none');
+        }
+
+        $('#cart-quantity')
+            .attr('min', minOrder)
+            .attr('max', maxOrder)
+            .val(minOrder);
+
+        $('.add-to-cart').attr('data-price_id', priceId).data('price_id', priceId);
+
+        var attributeIds = getRowAttributes($row);
+
+        if (attributeIds.length) {
+            $('.product-info-block .variant-selector').prop('checked', false);
+
+            attributeIds.forEach(function (attributeId) {
+                var $input = $('.product-info-block .variant-selector[value="' + attributeId + '"]').first();
+
+                if (!$input.length) {
+                    return;
+                }
+
+                $input.prop('checked', true);
+
+                var $variant = $input.closest('.product-variant');
+                var name = $input.closest('.ui-variant').find('.ui-variant-shape').data('name') ||
+                    $input.closest('.ui-variant').find('.product-warranty-span').text().trim();
+
+                $variant.find('.section-title h2 span').text(name);
+            });
+        }
+    }
+
+    function normalizeVariantQuantity($input) {
+        var $row = $input.closest('.variant-order-row');
+        var minOrder = Number($row.attr('data-min-order') || 1);
+        var maxOrder = Number($row.attr('data-max-order') || 0);
+        var value = Math.max(0, Number($input.val() || 0));
+
+        if (value > 0 && value < minOrder) {
+            value = minOrder;
+        }
+
+        if (maxOrder > 0 && value > maxOrder) {
+            value = maxOrder;
+        }
+
+        $input.val(value);
+        updateVariantOrderSummary($row.closest('.variant-order-panel'));
+    }
+
+    function updateVariantOrderSummary($panel) {
+        var modelCount = 0;
+        var quantity = 0;
+
+        $panel.find('.variant-order-row:not(.is-unavailable)').each(function () {
+            var value = Number($(this).find('.variant-quantity-input').val() || 0);
+
+            if (value > 0) {
+                modelCount++;
+                quantity += value;
+            }
+        });
+
+        $panel.find('.variant-selected-count').text(modelCount);
+        $panel.find('.variant-selected-quantity').text(quantity);
+        $panel.find('.variant-add-selected').prop('disabled', modelCount === 0);
+    }
+
+    $(document).on('click', '.variant-order-row', function (event) {
+        if ($(event.target).closest('[data-ignore-row-click="true"]').length) {
+            return;
+        }
+
+        activateVariantRow($(this));
+    });
+
+    $(document).on('keydown', '.variant-order-row', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            activateVariantRow($(this));
+        }
+    });
+
+    $(document).on('focus', '.variant-quantity-input', function () {
+        activateVariantRow($(this).closest('.variant-order-row'));
+    });
+
+    $(document).on('click', '.variant-quantity-plus', function () {
+        var $row = $(this).closest('.variant-order-row');
+        var $input = $row.find('.variant-quantity-input');
+        var current = Number($input.val() || 0);
+        var minOrder = Number($row.attr('data-min-order') || 1);
+        var maxOrder = Number($row.attr('data-max-order') || 0);
+        var next = current === 0 ? minOrder : current + 1;
+
+        if (maxOrder > 0) {
+            next = Math.min(next, maxOrder);
+        }
+
+        $input.val(next);
+        activateVariantRow($row);
+        updateVariantOrderSummary($row.closest('.variant-order-panel'));
+    });
+
+    $(document).on('click', '.variant-quantity-minus', function () {
+        var $row = $(this).closest('.variant-order-row');
+        var $input = $row.find('.variant-quantity-input');
+        var current = Number($input.val() || 0);
+        var minOrder = Number($row.attr('data-min-order') || 1);
+        var next = current <= minOrder ? 0 : current - 1;
+
+        $input.val(next);
+        activateVariantRow($row);
+        updateVariantOrderSummary($row.closest('.variant-order-panel'));
+    });
+
+    $(document).on('change input', '.variant-quantity-input', function () {
+        normalizeVariantQuantity($(this));
+    });
+
+    $(document).on('input', '.variant-order-search', function () {
+        var query = String($(this).val() || '').trim().toLowerCase();
+        var $panel = $(this).closest('.variant-order-panel');
+        var visibleCount = 0;
+
+        $panel.find('.variant-order-row').each(function () {
+            var matches = !query || String($(this).attr('data-search') || '').indexOf(query) !== -1;
+            $(this).toggle(matches);
+
+            if (matches) {
+                visibleCount++;
+            }
+        });
+
+        $panel.find('.variant-order-empty').toggleClass('d-none', visibleCount > 0);
+    });
+
+    $(document).on('click', '.variant-add-selected', function () {
+        var $button = $(this);
+        var $panel = $button.closest('.variant-order-panel');
+        var items = [];
+
+        $panel.find('.variant-order-row:not(.is-unavailable)').each(function () {
+            var quantity = Number($(this).find('.variant-quantity-input').val() || 0);
+
+            if (quantity > 0) {
+                items.push({
+                    price_id: Number($(this).attr('data-price-id')),
+                    quantity: quantity
+                });
+            }
+        });
+
+        if (!items.length) {
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: $panel.data('action'),
+            data: { items: items },
+            success: function (data) {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        type: 'success',
+                        title: 'مدل‌ها به سبد خرید اضافه شدند',
+                        text: 'همه مدل‌های انتخاب‌شده با تعداد واردشده به سبد خرید اضافه شدند.',
+                        confirmButtonText: 'باشه',
+                        footer: '<h5><a href="/cart">مشاهده سبد خرید</a></h5>'
+                    });
+
+                    $panel.find('.variant-quantity-input').val(0);
+                    updateVariantOrderSummary($panel);
+                    $('#cart-list-item').replaceWith(data.cart);
+                    return;
+                }
+
+                Swal.fire({
+                    type: 'error',
+                    title: 'خطا',
+                    text: data.message,
+                    confirmButtonText: 'باشه'
+                });
+            },
+            error: function (xhr) {
+                var message = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'امکان افزودن مدل‌ها به سبد خرید وجود ندارد.';
+
+                Swal.fire({
+                    type: 'error',
+                    title: 'خطا',
+                    text: message,
+                    confirmButtonText: 'باشه'
+                });
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(
+                    'X-CSRF-TOKEN',
+                    $('meta[name="csrf-token"]').attr('content')
+                );
+                block($button);
+            },
+            complete: function () {
+                unblock($button);
+            }
+        });
+    });
+})();
+
 $('#stock_notify_btn').click(function () {
     var btn = this;
 

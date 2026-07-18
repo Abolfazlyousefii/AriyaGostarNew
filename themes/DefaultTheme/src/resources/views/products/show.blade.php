@@ -19,6 +19,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ theme_asset('css/vendor/fancybox.min.css') }}">
+    <link rel="stylesheet" href="{{ theme_asset('css/product-exact-layout.css') }}?v=1">
 @endpush
 
 @section('content')
@@ -48,110 +49,23 @@
             <!-- End title - breadcrumb -->
 
             <!-- Start Product -->
-            <div class="dt-sn mb-3 dt-sl">
-                <div class="row">
-                    <!-- Product Gallery-->
-                    <div class="col-lg-4 col-md-12 ps-relative">
+            <div class="dt-sn mb-3 dt-sl aex-product-stage">
+                <div class="row no-gutters align-items-stretch">
+                    <!-- Product Gallery -->
+                    <div class="col-lg-4 col-md-12 aex-gallery-column">
                         @if(!$product->addableToCart())
-                            <div class="product-timeout position-relative pt-5 mb-4">
-                                <div class="promotion-badge not-available">
-                                    {{ trans('front::messages.products.unavailable') }}
-                                </div>
+                            <div class="aex-product-badge aex-product-badge--unavailable">
+                                {{ trans('front::messages.products.unavailable') }}
                             </div>
                         @elseif($product->isSpecial())
-
-                            <div class="product-timeout position-relative pt-5 mb-4">
-                                <div class="promotion-badge">
-                                    <div class="product-special">
-                                        {{ trans('front::messages.products.special-sale') }}
-                                    </div>
-                                </div>
-                                @if ($product->special_end_date)
-                                    <div id="product-special-end-date" class="countdown-timer mt-4" countdown data-date="{{ $product->special_end_date->format('D M d Y H:i:s O') }}">
-                                        <span data-days="">0</span>:
-                                        <span data-hours="">0</span>:
-                                        <span data-minutes="">0</span>:
-                                        <span data-seconds="">0</span>
-                                    </div>
-                                @endif
-                            </div>
-
-                        @endif
-
-                        <ul class="gallery-options {{ $product->isSpecial() ? 'special' : '' }}">
-                            @if (auth()->check())
-                                @php
-                                    $favorite_product = auth()->user()->favorites()->where('product_id', $product->id)->first();
-                                @endphp
-                                <li>
-                                    <button id="add-to-favorites" data-action="{{ route('front.favorites.store') }}" data-product="{{ $product->id }}" class="add-favorites {{ $favorite_product ? 'favorites' : '' }}"><i class="mdi mdi-heart"></i></button>
-                                    @if ($favorite_product)
-                                        <span class="tooltip-option">  {{ trans('front::messages.products.remove-from-favorites') }} </span>
-                                    @else
-                                        <span class="tooltip-option">{{ trans('front::messages.products.add-to-favorites') }}</span>
-                                    @endif
-                                </li>
-                            @endif
-
-                            @if ($similar_products_count)
-                                <a href="{{ route('front.products.compare', ['product1' => $product->id]) }}">
-                                    <li>
-                                        <button class="add-favorites"><i class="mdi mdi-compare"></i></button>
-                                        <span class="tooltip-option">{{ trans('front::messages.products.comparison') }}</span>
-                                    </li>
-                                </a>
-                            @endif
-
-                            @if ($show_prices_chart)
-                                <li>
-                                    <button data-toggle="modal" data-target="#price-changes-modal"><i class="mdi mdi-chart-line"></i></button>
-                                    <span class="tooltip-option">{{ trans('front::messages.products.price-chart') }}</span>
-                                </li>
-                            @endif
-
-                            @if (option('show_product_share_links', 1) == 1)
-                                <li>
-                                    <button data-toggle="modal" data-target="#shareproduct"><i class="mdi mdi-share-variant"></i></button>
-                                    <span class="tooltip-option">اشتراک گذاری</span>
-                                </li>
-                            @endif
-
-                            @can('products.update')
-                                <li>
-                                    <a href="{{ route('admin.products.edit', ['product' => $product]) }}" target="_blank">
-                                        <button><i class="mdi mdi-pencil text-warning"></i></button>
-                                    </a>
-                                    <span class="tooltip-option">{{ trans('front::messages.products.edit') }}</span>
-                                </li>
-                            @endcan
-
-                        </ul>
-
-                        @if($product->gallery()->count())
-                            <div id="product-gallery" class="product-gallery mt-3">
-                                <div class="product-carousel main-gallery owl-carousel">
-                                    @foreach ($product->gallery()->orderBy('ordering')->get() as $item)
-                                        <div class="item gallery-image-item" data-color-id="{{ $item->color_id }}">
-                                            <a class="gallery-item mt-3" href="{{ asset($item->image) }}" data-fancybox="gallery" data-owl="one{{ $loop->index }}">
-                                                <img src="{{ theme_asset('images/600-600.png') }}" data-src="{{ asset($item->image) }}" alt="{{ $product->title }}">
-                                            </a>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <hr class="border-product"/>
-                                <ul class="product-thumbnails product-carousel owl-carousel carousel-products">
-                                    @foreach ($product->gallery()->orderBy('ordering')->get() as $item)
-                                        <li class="{{ ($loop->index == 0) ? 'active' : '' }} gallery-image-item" data-color-id="{{ $item->color_id }}" data-image="{{ asset($item->image) }}">
-                                            <a href="#one{{ $loop->index }}" class="owl-thumbnail" data-slide="{{ $loop->index }}">
-                                                <img src="{{ theme_asset('images/600-600.png') }}" data-src="{{ asset($item->image) }}" alt="{{ $product->title }}">
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
+                            <div class="aex-product-badge">
+                                {{ trans('front::messages.products.special-sale') }}
                             </div>
                         @endif
 
+                        @include('front::products.partials.product-gallery-exact')
                     </div>
+
                     @include('front::products.partials.product-info')
                 </div>
             </div>
@@ -432,5 +346,6 @@
     <script src="{{ theme_asset('js/vendor/jquery.fancybox.min.js') }}"></script>
     <script src="{{ theme_asset('js/plugins/apexcharts/apexcharts.js') }}"></script>
     <script src="{{ theme_asset('js/pages/products/show.js') }}?v=21"></script>
+    <script src="{{ theme_asset('js/pages/products/product-exact-layout.js') }}?v=1"></script>
     <script src="{{ theme_asset('js/pages/comments.js') }}"></script>
 @endpush

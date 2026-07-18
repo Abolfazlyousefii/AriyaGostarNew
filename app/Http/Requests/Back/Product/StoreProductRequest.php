@@ -50,6 +50,8 @@ class StoreProductRequest extends FormRequest
                 'prices'                      => 'required_if:type,physical|array',
                 'prices.*.price'              => 'required|numeric|min:0',
                 'prices.*.stock'              => 'required|integer',
+                'prices.*.external_stock_code' => 'nullable|string|max:191',
+                'prices.*.stock_sync_enabled' => 'nullable|boolean',
                 'prices.*.attributes'         => "nullable|array",
                 'prices.*.attributes.*'       => "nullable|exists:attributes,id",
                 'prices.*.cart_max'           => 'nullable|integer',

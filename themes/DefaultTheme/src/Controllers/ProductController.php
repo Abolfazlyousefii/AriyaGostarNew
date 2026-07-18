@@ -167,6 +167,11 @@ class ProductController extends Controller
             ->get();
 
         $selected_price = $product->getPrices()->first();
+        $variant_prices = $product->prices()
+            ->with(['get_attributes.group'])
+            ->orderBy('ordering')
+            ->orderBy('id')
+            ->get();
 
         $attributeGroups = AttributeGroup::detectLang()->orderBy('ordering')->get();
 
@@ -186,6 +191,7 @@ class ProductController extends Controller
             'attributeGroups',
             'similar_products_count',
             'selected_price',
+            'variant_prices',
             'show_prices_chart',
             'reviews',
         ));
@@ -280,10 +286,16 @@ class ProductController extends Controller
         } while (true);
 
         $selected_price = $query->first();
+        $variant_prices = $product->prices()
+            ->with(['get_attributes.group'])
+            ->orderBy('ordering')
+            ->orderBy('id')
+            ->get();
 
         return view('front::products.partials.product-info', compact(
             'product',
             'selected_price',
+            'variant_prices',
             'attributeGroups'
         ));
     }

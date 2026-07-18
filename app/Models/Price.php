@@ -14,6 +14,11 @@ class Price extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'stock_sync_enabled' => 'boolean',
+        'stock_synced_at' => 'datetime',
+    ];
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -146,7 +151,7 @@ class Price extends Model
             ];
         }
 
-        if ($this->cart_min !== null && $this->cart_min > $quantity && $this->stock > $quantity) {
+        if ($this->cart_min !== null && $this->cart_min > $quantity) {
             if ($with_attributes) {
                 return [
                     'status'  => false,

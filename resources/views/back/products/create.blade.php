@@ -211,6 +211,8 @@
                                                                 </div>
                                                             </div>
 
+                                                            @include('back.products.partials.bulk-prices-builder')
+
                                                             <div id="product-prices-div" class="product-prices-div">
                                                                 @if ($copy_product && $copy_product->isPhysical())
                                                                     @foreach ($copy_product->prices as $price)
@@ -535,6 +537,6 @@
         var sizesCount = {{ $copy_product ? $copy_product->sizes()->count() : '0' }};
     </script>
 
-    <script src="{{ asset('back/assets/js/pages/products/all.js') }}?v=13"></script>
+    <script src="{{ asset('back/assets/js/pages/products/all.js') }}?v=16"></script>
     <script src="{{ asset('back/assets/js/pages/products/create.js') }}?v=4"></script>
 @endpush

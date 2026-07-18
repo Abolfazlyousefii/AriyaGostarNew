@@ -458,17 +458,19 @@ if (priceCount == 0) {
     addProductPrice();
 }
 
-function addProductPrice(copy = false) {
+function addProductPrice(copy = false, initializePlugins = true) {
     var template = $('#prices-template').clone();
 
     let lastPrice = $('#product-prices-div').find('.single-price').last();
 
-    data = {
+    var data = {
         price: '',
         discount: '',
         cart_max: '',
         cart_min: '',
-        stock: ''
+        stock: '',
+        external_stock_code: '',
+        stock_sync_enabled: false
     };
 
     if (copy && lastPrice.length) {
@@ -477,6 +479,8 @@ function addProductPrice(copy = false) {
         data.cart_max = lastPrice.find('.cart_max').val();
         data.cart_min = lastPrice.find('.cart_min').val();
         data.stock = lastPrice.find('.stock').val();
+        data.external_stock_code = lastPrice.find('.external-stock-code').val();
+        data.stock_sync_enabled = lastPrice.find('.stock-sync-enabled').is(':checked');
 
         var selectedIds = [];
 
@@ -487,7 +491,8 @@ function addProductPrice(copy = false) {
             });
     }
 
-    var price = $('#product-prices-div').append(template.html());
+    $('#product-prices-div').append(template.html());
+    var price = $('#product-prices-div').find('.single-price').last();
 
     var count = ++priceCount;
     let unit = price
@@ -537,18 +542,42 @@ function addProductPrice(copy = false) {
         .attr('name', 'prices[' + count + '][stock]')
         .val(data.stock);
     price
+        .find('input[name="external_stock_code"]')
+        .attr('name', 'prices[' + count + '][external_stock_code]')
+        .val(data.external_stock_code);
+
+    var stockSyncId = 'stock-sync-enabled-' + count;
+
+    price
+        .find('.stock-sync-enabled-hidden')
+        .attr('name', 'prices[' + count + '][stock_sync_enabled]');
+    price
+        .find('.stock-sync-enabled')
+        .attr('name', 'prices[' + count + '][stock_sync_enabled]')
+        .attr('id', stockSyncId)
+        .prop('checked', data.stock_sync_enabled);
+    price
+        .find('.stock-sync-enabled-label')
+        .attr('for', stockSyncId);
+    price
         .find('input[name="discount_expire"]')
         .attr('name', 'prices[' + count + '][discount_expire]');
 
-    setTimeout(() => {
-        $('.persian-date-picker').customPersianDate();
-        price.find('.single-price').removeClass('.animated fadeIn');
+    if (initializePlugins) {
+        setTimeout(() => {
+            $('.persian-date-picker').customPersianDate();
+            price.removeClass('animated fadeIn');
 
-        $('select.select2').select2({
-            rtl: true,
-            width: '100%'
-        });
-    }, 700);
+            price.find('select.select2').select2({
+                rtl: true,
+                width: '100%'
+            });
+        }, 100);
+    } else {
+        price.removeClass('animated fadeIn');
+    }
+
+    return price;
 }
 
 $('select[name="currency_id"]').on('change', function () {
@@ -606,6 +635,473 @@ $(document).on('change', '.prices-option-div select', function () {
 });
 
 $('.prices-option-div select').trigger('change');
+
+//------------ bulk variable product prices
+
+var bulkPriceGroups = [];
+
+try {
+    bulkPriceGroups = JSON.parse($('#bulk-price-groups-data').text() || '[]');
+} catch (error) {
+    bulkPriceGroups = [];
+}
+
+function bulkPriceNotify(message, type = 'error') {
+    if (typeof toastr !== 'undefined' && toastr[type]) {
+        toastr[type](message, type === 'error' ? 'خطا' : 'موفق');
+        return;
+    }
+
+    alert(message);
+}
+
+function getBulkPriceGroup(groupId) {
+    return bulkPriceGroups.find(function (group) {
+        return String(group.id) === String(groupId);
+    });
+}
+
+function getSelectedBulkModels() {
+    var selectedIds = $('#bulk-price-models').val() || [];
+    var models = [];
+
+    selectedIds.forEach(function (id) {
+        var option = $('#bulk-price-models option[value="' + id + '"]');
+
+        models.push({
+            id: String(id),
+            name: option.text()
+        });
+    });
+
+    return models;
+}
+
+function updateBulkModelCounter() {
+    var count = ($('#bulk-price-models').val() || []).length;
+    $('#bulk-price-model-count').text(count + ' مدل انتخاب شده');
+}
+
+function setBulkPriceControlsState() {
+    var hasGroup = Boolean($('#bulk-price-group').val());
+    var hasModels = ($('#bulk-price-models').val() || []).length > 0;
+
+    $('#bulk-price-models')
+        .prop('disabled', !hasGroup)
+        .trigger('change.select2');
+    $('#bulk-price-select-all, #bulk-price-clear-models').prop(
+        'disabled',
+        !hasGroup
+    );
+    $('#bulk-add-price-exception, #bulk-generate-prices').prop(
+        'disabled',
+        !hasModels
+    );
+}
+
+function refreshBulkExceptionSelect($select) {
+    var currentValue = $select.val();
+    var models = getSelectedBulkModels();
+
+    if ($select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
+    }
+
+    $select.empty().append('<option value="">انتخاب مدل</option>');
+
+    models.forEach(function (model) {
+        $('<option>')
+            .val(model.id)
+            .text(model.name)
+            .appendTo($select);
+    });
+
+    if (models.some(function (model) { return model.id === String(currentValue); })) {
+        $select.val(currentValue);
+    }
+
+    $select.select2({
+        rtl: true,
+        width: '100%'
+    });
+}
+
+function refreshAllBulkExceptionSelects() {
+    $('#bulk-price-exceptions .bulk-exception-model').each(function () {
+        refreshBulkExceptionSelect($(this));
+    });
+}
+
+function addBulkPriceException() {
+    if (!getSelectedBulkModels().length) {
+        bulkPriceNotify('ابتدا حداقل یک مدل را انتخاب کنید.');
+        return;
+    }
+
+    var row = $(
+        '<div class="row align-items-end border rounded p-1 mb-1 bulk-price-exception-row">' +
+            '<div class="col-lg-3 col-md-6 col-12">' +
+                '<div class="form-group mb-md-0">' +
+                    '<label>مدل استثنا</label>' +
+                    '<select class="form-control bulk-exception-model"></select>' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-lg-2 col-md-3 col-12">' +
+                '<div class="form-group mb-md-0">' +
+                    '<label>قیمت متفاوت</label>' +
+                    '<input type="number" min="0" class="form-control amount-input bulk-exception-price" data-unit="تومان" placeholder="قیمت مشترک">' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-lg-2 col-md-3 col-12">' +
+                '<div class="form-group mb-md-0">' +
+                    '<label>موجودی متفاوت</label>' +
+                    '<input type="number" min="0" class="form-control bulk-exception-stock" placeholder="موجودی مشترک">' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-lg-3 col-md-8 col-12">' +
+                '<div class="form-group mb-md-0">' +
+                    '<label>کد متغیر متفاوت</label>' +
+                    '<input type="text" class="form-control bulk-exception-code" dir="ltr" placeholder="اختیاری">' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-lg-2 col-md-4 col-12">' +
+                '<button type="button" class="btn btn-flat-danger btn-block remove-bulk-price-exception">حذف</button>' +
+            '</div>' +
+        '</div>'
+    );
+
+    $('#bulk-price-exceptions').append(row);
+    refreshBulkExceptionSelect(row.find('.bulk-exception-model'));
+}
+
+function getBulkPriceExceptions() {
+    var exceptions = {};
+    var isValid = true;
+
+    $('#bulk-price-exceptions .bulk-price-exception-row').each(function () {
+        var row = $(this);
+        var modelId = row.find('.bulk-exception-model').val();
+        var price = String(row.find('.bulk-exception-price').val() || '').trim();
+        var stock = String(row.find('.bulk-exception-stock').val() || '').trim();
+        var code = String(row.find('.bulk-exception-code').val() || '').trim();
+
+        if (!modelId) {
+            bulkPriceNotify('برای تمام ردیف‌های استثنا یک مدل انتخاب کنید.');
+            isValid = false;
+            return false;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(exceptions, modelId)) {
+            bulkPriceNotify('هر مدل فقط یک‌بار می‌تواند در استثناها ثبت شود.');
+            isValid = false;
+            return false;
+        }
+
+        if (price === '' && stock === '' && code === '') {
+            bulkPriceNotify('برای مدل استثنا حداقل قیمت، موجودی یا کد متغیر متفاوت وارد کنید.');
+            isValid = false;
+            return false;
+        }
+
+        exceptions[String(modelId)] = {
+            price: price,
+            stock: stock,
+            code: code
+        };
+    });
+
+    return isValid ? exceptions : null;
+}
+
+function normalizeBulkModelName(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ');
+}
+
+function parseBulkExternalStockCodes(models) {
+    var raw = String($('#bulk-external-stock-codes').val() || '').trim();
+    var result = {};
+
+    if (!raw) {
+        return result;
+    }
+
+    var lines = raw
+        .split(/\r?\n/)
+        .map(function (line) { return line.trim(); })
+        .filter(Boolean);
+
+    var sequentialCodes = [];
+
+    lines.forEach(function (line) {
+        var parts = line.split(/\s*(?:\||=|\t)\s*/, 2);
+
+        if (parts.length === 2 && parts[0] && parts[1]) {
+            result[normalizeBulkModelName(parts[0])] = parts[1].trim();
+        } else {
+            sequentialCodes.push(line);
+        }
+    });
+
+    if (sequentialCodes.length) {
+        models.forEach(function (model, index) {
+            if (sequentialCodes[index]) {
+                result[String(model.id)] = sequentialCodes[index];
+            }
+        });
+    }
+
+    return result;
+}
+
+function findExactBulkPriceRow(groupId, attributeId) {
+    var matchedRow = null;
+
+    $('#product-prices-div .single-price').each(function () {
+        var row = $(this);
+        var selects = row.find('select.price-attribute-select');
+        var target = selects.filter('[data-group-id="' + groupId + '"]');
+
+        if (!target.length || String(target.val() || '') !== String(attributeId)) {
+            return;
+        }
+
+        var hasAnotherAttribute = false;
+
+        selects.not(target).each(function () {
+            if ($(this).val()) {
+                hasAnotherAttribute = true;
+                return false;
+            }
+        });
+
+        if (!hasAnotherAttribute) {
+            matchedRow = row;
+            return false;
+        }
+    });
+
+    return matchedRow;
+}
+
+function removeCompletelyEmptyPriceRows() {
+    $('#product-prices-div .single-price').each(function () {
+        var row = $(this);
+        var hasAttribute = false;
+
+        row.find('select.price-attribute-select').each(function () {
+            if ($(this).val()) {
+                hasAttribute = true;
+                return false;
+            }
+        });
+
+        if (
+            !hasAttribute &&
+            !row.find('.price').val() &&
+            !row.find('.stock').val() &&
+            !row.find('.discount').val()
+        ) {
+            row.remove();
+        }
+    });
+}
+
+function fillBulkPriceRow(row, groupId, attributeId, values) {
+    var target = row.find(
+        'select.price-attribute-select[data-group-id="' + groupId + '"]'
+    );
+
+    if (!target.length) {
+        return false;
+    }
+
+    target.val(String(attributeId)).trigger('change');
+    row.find('.price').val(values.price);
+    row.find('.discount').val(values.discount);
+    row.find('.stock').val(values.stock);
+    row.find('.cart_min').val(values.cartMin);
+    row.find('.cart_max').val(values.cartMax);
+    row.find('.external-stock-code').val(values.externalStockCode || '');
+    row.find('.stock-sync-enabled').prop(
+        'checked',
+        Boolean(values.stockSyncEnabled && values.externalStockCode)
+    );
+    row.find('.price').trigger('keyup');
+
+    return true;
+}
+
+$('#bulk-price-group').on('change', function () {
+    var group = getBulkPriceGroup($(this).val());
+    var modelsSelect = $('#bulk-price-models');
+
+    modelsSelect.val(null).empty();
+    $('#bulk-price-exceptions').empty();
+
+    if (group) {
+        group.attributes.forEach(function (attribute) {
+            $('<option>')
+                .val(attribute.id)
+                .text(attribute.name)
+                .appendTo(modelsSelect);
+        });
+    }
+
+    modelsSelect.trigger('change');
+    updateBulkModelCounter();
+    setBulkPriceControlsState();
+});
+
+$('#bulk-price-models').on('change', function () {
+    updateBulkModelCounter();
+    setBulkPriceControlsState();
+    refreshAllBulkExceptionSelects();
+});
+
+$('#bulk-price-select-all').on('click', function () {
+    var ids = $('#bulk-price-models option')
+        .map(function () {
+            return $(this).val();
+        })
+        .get();
+
+    $('#bulk-price-models').val(ids).trigger('change');
+});
+
+$('#bulk-price-clear-models').on('click', function () {
+    $('#bulk-price-models').val(null).trigger('change');
+    $('#bulk-price-exceptions').empty();
+});
+
+$('#bulk-add-price-exception').on('click', function () {
+    addBulkPriceException();
+});
+
+$(document).on('click', '.remove-bulk-price-exception', function () {
+    var row = $(this).closest('.bulk-price-exception-row');
+
+    if (row.find('.bulk-exception-model').hasClass('select2-hidden-accessible')) {
+        row.find('.bulk-exception-model').select2('destroy');
+    }
+
+    row.remove();
+});
+
+$('#bulk-generate-prices').on('click', function () {
+    var groupId = $('#bulk-price-group').val();
+    var modelIds = $('#bulk-price-models').val() || [];
+    var defaultPrice = String($('#bulk-default-price').val() || '').trim();
+    var defaultStock = String($('#bulk-default-stock').val() || '').trim();
+    var defaultDiscount = String($('#bulk-default-discount').val() || '').trim();
+    var defaultCartMin = String($('#bulk-default-cart-min').val() || '').trim();
+    var defaultCartMax = String($('#bulk-default-cart-max').val() || '').trim();
+
+    if (!groupId) {
+        bulkPriceNotify('گروه مدل را انتخاب کنید.');
+        return;
+    }
+
+    if (!modelIds.length) {
+        bulkPriceNotify('حداقل یک مدل را انتخاب کنید.');
+        return;
+    }
+
+    if (defaultPrice === '') {
+        bulkPriceNotify('قیمت مشترک را وارد کنید.');
+        return;
+    }
+
+    if (defaultStock === '') {
+        bulkPriceNotify('موجودی مشترک را وارد کنید.');
+        return;
+    }
+
+    if (
+        defaultCartMin !== '' &&
+        defaultCartMax !== '' &&
+        Number(defaultCartMin) > Number(defaultCartMax)
+    ) {
+        bulkPriceNotify('حداقل سفارش نمی‌تواند بیشتر از حداکثر سفارش باشد.');
+        return;
+    }
+
+    var exceptions = getBulkPriceExceptions();
+    var selectedModels = getSelectedBulkModels();
+    var externalStockCodes = parseBulkExternalStockCodes(selectedModels);
+    var enableStockSync = $('#bulk-stock-sync-enabled').is(':checked');
+
+    if (exceptions === null) {
+        return;
+    }
+
+    removeCompletelyEmptyPriceRows();
+
+    var createdCount = 0;
+    var updatedCount = 0;
+    var newRows = [];
+
+    modelIds.forEach(function (modelId) {
+        var row = findExactBulkPriceRow(groupId, modelId);
+        var exception = exceptions[String(modelId)] || {};
+        var selectedModel = selectedModels.find(function (model) {
+            return String(model.id) === String(modelId);
+        });
+        var mappedCode = externalStockCodes[String(modelId)] ||
+            externalStockCodes[normalizeBulkModelName(selectedModel ? selectedModel.name : '')] ||
+            '';
+        var externalStockCode = exception.code !== undefined && exception.code !== ''
+            ? exception.code
+            : mappedCode;
+        var values = {
+            price: exception.price !== undefined && exception.price !== ''
+                ? exception.price
+                : defaultPrice,
+            stock: exception.stock !== undefined && exception.stock !== ''
+                ? exception.stock
+                : defaultStock,
+            discount: defaultDiscount,
+            cartMin: defaultCartMin,
+            cartMax: defaultCartMax,
+            externalStockCode: externalStockCode,
+            stockSyncEnabled: enableStockSync
+        };
+
+        if (row && row.length) {
+            updatedCount++;
+        } else {
+            row = addProductPrice(false, false);
+            newRows.push(row);
+            createdCount++;
+        }
+
+        fillBulkPriceRow(row, groupId, modelId, values);
+    });
+
+    newRows.forEach(function (row) {
+        row.find('select.select2').select2({
+            rtl: true,
+            width: '100%'
+        });
+    });
+
+    if (typeof setColorsImage === 'function') {
+        setColorsImage();
+    }
+
+    bulkPriceNotify(
+        createdCount +
+            ' مدل ساخته شد و ' +
+            updatedCount +
+            ' مدل قبلی به‌روزرسانی شد. برای ذخیره نهایی، محصول را ثبت کنید.',
+        'success'
+    );
+});
+
+updateBulkModelCounter();
+setBulkPriceControlsState();
 
 //------------ generate slug
 

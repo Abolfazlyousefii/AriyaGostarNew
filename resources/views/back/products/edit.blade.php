@@ -214,6 +214,8 @@
                                                                 </div>
                                                             </div>
 
+                                                            @include('back.products.partials.bulk-prices-builder')
+
                                                             <div id="product-prices-div" class="product-prices-div">
                                                                 @if ($product->isPhysical())
                                                                     @foreach ($product->prices as $price)
@@ -587,6 +589,6 @@
         var sizesCount = {{ $product->sizes()->count() }};
     </script>
 
-    <script src="{{ asset('back/assets/js/pages/products/all.js') }}?v=13"></script>
+    <script src="{{ asset('back/assets/js/pages/products/all.js') }}?v=16"></script>
     <script src="{{ asset('back/assets/js/pages/products/edit.js') }}?v=8"></script>
 @endpush

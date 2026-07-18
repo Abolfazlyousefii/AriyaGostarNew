@@ -53,6 +53,15 @@ class Kernel extends ConsoleKernel
         // update torob prices
         $schedule->command('torob:update')->everyThirtyMinutes();
 
+        // synchronize API-managed variant stock after a real provider is connected
+        if (config('warehouse-inventory.enabled', false)) {
+            $minutes = min(59, max(1, (int) config('warehouse-inventory.sync_every_minutes', 10)));
+
+            $schedule->command('warehouse:sync-stock')
+                ->cron("*/{$minutes} * * * *")
+                ->withoutOverlapping();
+        }
+
         $schedule->call(function () {
             option_update('schedule_run', now());
         })->everyMinute();

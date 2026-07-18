@@ -1,0 +1,652 @@
+.aria-product-info-block {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.aria-product-main-row {
+    align-items: stretch;
+}
+
+.aria-product-model-column,
+.aria-product-purchase-column {
+    min-width: 0;
+}
+
+.aria-product-model-column {
+    padding: 0 22px;
+    border-left: 1px solid #edf0f3;
+}
+
+.aria-product-title {
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.aria-product-title h1 {
+    margin: 0;
+    color: #252d39;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.7;
+}
+
+.aria-product-title h3 {
+    margin: 4px 0 0;
+    color: #9a9fa6;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.aria-product-category {
+    margin: 6px 0 0;
+    color: #a0a6ad;
+    font-size: 11px;
+}
+
+.aria-variant-panel {
+    width: 100%;
+}
+
+.aria-stock-summary {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) minmax(125px, auto);
+    align-items: center;
+    gap: 10px;
+    min-height: 64px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border: 1px solid #dfe7ef;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.aria-stock-summary.is-available {
+    border-color: #bfe8d0;
+    background: #f3fbf6;
+}
+
+.aria-stock-summary.is-unavailable {
+    border-color: #f0c8c8;
+    background: #fff6f6;
+}
+
+.aria-stock-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff;
+    color: #22a663;
+    font-size: 22px;
+    box-shadow: 0 3px 10px rgba(20, 35, 55, 0.07);
+}
+
+.aria-stock-summary.is-unavailable .aria-stock-icon {
+    color: #d64c4c;
+}
+
+.aria-stock-copy,
+.aria-stock-selected-model {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.aria-stock-label,
+.aria-stock-selected-model span,
+.aria-purchase-selected-model span {
+    margin-bottom: 3px;
+    color: #818992;
+    font-size: 10px;
+}
+
+.aria-stock-copy strong {
+    color: #1e9658;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.aria-stock-summary.is-unavailable .aria-stock-copy strong {
+    color: #ca4242;
+}
+
+.aria-stock-selected-model {
+    padding-right: 12px;
+    border-right: 1px solid #dfe7ef;
+}
+
+.aria-stock-selected-model strong {
+    overflow: hidden;
+    color: #263442;
+    font-size: 12px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aria-variant-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.aria-variant-panel-header h2 {
+    margin: 0 0 3px;
+    color: #25313e;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.aria-variant-panel-header p {
+    margin: 0;
+    color: #858e98;
+    font-size: 10px;
+    line-height: 1.8;
+}
+
+.aria-variant-count {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border-radius: 18px;
+    background: #edf5ff;
+    color: var(--primary-color);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.aria-variant-search-wrap {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.aria-variant-search-wrap i {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    z-index: 2;
+    color: #99a2ab;
+    font-size: 18px;
+    transform: translateY(-50%);
+}
+
+.aria-variant-search {
+    width: 100%;
+    height: 38px;
+    padding: 0 38px 0 10px;
+    border: 1px solid #dfe5eb;
+    border-radius: 7px;
+    background: #fafbfd;
+    color: #283440;
+    font-size: 11px;
+    outline: none;
+}
+
+.aria-variant-search:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 148, 216, 0.07);
+}
+
+.aria-variant-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 330px;
+    overflow-y: auto;
+    padding: 2px 0 2px 3px;
+    scrollbar-width: thin;
+    scrollbar-color: #c8d0d8 transparent;
+}
+
+.aria-variant-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 9px;
+    border: 1px solid #dfe4e9;
+    border-radius: 7px;
+    background: #fff;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aria-variant-row:hover {
+    border-color: #aebdcb;
+}
+
+.aria-variant-row.is-active {
+    border-color: var(--primary-color);
+    background: #f5faff;
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.aria-variant-row.is-unavailable {
+    position: relative;
+    opacity: 0.58;
+    background: #f6f7f8;
+}
+
+.aria-variant-row.is-unavailable::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    left: 8px;
+    height: 1px;
+    background: #df5660;
+    transform: rotate(-9deg);
+    pointer-events: none;
+}
+
+.aria-variant-main {
+    display: grid;
+    grid-template-columns: 17px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.aria-variant-row.is-unavailable .aria-variant-main {
+    cursor: not-allowed;
+}
+
+.aria-variant-radio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.aria-variant-radio-ui {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: block;
+    border: 1px solid #b6c0ca;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.aria-variant-radio:checked + .aria-variant-radio-ui {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    box-shadow: inset 0 0 0 4px #fff;
+}
+
+.aria-variant-name-wrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.aria-variant-name {
+    overflow: hidden;
+    color: #25313e;
+    font-size: 11px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aria-variant-stock-inline {
+    margin-top: 3px;
+    color: #24905a;
+    font-size: 9px;
+}
+
+.aria-variant-row.is-unavailable .aria-variant-stock-inline {
+    color: #c44b4b;
+}
+
+.aria-variant-price-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+}
+
+.aria-variant-price-inline strong {
+    color: #e43a54;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.aria-variant-price-inline small {
+    color: #929aa3;
+    font-size: 8px;
+}
+
+.aria-variant-bulk-quantity {
+    display: grid;
+    grid-template-columns: 28px 1fr 28px;
+    align-items: center;
+    overflow: hidden;
+    height: 30px;
+    border: 1px solid #e0e5ea;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.aria-variant-bulk-quantity.is-disabled {
+    pointer-events: none;
+}
+
+.aria-variant-qty-btn {
+    height: 28px;
+    border: 0;
+    background: #f3f5f7;
+    color: #354251;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.aria-variant-quantity {
+    width: 100%;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: #fff;
+    color: #263442;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.aria-variant-quantity::-webkit-outer-spin-button,
+.aria-variant-quantity::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.aria-bulk-cart-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #edf0f3;
+}
+
+.aria-bulk-summary {
+    display: flex;
+    flex-direction: column;
+}
+
+.aria-bulk-summary span {
+    color: #89919a;
+    font-size: 9px;
+}
+
+.aria-bulk-summary strong {
+    margin-top: 3px;
+    color: #293744;
+    font-size: 11px;
+}
+
+.aria-add-selected-variants {
+    min-width: 175px;
+    min-height: 38px;
+    border: 0;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 10px;
+}
+
+.aria-add-selected-variants:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.aria-product-purchase-column {
+    padding-right: 18px;
+    padding-left: 5px;
+}
+
+.aria-product-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.aria-purchase-card {
+    overflow: hidden;
+    width: 100%;
+    margin-top: 0;
+    padding: 0;
+    border: 1px solid #dfe4e9;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: none;
+}
+
+.aria-purchase-card-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 48px;
+    padding: 0 15px;
+    border-bottom: 1px solid #edf0f3;
+    color: #263442;
+    font-size: 13px;
+}
+
+.aria-purchase-card-header i {
+    color: var(--primary-color);
+    font-size: 21px;
+}
+
+.aria-purchase-card-body {
+    padding: 15px;
+}
+
+.aria-purchase-selected-model {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 11px;
+    border: 1px solid #e4e9ee;
+    border-radius: 6px;
+    background: #fafbfc;
+}
+
+.aria-purchase-selected-model strong {
+    overflow: hidden;
+    color: #263442;
+    font-size: 12px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aria-price-section {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #edf0f3;
+}
+
+.aria-price-label {
+    color: #56616c;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.aria-price-values {
+    min-width: 0;
+    text-align: left;
+}
+
+.aria-regular-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.aria-regular-price-row del {
+    color: #979fa8;
+    font-size: 10px;
+}
+
+.aria-sale-price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.aria-sale-price-row .price {
+    font-size: 20px;
+    font-weight: 750;
+}
+
+.aria-sale-price-row .currency {
+    color: #757e87;
+    font-size: 9px;
+}
+
+.aria-purchase-quantity-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.aria-purchase-quantity-row > div:first-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.aria-quantity-label {
+    color: #434e59;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.aria-purchase-quantity-row small {
+    margin-top: 2px;
+    color: #9299a1;
+    font-size: 9px;
+}
+
+.aria-main-quantity-input {
+    border: 1px solid #e0e5ea;
+    border-radius: 6px;
+}
+
+.aria-single-add-to-cart {
+    min-height: 42px;
+    margin: 0 !important;
+    border-radius: 6px;
+}
+
+.aria-single-stock-summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 52px;
+    margin-top: 28px;
+    border: 1px solid #dfe7ef;
+    border-radius: 7px;
+    color: #1e9658;
+    background: #f3fbf6;
+    font-size: 12px;
+}
+
+.aria-single-stock-summary.is-unavailable {
+    border-color: #f0c8c8;
+    color: #ca4242;
+    background: #fff6f6;
+}
+
+@media (max-width: 1199.98px) {
+    .aria-product-model-column {
+        padding: 0 14px;
+    }
+
+    .aria-product-purchase-column {
+        padding-right: 12px;
+    }
+
+    .aria-variant-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .aria-product-model-column {
+        padding-right: 15px;
+        padding-left: 15px;
+        border-left: 0;
+    }
+
+    .aria-product-purchase-column {
+        margin-top: 18px !important;
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .aria-product-title {
+        margin-top: 10px;
+    }
+
+    .aria-stock-summary {
+        grid-template-columns: 38px minmax(0, 1fr);
+    }
+
+    .aria-stock-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 19px;
+    }
+
+    .aria-stock-selected-model {
+        grid-column: 1 / -1;
+        padding-top: 9px;
+        padding-right: 0;
+        border-top: 1px solid #dfe7ef;
+        border-right: 0;
+    }
+
+    .aria-variant-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-height: 390px;
+    }
+
+    .aria-bulk-cart-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .aria-add-selected-variants {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .aria-variant-list {
+        grid-template-columns: 1fr;
+    }
+
+    .aria-product-title h1 {
+        font-size: 18px;
+    }
+}

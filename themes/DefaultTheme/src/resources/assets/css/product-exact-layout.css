@@ -1,0 +1,683 @@
+/* Exact product layout based on the supplied reference */
+.aex-product-stage {
+    position: relative;
+    overflow: visible;
+    padding: 22px 18px 18px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 2px 14px rgba(30, 45, 70, 0.05);
+}
+
+.aex-gallery-column,
+.aex-product-info-block {
+    min-height: 510px;
+}
+
+.aex-gallery-column {
+    position: relative;
+    padding: 0 14px 0 8px;
+}
+
+.aex-product-badge {
+    position: absolute;
+    top: 0;
+    right: 12px;
+    z-index: 5;
+    padding: 6px 11px;
+    color: #fff;
+    background: #149cf1;
+    font-size: 12px;
+}
+
+.aex-product-badge--unavailable {
+    background: #8b929a;
+}
+
+.aex-product-gallery {
+    width: 100%;
+    padding-top: 5px;
+}
+
+.aex-gallery-shell {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 20px;
+    direction: rtl;
+    align-items: stretch;
+    min-height: 450px;
+}
+
+.aex-gallery-thumbs {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 438px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px 3px 2px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #149cf1 #edf1f5;
+}
+
+.aex-gallery-thumbs::-webkit-scrollbar {
+    width: 5px;
+}
+
+.aex-gallery-thumbs::-webkit-scrollbar-track {
+    background: #edf1f5;
+    border-radius: 20px;
+}
+
+.aex-gallery-thumbs::-webkit-scrollbar-thumb {
+    background: #149cf1;
+    border-radius: 20px;
+}
+
+.aex-gallery-thumb {
+    flex: 0 0 72px;
+    width: 68px;
+    height: 72px;
+    padding: 3px;
+    border: 1px solid #edf0f3;
+    border-radius: 5px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.aex-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.aex-gallery-thumb:hover,
+.aex-gallery-thumb.is-active {
+    border-color: #149cf1;
+    box-shadow: 0 0 0 1px #149cf1;
+}
+
+.aex-gallery-main {
+    grid-column: 2;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.aex-gallery-main-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 398px;
+    padding: 12px;
+    background: #fff;
+}
+
+.aex-gallery-main-link img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.aex-gallery-dots {
+    display: flex;
+    direction: rtl;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 24px;
+    margin-top: 4px;
+}
+
+.aex-gallery-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #c8c8c8;
+    cursor: pointer;
+}
+
+.aex-gallery-dot.is-active {
+    background: #149cf1;
+}
+
+.aex-product-gallery--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 430px;
+}
+
+.aex-product-gallery--empty img {
+    width: 75%;
+    max-height: 380px;
+    object-fit: contain;
+}
+
+.aex-product-info-block {
+    padding: 0;
+}
+
+.aex-product-info,
+.aex-product-info-row {
+    height: 100%;
+}
+
+.aex-product-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 30px 24px;
+    border-left: 1px solid #f0f0f0;
+}
+
+.aex-product-header {
+    width: 100%;
+    text-align: center;
+}
+
+.aex-product-header h1 {
+    margin: 0;
+    color: #2d2d31;
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.8;
+    white-space: normal;
+}
+
+.aex-product-header h1::before {
+    display: none !important;
+}
+
+.aex-product-subtitle {
+    min-height: 25px;
+    margin-top: 1px;
+    color: #a2a2a2;
+    font-size: 14px;
+}
+
+.aex-product-subtitle a {
+    color: inherit;
+}
+
+.aex-subtitle-separator {
+    display: inline-block;
+    margin: 0 2px;
+}
+
+.aex-product-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 14px;
+}
+
+.aex-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 31px;
+    height: 31px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #4a4a4a;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.aex-action-button:hover,
+.aex-action-button.favorites {
+    color: #149cf1;
+}
+
+.aex-variants-area {
+    width: 100%;
+    margin-top: 17px;
+}
+
+.aex-product-variant {
+    width: 100%;
+    margin: 0 0 12px;
+    color: #333;
+    text-align: center;
+}
+
+.aex-product-variant::after {
+    display: none !important;
+}
+
+.aex-variant-title {
+    margin-bottom: 10px;
+    color: #202029;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.aex-product-variants {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    float: none !important;
+    margin: 0 !important;
+    padding: 0;
+}
+
+.aex-product-variants li {
+    margin: 0 !important;
+}
+
+.aex-variant-label {
+    display: block;
+    cursor: pointer;
+}
+
+.aex-variant-check {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 86px;
+    min-height: 38px;
+    padding: 7px 13px;
+    border: 1px solid #303841;
+    border-radius: 0;
+    background: #fff;
+    color: #303841;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: none;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.aex-variant-item input[type='radio']:checked + .aex-variant-check {
+    color: #fff;
+    background: #26343c;
+    border-color: #26343c;
+}
+
+.aex-variant-item input[type='radio']:checked + .aex-variant-check::after {
+    display: none;
+}
+
+.aex-variant-item.unavailable {
+    opacity: 1;
+}
+
+.aex-variant-item.unavailable .aex-variant-check {
+    color: #aaa;
+    border-color: #aeb4ba;
+    cursor: not-allowed;
+    overflow: hidden;
+}
+
+.aex-variant-item.unavailable .aex-variant-check::before,
+.aex-variant-item.unavailable .aex-variant-check::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -8%;
+    width: 116%;
+    height: 1px;
+    background: #f14f5f;
+    z-index: 2;
+}
+
+.aex-variant-item.unavailable .aex-variant-check::before {
+    transform: rotate(12deg);
+}
+
+.aex-variant-item.unavailable .aex-variant-check::after {
+    transform: rotate(-12deg);
+}
+
+.aex-color-variant .aex-variant-check {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.aex-color-shape {
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 !important;
+    border: 2px solid #fff !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 1px #c6cbd0;
+}
+
+.aex-color-variant input[type='radio']:checked ~ .aex-variant-check,
+.aex-color-variant input[type='radio']:checked + .aex-variant-check {
+    background: transparent;
+}
+
+.aex-stock-status {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 7px;
+    color: #27ad49;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.aex-stock-status strong {
+    color: #1671d9;
+    font-weight: 800;
+}
+
+.aex-stock-status--empty {
+    color: #df3447;
+}
+
+.aex-buy-column {
+    display: flex;
+    align-items: center;
+    padding: 26px 16px 24px 4px;
+}
+
+.aex-buy-card {
+    width: 100%;
+    min-height: 278px;
+    padding: 18px 20px 17px;
+    border: 1px solid #cfd3d7;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.aex-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 13px;
+}
+
+.aex-labels span {
+    padding: 3px 8px;
+    color: #1671d9;
+    background: #edf6ff;
+    font-size: 11px;
+}
+
+.aex-selected-variant {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid #eceff2;
+    color: #656a70;
+    font-size: 12px;
+}
+
+.aex-selected-variant strong {
+    color: #20262c;
+    text-align: left;
+    font-size: 13px;
+}
+
+.aex-buy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 18px;
+}
+
+.aex-buy-row-label,
+.aex-price-label {
+    color: #292d32;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.aex-number-input {
+    display: flex;
+    width: 134px;
+    height: 42px;
+    border: 5px solid #f0f0f0;
+    border-radius: 7px;
+    overflow: hidden;
+}
+
+.aex-number-input button,
+.aex-number-input input {
+    height: 32px !important;
+}
+
+.aex-number-input button {
+    width: 36px;
+    background: #fff;
+}
+
+.aex-number-input input {
+    width: 62px;
+    border: 0;
+    text-align: center;
+}
+
+.aex-price-area {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 23px;
+}
+
+.aex-price-values {
+    text-align: left;
+}
+
+.aex-price-discount-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    margin-bottom: 4px;
+    color: #999;
+    font-size: 12px;
+}
+
+.aex-discount-badge {
+    padding: 2px 7px;
+    border-radius: 12px;
+    color: #fff;
+    background: #ef4056;
+}
+
+.aex-final-price {
+    color: #ef304d;
+    white-space: nowrap;
+}
+
+.aex-final-price .price {
+    color: inherit;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.aex-final-price .currency {
+    margin-right: 3px;
+    color: #666;
+    font-size: 12px;
+}
+
+.aex-add-to-cart,
+.aex-login-price-button,
+.aex-stock-notify-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 45px;
+    margin-top: 18px;
+    border: 0;
+    color: #fff !important;
+    background: #149cf1;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+}
+
+.aex-add-to-cart:hover,
+.aex-login-price-button:hover,
+.aex-stock-notify-button:hover {
+    color: #fff !important;
+    background: #078ce0;
+}
+
+.aex-login-price-note {
+    margin-bottom: 8px;
+    color: #5e6268;
+    font-size: 13px;
+    line-height: 2;
+    text-align: center;
+}
+
+.aex-unavailable-box {
+    color: #686d73;
+    text-align: center;
+}
+
+.aex-unavailable-box strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #34393e;
+    font-size: 16px;
+}
+
+.aex-unavailable-box p {
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+@media (max-width: 1199.98px) {
+    .aex-gallery-shell {
+        grid-template-columns: 66px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .aex-gallery-thumb {
+        width: 60px;
+        height: 64px;
+    }
+
+    .aex-product-center {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .aex-variant-check {
+        min-width: 75px;
+        padding-right: 9px;
+        padding-left: 9px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .aex-product-stage {
+        padding: 16px;
+    }
+
+    .aex-gallery-column,
+    .aex-product-info-block {
+        min-height: auto;
+    }
+
+    .aex-gallery-column {
+        padding: 0 0 20px;
+    }
+
+    .aex-gallery-shell {
+        min-height: 400px;
+    }
+
+    .aex-gallery-main-link {
+        height: 350px;
+    }
+
+    .aex-product-center {
+        border-left: 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .aex-buy-column {
+        padding: 22px 0 0;
+    }
+
+    .aex-buy-card {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .aex-product-stage {
+        padding: 12px;
+    }
+
+    .aex-gallery-shell {
+        display: flex;
+        flex-direction: column-reverse;
+        min-height: auto;
+    }
+
+    .aex-gallery-main-link {
+        height: 310px;
+        padding: 4px;
+    }
+
+    .aex-gallery-thumbs {
+        flex-direction: row;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 4px 1px 8px;
+    }
+
+    .aex-gallery-thumb {
+        flex: 0 0 61px;
+        width: 61px;
+        height: 62px;
+    }
+
+    .aex-product-center {
+        padding: 16px 4px 22px;
+    }
+
+    .aex-product-header h1 {
+        font-size: 19px;
+    }
+
+    .aex-product-variants {
+        gap: 6px;
+    }
+
+    .aex-variant-check {
+        min-width: 69px;
+        min-height: 36px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .aex-buy-card {
+        min-height: auto;
+        padding: 16px;
+    }
+}
