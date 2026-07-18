@@ -22,10 +22,12 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         // InstallCommand::class
         Commands\GenerateSitemap::class,
+        Commands\InventoryCatalogReconcile::class,
     ];
 
     // define your queues here in order of priority
     protected $queues = [
+        'integrations',
         'default',
     ];
 
@@ -52,6 +54,10 @@ class Kernel extends ConsoleKernel
 
         // update torob prices
         $schedule->command('torob:update')->everyThirtyMinutes();
+
+        if (config('inventory.enabled', false)) {
+            $schedule->command('inventory:catalog:reconcile')->dailyAt('02:00')->withoutOverlapping();
+        }
 
         // synchronize API-managed variant stock after a real provider is connected
         if (config('warehouse-inventory.enabled', false)) {

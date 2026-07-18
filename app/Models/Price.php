@@ -17,6 +17,8 @@ class Price extends Model
     protected $casts = [
         'stock_sync_enabled' => 'boolean',
         'stock_synced_at' => 'datetime',
+        'inventory_updated_at' => 'datetime',
+        'inventory_disabled' => 'boolean',
     ];
 
     public function product()
