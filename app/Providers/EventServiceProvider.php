@@ -29,10 +29,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\OrderCreated' => [
             'App\Listeners\OrderCreated\SaveAddress',
             'App\Listeners\OrderCreated\ChangePrices',
+            'App\Listeners\CreateInventoryOrderOutboxEvent',
         ],
 
         'App\Events\OrderPaid' => [
             'App\Listeners\OrderPaid',
+            'App\Listeners\CreateInventoryOrderOutboxEvent',
         ],
 
         'App\Events\WalletAmountIncreased' => [

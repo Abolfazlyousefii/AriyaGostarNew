@@ -12,6 +12,10 @@ class Order extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'inventory_synced_at' => 'datetime',
+    ];
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
