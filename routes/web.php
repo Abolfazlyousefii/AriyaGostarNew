@@ -5,6 +5,7 @@ use App\Http\Controllers\Back\ProvinceController;
 use App\Http\Controllers\Back\MainController;
 use App\Http\Controllers\Back\UserController;
 use App\Http\Controllers\Back\ProductController;
+use App\Http\Controllers\Back\ProductCodeController;
 use App\Http\Controllers\Back\BrandController;
 use App\Http\Controllers\Back\FilterController;
 use App\Http\Controllers\Back\AttributeGroupController;
@@ -126,6 +127,11 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin/' . admin_route_prefix(), 'mi
     Route::post('product/torobUpload', [ProductController::class, 'torobUpload'])->name('product.torobUpload');
     Route::get('product/prices', [ProductController::class, 'indexPrices'])->name('product.prices.index');
     Route::put('product/prices', [ProductController::class, 'updatePrices'])->name('product.prices.update');
+
+    // ------------------ warehouse product codes
+    Route::get('product-codes', [ProductCodeController::class, 'index'])->name('product-codes.index');
+    Route::put('product-codes/{product}', [ProductCodeController::class, 'update'])->name('product-codes.update');
+    Route::get('product-codes-export', [ProductCodeController::class, 'export'])->name('product-codes.export');
 
     // ------------------ prices
     Route::get('prices', [PriceController::class, 'index'])->name('prices.index');

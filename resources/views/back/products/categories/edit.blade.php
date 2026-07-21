@@ -17,6 +17,23 @@
         </fieldset>
     </div>
     <div class="col-md-6">
+        <fieldset class="form-group">
+            <label>آیکن مگامنو</label>
+            <div class="custom-file">
+                <input id="menu_icon" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" name="menu_icon" class="custom-file-input">
+                <label class="custom-file-label" for="menu_icon">انتخاب آیکن</label>
+            </div>
+            <small class="text-muted d-block mt-50">پیشنهاد: PNG یا WebP شفاف، 64×64 پیکسل</small>
+            @if($category->menu_icon)
+                <div class="mt-1 d-flex align-items-center">
+                    <img src="{{ asset($category->menu_icon) }}" alt="آیکن فعلی {{ $category->title }}" width="48" height="48" style="object-fit:contain;border:1px solid #eee;border-radius:8px;padding:4px;">
+                    <span class="text-muted mr-1">آیکن فعلی</span>
+                </div>
+            @endif
+        </fieldset>
+    </div>
+
+    <div class="col-md-6">
         <div class="row">
             <div class="col-md-6">
                 <fieldset class="form-group">

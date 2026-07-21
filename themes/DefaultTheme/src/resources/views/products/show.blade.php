@@ -19,7 +19,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ theme_asset('css/vendor/fancybox.min.css') }}">
-    <link rel="stylesheet" href="{{ theme_asset('css/product-exact-layout.css') }}?v=2">
+    <link rel="stylesheet" href="{{ theme_asset('css/product-exact-layout.css') }}?v=6">
 @endpush
 
 @section('content')
@@ -346,6 +346,6 @@
     <script src="{{ theme_asset('js/vendor/jquery.fancybox.min.js') }}"></script>
     <script src="{{ theme_asset('js/plugins/apexcharts/apexcharts.js') }}"></script>
     <script src="{{ theme_asset('js/pages/products/show.js') }}?v=21"></script>
-    <script src="{{ theme_asset('js/pages/products/product-exact-layout.js') }}?v=2"></script>
+    <script src="{{ theme_asset('js/pages/products/product-exact-layout.js') }}?v=4"></script>
     <script src="{{ theme_asset('js/pages/comments.js') }}"></script>
 @endpush

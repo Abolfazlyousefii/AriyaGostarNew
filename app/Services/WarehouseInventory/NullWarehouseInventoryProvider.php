@@ -6,7 +6,7 @@ use App\Contracts\WarehouseInventoryProvider;
 
 class NullWarehouseInventoryProvider implements WarehouseInventoryProvider
 {
-    public function fetchStocks(array $codes): array
+    public function fetchStocks(array $stockCodes): array
     {
         return [];
     }

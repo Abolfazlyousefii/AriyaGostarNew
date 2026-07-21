@@ -57,6 +57,8 @@
         <link rel="stylesheet" href="{{ mix('css/all.css', config('front.mainfest_path')) }}">
     @endif
 
+    <link rel="stylesheet" href="{{ theme_asset('css/ariya-megamenu.css') }}?v=1">
+
     @if ($current_local['direction'] == 'ltr')
         <link rel="stylesheet" href="{{ theme_asset('css/ltr.css') }}?v=2">
     @endif
@@ -66,7 +68,7 @@
     {!! option('info_header_codes') !!}
 </head>
 
-<body class="has-mobile-bottom-navigation">
+<body>
     <div class="wrapper @yield('wrapper-classes')">
 
 
@@ -88,8 +90,6 @@
                 @endif
             </div>
         @endif
-
-        @include('front::partials.mobile-header')
 
         <!-- Start header -->
         <header class="main-header dt-sl">
@@ -143,9 +143,6 @@
         @yield('content')
 
         @include('front::partials.footer')
-        @include('front::partials.mobile-bottom-navigation')
-        @include('front::partials.mobile-cart')
-        @include('front::partials.mobile-search')
     </div>
 
     <script>
@@ -176,6 +173,8 @@
         <!-- All JS Files -->
         <script src="{{ mix('js/all.js', config('front.mainfest_path')) }}"></script>
     @endif
+
+    <script src="{{ theme_asset('js/ariya-megamenu.js') }}?v=1"></script>
 
     @stack('scripts')
 

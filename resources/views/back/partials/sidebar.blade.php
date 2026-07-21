@@ -116,6 +116,12 @@
                         @endcan
 
                         @can('products.prices')
+                            <li class="{{ active_class('admin.product-codes.index') }}">
+                                <a href="{{ route('admin.product-codes.index') }}"><i class="feather icon-circle"></i><span class="menu-item">کدهای انبار</span></a>
+                            </li>
+                        @endcan
+
+                        @can('products.prices')
                             <li class="{{ active_class('admin.prices.index') }}">
                                 <a href="{{ route('admin.prices.index') }}"><i class="feather icon-circle"></i><span class="menu-item">تغییر قیمت گروهی</span></a>
                             </li>

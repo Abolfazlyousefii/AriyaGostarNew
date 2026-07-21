@@ -17,9 +17,25 @@ class Price extends Model
     protected $casts = [
         'stock_sync_enabled' => 'boolean',
         'stock_synced_at' => 'datetime',
-        'inventory_updated_at' => 'datetime',
-        'inventory_disabled' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::created(function (Price $price) {
+            if (!$price->stock_code) {
+                $price->forceFill([
+                    'stock_code' => self::generateInventoryStockCode($price->id),
+                ])->saveQuietly();
+            }
+        });
+    }
+
+    public static function generateInventoryStockCode(int $id): string
+    {
+        return config('warehouse-inventory.variant_prefix', 'ARY-V-')
+            . str_pad((string) $id, 10, '0', STR_PAD_LEFT);
+    }
+
 
     public function product()
     {
@@ -153,7 +169,7 @@ class Price extends Model
             ];
         }
 
-        if ($this->cart_min !== null && $this->cart_min > $quantity) {
+        if ($this->cart_min !== null && $this->cart_min > $quantity && $this->stock > $quantity) {
             if ($with_attributes) {
                 return [
                     'status'  => false,

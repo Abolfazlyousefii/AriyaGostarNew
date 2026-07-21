@@ -1,46 +1,90 @@
 @switch($menu->static_type)
     @case('products')
         @if($productcats->count())
-            <li class="list-item list-item-has-children position-static ariya-products-menu-item">
-    <a class="nav-link" href="{{ route('front.products.index') }}" style="display: inline-flex; align-items: center; gap: 8px; direction: rtl;">
-    <i class="mdi mdi-menu" style="font-size: 20px; line-height: 1;"></i>
-    <span>{{ $menu->title }}</span>
-    <span style="display: inline-block; width: 1px; height: 14px; background: #cfcfcf; margin-right: 8px;"></span>
-</a>    
+            @once
+                <link rel="stylesheet" href="{{ theme_asset('css/ariya-exact-megamenu.css') }}?v=4">
+            @endonce
 
-                <ul class="f-menu sub-menu nav">
-                    @foreach ($productcats as $category)
-                        <li class="{{ $loop->first ? 'active' : '' }}">
-                            <a class="master-menu" href="{{ $category->link }}">{{ $category->title }}</a>
-                            <div class="megadrop row">
-                                @if ($category->getCategoriesCount())
+            <li class="list-item axm-root" data-axm-root>
+                <a class="nav-link axm-trigger"
+                   href="{{ route('front.products.index') }}"
+                   aria-haspopup="true"
+                   aria-expanded="false">
+                    <span class="axm-trigger-grid" aria-hidden="true">
+                        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                    </span>
+                    <span>{{ $menu->title ?: 'دسته‌بندی کالاها' }}</span>
+                    <i class="mdi mdi-chevron-up axm-trigger-chevron" aria-hidden="true"></i>
+                </a>
 
-                                    @foreach ($category->getCategories() as $childCategory)
-                                        <a href="{{ $childCategory->link }}"><div class="h5">{{ $childCategory->title }}</div></a>
+                <div class="axm-panel" data-axm-panel hidden>
+                    <div class="axm-main">
+                        @foreach($productcats as $category)
+                            @php($children = $category->getCategories())
+                            <section class="axm-pane {{ $loop->first ? 'is-active' : '' }}"
+                                     data-axm-pane="{{ $category->id }}"
+                                     aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
+                                <div class="axm-pane-head">
+                                    <a href="{{ $category->link }}" class="axm-current-category">
+                                        <span>{{ $category->title }}</span>
+                                        <i class="mdi mdi-chevron-left" aria-hidden="true"></i>
+                                    </a>
 
-                                        @if ($childCategory->getCategoriesCount())
+                                    <a href="{{ $category->link }}" class="axm-view-all">
+                                        <i class="mdi mdi-arrow-right" aria-hidden="true"></i>
+                                        <span>مشاهده همه محصولات</span>
+                                    </a>
+                                </div>
 
-                                            @foreach ($childCategory->getCategories() as $child2)
-                                                <a href="{{ $child2->link }}"><div class="h6">{{ $child2->title }}</div></a>
+                                <div class="axm-columns">
+                                    @forelse($children as $childCategory)
+                                        <div class="axm-group">
+                                            <a class="axm-group-title" href="{{ $childCategory->link }}">
+                                                {{ $childCategory->title }}
+                                            </a>
+
+                                            @foreach($childCategory->getCategories() as $child2)
+                                                <a class="axm-child-link" href="{{ $child2->link }}">
+                                                    {{ $child2->title }}
+                                                </a>
                                             @endforeach
+                                        </div>
+                                    @empty
+                                        <div class="axm-empty">هنوز زیر‌دسته‌ای برای این بخش ثبت نشده است.</div>
+                                    @endforelse
+                                </div>
+                            </section>
+                        @endforeach
+                    </div>
 
-                                        @endif
-                                    @endforeach
-
-                                @endif
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
+                    <aside class="axm-sidebar" aria-label="دسته‌های اصلی محصولات">
+                        @foreach($productcats as $category)
+                            <a href="{{ $category->link }}"
+                               class="axm-category {{ $loop->first ? 'is-active' : '' }}"
+                               data-axm-category="{{ $category->id }}">
+                                <span class="axm-category-icon" aria-hidden="true">
+                                    @if(!empty($category->menu_icon))
+                                        <img src="{{ asset($category->menu_icon) }}" alt="" width="32" height="32" loading="lazy">
+                                    @else
+                                        <i class="mdi mdi-view-grid-outline"></i>
+                                    @endif
+                                </span>
+                                <span class="axm-category-title">{{ $category->title }}</span>
+                                <i class="mdi mdi-chevron-left axm-category-chevron" aria-hidden="true"></i>
+                            </a>
+                        @endforeach
+                    </aside>
+                </div>
             </li>
-        @endif
 
+            @once
+                <script src="{{ theme_asset('js/ariya-exact-megamenu.js') }}?v=4" defer></script>
+            @endonce
+        @endif
         @break
 
     @case('posts')
         @if($postcats->count())
-
-            <!-- mega menu 5 column -->
             <li class="list-item list-item-has-children menu-col-1">
                 <a class="nav-link" href="{{ route('front.posts.index') }}">{{ $menu->title }}</a>
                 <ul class="sub-menu nav">
@@ -50,7 +94,5 @@
                 </ul>
             </li>
         @endif
-
         @break
-
 @endswitch

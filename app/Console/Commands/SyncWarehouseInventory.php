@@ -2,42 +2,26 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Price;
 use App\Services\WarehouseInventoryService;
 use Illuminate\Console\Command;
 
 class SyncWarehouseInventory extends Command
 {
-    protected $signature = 'warehouse:sync-stock {--price=* : Sync only the given price IDs}';
+    protected $signature = 'warehouse:sync-stock {--code=* : Sync only the provided stock codes}';
 
-    protected $description = 'Synchronize product-variant stock from the configured warehouse inventory provider';
+    protected $description = 'Sync product variant stock from the configured warehouse provider';
 
     public function handle(WarehouseInventoryService $service): int
     {
-        if (!config('warehouse-inventory.enabled', false)) {
-            $this->warn('Warehouse inventory sync is disabled. Set WAREHOUSE_INVENTORY_ENABLED=true after connecting a provider.');
+        $codes = array_values(array_filter($this->option('code') ?: []));
+        $result = $service->sync($codes ?: null);
+
+        if ($result['status'] === 'disabled') {
+            $this->warn($result['message']);
             return self::SUCCESS;
         }
 
-        $query = Price::query()
-            ->where('stock_sync_enabled', true)
-            ->whereNotNull('external_stock_code')
-            ->where('external_stock_code', '!=', '');
-
-        $priceIds = array_values(array_filter($this->option('price')));
-
-        if ($priceIds) {
-            $query->whereIn('id', $priceIds);
-        }
-
-        $result = $service->sync($query->get());
-
-        $this->info(sprintf(
-            'Updated: %d | Unresolved: %d | Failed: %d',
-            $result['updated'],
-            $result['unresolved'],
-            $result['failed']
-        ));
+        $this->info($result['message']);
 
         return $result['failed'] > 0 ? self::FAILURE : self::SUCCESS;
     }

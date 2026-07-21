@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Cviebrock\EloquentSluggable\Services\SlugService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
@@ -17,7 +18,8 @@ class CategoryController extends Controller
         $this->validate($request, [
             'title' => 'required|string',
             'type'  => 'required|string|in:productcat,postcat',
-            'slug'  => 'nullable|unique:categories,slug',
+            'slug'      => 'nullable|unique:categories,slug',
+            'menu_icon' => 'nullable|image|mimes:png,jpg,jpeg,webp,svg|max:2048',
         ]);
 
         $this->authorizeCategory($request->type);
@@ -28,6 +30,13 @@ class CategoryController extends Controller
             'type'  => $request->type,
             'slug'  => $request->slug ?: $request->title,
         ]);
+
+        if ($request->hasFile('menu_icon')) {
+            $category->menu_icon = $this->storeMenuIcon($request->file('menu_icon'), $category);
+            $category->save();
+        }
+
+        Cache::forget('front.productcats');
 
         return response()->json($category);
     }
@@ -49,8 +58,9 @@ class CategoryController extends Controller
 
         $this->validate($request, [
             'title' => 'required|string',
-            'image' => 'image',
-            'slug'  => "nullable|unique:categories,slug,$category->id",
+            'image'     => 'nullable|image|max:4096',
+            'menu_icon' => 'nullable|image|mimes:png,jpg,jpeg,webp,svg|max:2048',
+            'slug'      => "nullable|unique:categories,slug,$category->id",
         ]);
 
         $category->update([
@@ -90,6 +100,14 @@ class CategoryController extends Controller
             $category->save();
         }
 
+        if ($request->hasFile('menu_icon')) {
+            $this->deleteMenuIcon($category->menu_icon);
+            $category->menu_icon = $this->storeMenuIcon($request->file('menu_icon'), $category);
+            $category->save();
+        }
+
+        Cache::forget('front.productcats');
+
         return response()->json($category);
     }
 
@@ -104,6 +122,7 @@ class CategoryController extends Controller
             if ($child_category->background_image) {
                 Storage::disk('public')->delete($child_category->background_image);
             }
+            $this->deleteMenuIcon($child_category->menu_icon);
             $child_category->menus()->detach();
             $child_category->delete();
         }
@@ -114,8 +133,11 @@ class CategoryController extends Controller
         if ($category->background_image) {
             Storage::disk('public')->delete($category->background_image);
         }
+        $this->deleteMenuIcon($category->menu_icon);
         $category->menus()->detach();
         $category->delete();
+
+        Cache::forget('front.productcats');
 
         toastr()->success('دسته‌بندی با موفقیت حذف شد.');
 
@@ -134,6 +156,7 @@ class CategoryController extends Controller
         $categories = $request->categories;
 
         $this->sort_category($categories);
+        Cache::forget('front.productcats');
 
         return response()->json('success');
     }
@@ -157,6 +180,24 @@ class CategoryController extends Controller
                 $this->authorize('products.category');
                 break;
         }
+    }
+
+    private function storeMenuIcon($file, Category $category): string
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+        $name = uniqid('menu_', true) . '_' . $category->id . '.' . $extension;
+        $file->storeAs('categories/menu-icons', $name);
+
+        return '/uploads/categories/menu-icons/' . $name;
+    }
+
+    private function deleteMenuIcon(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        Storage::disk('public')->delete(ltrim($path, '/'));
     }
 
     public function generate_slug(Request $request)

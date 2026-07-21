@@ -21,6 +21,24 @@ class Product extends Model implements Sitemapable
 
     protected $guarded = ['id'];
 
+    protected static function booted()
+    {
+        static::created(function (Product $product) {
+            if (!$product->product_code) {
+                $product->forceFill([
+                    'product_code' => self::generateInventoryProductCode($product->id),
+                ])->saveQuietly();
+            }
+        });
+    }
+
+    public static function generateInventoryProductCode(int $id): string
+    {
+        return config('warehouse-inventory.product_prefix', 'ARY-P-')
+            . str_pad((string) $id, 8, '0', STR_PAD_LEFT);
+    }
+
+
     public function toSitemapTag(): Url|string|array
     {
         // Return with fine-grained control:

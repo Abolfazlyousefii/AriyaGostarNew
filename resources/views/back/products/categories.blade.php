@@ -41,16 +41,23 @@
                     <div id="main-block" class="card-content">
                         <div class="card-body">
                             <div class="col-12 offset-xl-2">
-                                <form id="create-category" action="{{ route('admin.categories.store') }}" method="POST">
+                                <form id="create-category" action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <div class="form-group">
                                         <div class="row">
                                             <input type="hidden" name="type" value="productcat">
-                                            <div class="col-md-5 col-sm-10 col-10">
-                                                <input id="title" type="text" class="form-control" name="title" placeholder="افزودن دسته‌بندی جدید...">
+                                            <div class="col-md-5 col-sm-12 mb-1 mb-md-0">
+                                                <input id="title" type="text" class="form-control" name="title" placeholder="افزودن دسته‌بندی جدید..." required>
                                             </div>
-                                            <div class="col-2 px-0">
-                                                <button type="submit" class="btn btn-success waves-effect waves-light">افزودن</button>
+                                            <div class="col-md-4 col-sm-12 mb-1 mb-md-0">
+                                                <div class="custom-file">
+                                                    <input id="create-menu-icon" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" name="menu_icon" class="custom-file-input">
+                                                    <label class="custom-file-label" for="create-menu-icon">آیکن مگامنو</label>
+                                                </div>
+                                                <small class="text-muted">پیشنهاد: PNG یا WebP شفاف، 64×64 پیکسل</small>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12">
+                                                <button type="submit" class="btn btn-success btn-block waves-effect waves-light">افزودن</button>
                                             </div>
                                         </div>
                                     </div>
@@ -108,7 +115,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form id="edit-form" action="#">
+                <form id="edit-form" action="#" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">

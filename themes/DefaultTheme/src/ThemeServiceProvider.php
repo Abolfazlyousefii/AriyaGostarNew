@@ -82,9 +82,19 @@ class ThemeServiceProvider extends ServiceProvider
 
 
             $productcats = Cache::rememberForever('front.productcats', function () {
-                return Category::detectLang()->published()->whereNull('category_id')
-                    ->orderBy('ordering')
+                return Category::detectLang()
+                    ->published()
+                    ->whereNull('category_id')
                     ->where('type', 'productcat')
+                    ->with([
+                        'categories' => function ($query) {
+                            $query->published()->orderBy('ordering');
+                        },
+                        'categories.categories' => function ($query) {
+                            $query->published()->orderBy('ordering');
+                        },
+                    ])
+                    ->orderBy('ordering')
                     ->get();
             });
 
