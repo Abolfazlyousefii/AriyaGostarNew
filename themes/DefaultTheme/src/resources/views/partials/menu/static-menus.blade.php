@@ -2,7 +2,7 @@
     @case('products')
         @if($productcats->count())
             @once
-                <link rel="stylesheet" href="{{ theme_asset('css/ariya-exact-megamenu.css') }}?v=4">
+                <link rel="stylesheet" href="{{ theme_asset('css/ariya-exact-megamenu.css') }}?v=6">
             @endonce
 
             <li class="list-item axm-root" data-axm-root>
@@ -20,7 +20,7 @@
                 <div class="axm-panel" data-axm-panel hidden>
                     <div class="axm-main">
                         @foreach($productcats as $category)
-                            @php($children = $category->getCategories())
+                            @php($children = $category->categories)
                             <section class="axm-pane {{ $loop->first ? 'is-active' : '' }}"
                                      data-axm-pane="{{ $category->id }}"
                                      aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
@@ -43,7 +43,7 @@
                                                 {{ $childCategory->title }}
                                             </a>
 
-                                            @foreach($childCategory->getCategories() as $child2)
+                                            @foreach($childCategory->categories as $child2)
                                                 <a class="axm-child-link" href="{{ $child2->link }}">
                                                     {{ $child2->title }}
                                                 </a>
@@ -78,7 +78,7 @@
             </li>
 
             @once
-                <script src="{{ theme_asset('js/ariya-exact-megamenu.js') }}?v=4" defer></script>
+                <script src="{{ theme_asset('js/ariya-exact-megamenu.js') }}?v=6" defer></script>
             @endonce
         @endif
         @break

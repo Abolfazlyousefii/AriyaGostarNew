@@ -1,35 +1,41 @@
 <div class="row">
-
     <div class="col-md-6">
         <div class="form-group">
-            <label>نام دسته بندی </label>
-            <input type="text" name="title" class="form-control" value="{{ $category->title }}">
+            <label>نام دسته‌بندی</label>
+            <input id="edit-title" type="text" name="title" class="form-control" value="{{ $category->title }}" required>
         </div>
     </div>
+
     <div class="col-md-6">
         <fieldset class="form-group">
-            <label>تصویر</label>
-            <div id="image" class="custom-file">
-                <input  type="file" accept="image/*" name="image" class="custom-file-input">
-                <label class="custom-file-label" for="image">{{ $category->image }}</label>
-                <small>بهترین اندازه <span class="text-danger">{{ config('front.imageSizes.CategoryImage') }}</span> پیکسل می باشد.</small>
+            <label>تصویر دسته‌بندی</label>
+            <div class="custom-file">
+                <input id="category-image" type="file" accept="image/*" name="image" class="custom-file-input">
+                <label class="custom-file-label" for="category-image">{{ $category->image ?: 'انتخاب تصویر' }}</label>
             </div>
+            <small>بهترین اندازه <span class="text-danger">{{ config('front.imageSizes.CategoryImage') }}</span> پیکسل است.</small>
         </fieldset>
     </div>
+
     <div class="col-md-6">
         <fieldset class="form-group">
             <label>آیکن مگامنو</label>
-            <div class="custom-file">
-                <input id="menu_icon" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" name="menu_icon" class="custom-file-input">
-                <label class="custom-file-label" for="menu_icon">انتخاب آیکن</label>
-            </div>
-            <small class="text-muted d-block mt-50">پیشنهاد: PNG یا WebP شفاف، 64×64 پیکسل</small>
-            @if($category->menu_icon)
-                <div class="mt-1 d-flex align-items-center">
-                    <img src="{{ asset($category->menu_icon) }}" alt="آیکن فعلی {{ $category->title }}" width="48" height="48" style="object-fit:contain;border:1px solid #eee;border-radius:8px;padding:4px;">
-                    <span class="text-muted mr-1">آیکن فعلی</span>
+            <div class="d-flex align-items-center">
+                <div id="edit-menu-icon-preview" class="category-icon-preview ml-1 {{ $category->menu_icon ? 'has-image' : '' }}">
+                    <i class="feather icon-image"></i>
+                    <img src="{{ $category->menu_icon ? asset($category->menu_icon) : '' }}" alt="پیش‌نمایش آیکن">
                 </div>
-            @endif
+
+                <div class="custom-file flex-grow-1">
+                    <input id="menu_icon"
+                           type="file"
+                           accept="image/png,image/jpeg,image/webp"
+                           name="menu_icon"
+                           class="custom-file-input">
+                    <label class="custom-file-label" for="menu_icon">انتخاب آیکن جدید</label>
+                </div>
+            </div>
+            <small class="text-muted d-block mt-50">پس از انتخاب، دکمه «ذخیره تغییرات» پایین پنجره را بزنید.</small>
         </fieldset>
     </div>
 
@@ -39,7 +45,7 @@
                 <fieldset class="form-group">
                     <label>نوع فیلتر</label>
                     <select id="filter_type" name="filter_type" class="form-control">
-                        <option value="inherit" {{ $category->filter_type == 'inherit' ? 'selected' : '' }}>ارث بری از دسته بالاتر</option>
+                        <option value="inherit" {{ $category->filter_type == 'inherit' ? 'selected' : '' }}>ارث‌بری از دسته بالاتر</option>
                         <option value="none" {{ $category->filter_type == 'none' ? 'selected' : '' }}>بدون فیلتر</option>
                         <option value="filterId" {{ $category->filter_type == 'filterId' ? 'selected' : '' }}>انتخاب فیلتر</option>
                     </select>
@@ -57,27 +63,30 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-6">
         <fieldset class="form-group">
-            <label>تصویر پس زمینه</label>
-            <div id="background_image" class="custom-file">
-                <input  type="file" accept="image/*" name="background_image" class="custom-file-input">
-                <label class="custom-file-label" for="background_image">{{ $category->background_image }}</label>
+            <label>تصویر پس‌زمینه</label>
+            <div class="custom-file">
+                <input id="background-image" type="file" accept="image/*" name="background_image" class="custom-file-input">
+                <label class="custom-file-label" for="background-image">{{ $category->background_image ?: 'انتخاب تصویر' }}</label>
             </div>
         </fieldset>
     </div>
+
     <div class="col-md-6">
         <div class="form-group">
-            <label>عنوان سئو </label>
+            <label>عنوان سئو</label>
             <input type="text" name="meta_title" class="form-control" value="{{ $category->meta_title }}">
         </div>
     </div>
+
     <div class="col-md-6">
         <div class="form-group">
-            <label>url</label>
+            <label>URL</label>
             <input id="slug" type="text" class="form-control" name="slug" value="{{ $category->slug }}">
-            <p>
-                <small >
+            <p class="mb-0 mt-50">
+                <small>
                     <a id="generate-category-slug" href="#">ایجاد خودکار</a>
                     <span id="slug-spinner" class="spinner-grow spinner-grow-sm text-success" role="status" style="display: none;">
                         <span class="sr-only">Loading...</span>
@@ -93,6 +102,7 @@
             <textarea class="form-control" name="meta_description" rows="3">{{ $category->meta_description }}</textarea>
         </div>
     </div>
+
     <div class="col-md-6">
         <fieldset class="form-group">
             <label>کلمات کلیدی</label>
@@ -100,7 +110,7 @@
         </fieldset>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-4">
         <fieldset class="checkbox form-group">
             <div class="vs-checkbox-con vs-checkbox-primary">
                 <input type="checkbox" name="published" {{ $category->published ? 'checked' : '' }}>
@@ -109,14 +119,14 @@
                         <i class="vs-icon feather icon-check"></i>
                     </span>
                 </span>
-                <span>انتشار دسته بندی؟</span>
+                <span>نمایش دسته‌بندی در سایت</span>
             </div>
         </fieldset>
     </div>
 
     <div class="col-md-12">
         <div class="form-group">
-            <label>توضیحات </label>
+            <label>توضیحات</label>
             <textarea id="category-description" class="form-control" name="description" rows="3">{{ $category->description }}</textarea>
         </div>
     </div>

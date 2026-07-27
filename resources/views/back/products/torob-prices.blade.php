@@ -175,7 +175,7 @@
                                                     </td>
                                                     <td class="text-center">
                                                         <a title="مشاهده فروشگاه" href="{{ $torob->price_link }}" target="_blank"><i class="feather icon-external-link"></i></a>
-                                                        <a title="ویرایش" href="{{ route('admin.products.edit', ['product' => $torob->product]) }}" target="_blank"><i class="feather icon-edit"></i></a>
+                                                        <a title="ویرایش" href="{{ route('admin.products.edit', ['product' => $torob->product_id]) }}" target="_blank"><i class="feather icon-edit"></i></a>
                                                     </td>
                                                 </tr>
                                             @endforeach

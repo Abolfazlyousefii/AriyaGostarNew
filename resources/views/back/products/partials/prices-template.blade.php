@@ -21,10 +21,31 @@
             </div>
         </div>
 
+        <div class="col-12">
+            <div class="alert alert-light-primary border-primary mb-2">
+                <label class="font-weight-bold">کد خودکار نرم‌افزار انبار</label>
+                <input type="text" class="form-control ltr" value="بعد از ذخیره محصول به صورت خودکار ساخته می‌شود" readonly>
+                <small class="text-muted">هیچ کدی وارد نکنید؛ سایت بعد از ذخیره این ردیف، کد یکتا تولید می‌کند.</small>
+            </div>
+        </div>
+
         <div class="col-md-3 col-12">
             <div class="form-group">
                 <label>قیمت</label>
                 <input type="number" data-unit="تومان" class="form-control amount-input price" name="price" required>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-12">
+            <div class="form-group">
+                <label>قیمت خرید</label>
+                <input type="number" data-unit="تومان" class="form-control amount-input purchase-price" name="purchase_price" min="0" value="0">
+            </div>
+        </div>
+        <div class="col-md-3 col-12">
+            <div class="form-group">
+                <label>بارکد تنوع</label>
+                <input type="text" class="form-control ltr" name="barcode" placeholder="اختیاری">
             </div>
         </div>
 
@@ -55,33 +76,9 @@
         </div>
         <div class="col-md-3 col-12">
             <div class="form-group">
-                <label>موجودی انبار</label>
-                <input type="number" class="form-control stock" name="stock" min="0" required>
-            </div>
-        </div>
-        <div class="col-md-4 col-12">
-            <div class="form-group">
-                <label>کد متغیر در نرم‌افزار انبار</label>
-                <input type="text" class="form-control external-stock-code" name="external_stock_code" maxlength="191" placeholder="مثلاً GD-IP13-001" dir="ltr">
-                <small class="text-muted">این کد بعداً برای دریافت موجودی همین مدل از API استفاده می‌شود.</small>
-            </div>
-        </div>
-        <div class="col-md-4 col-12">
-            <div class="form-group mt-md-2 pt-md-1">
-                <input type="hidden" class="stock-sync-enabled-hidden" name="stock_sync_enabled_hidden" value="0">
-                <div class="custom-control custom-switch custom-switch-success mr-1 mb-1">
-                    <input type="checkbox" class="custom-control-input stock-sync-enabled" name="stock_sync_enabled" value="1">
-                    <label class="custom-control-label stock-sync-enabled-label">موجودی این مدل از API انبار خوانده شود</label>
-                </div>
-                <small class="text-muted">تا زمان اتصال API، موجودی دستی بالا به‌عنوان مقدار فعلی حفظ می‌شود.</small>
-            </div>
-        </div>
-        <div class="col-md-4 col-12">
-            <div class="form-group">
-                <label>وضعیت آخرین همگام‌سازی</label>
-                <div class="form-control bg-light h-auto warehouse-sync-status">
-                    <span class="text-muted">هنوز همگام‌سازی نشده است.</span>
-                </div>
+                <label>موجودی دریافتی از API انبار</label>
+                <input type="number" class="form-control stock bg-light" name="stock" value="0" min="0" readonly required>
+                <small class="text-muted">موجودی اولیه صفر است و فقط API آن را تغییر می‌دهد.</small>
             </div>
         </div>
         <div class="col-md-3 col-12">
@@ -92,9 +89,42 @@
         </div>
 
         <div class="col-md-12">
-            <button type="button" class="btn btn-flat-danger waves-effect waves-light remove-product-price custom-padding">حذف</i></button>
+            <button type="button" class="btn btn-flat-danger waves-effect waves-light remove-product-price custom-padding">حذف</button>
         </div>
 
         <div class="col-md-12"><hr></div>
     </div>
+</script>
+
+<script>
+    if (!window.__ariyaInventoryCodeCopyBound) {
+        window.__ariyaInventoryCodeCopyBound = true;
+
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('.copy-generated-inventory-code');
+            if (!button) return;
+
+            var code = button.getAttribute('data-code') || '';
+            var done = function () {
+                var oldHtml = button.innerHTML;
+                button.textContent = 'کپی شد';
+                setTimeout(function () { button.innerHTML = oldHtml; }, 1200);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code).then(done);
+                return;
+            }
+
+            var temp = document.createElement('textarea');
+            temp.value = code;
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            temp.remove();
+            done();
+        });
+    }
 </script>

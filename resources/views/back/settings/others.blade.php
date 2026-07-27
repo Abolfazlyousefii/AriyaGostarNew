@@ -32,6 +32,104 @@
                             <div class="card-body">
                                 <div class="tab-content">
                                     <form id="others-form" action="{{ route('admin.settings.others') }}" method="POST">
+                                        <div class="card border-primary mb-2" style="border-width: 1px !important;">
+                                            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                                                <div>
+                                                    <h4 class="card-title mb-25">صفحه «به‌زودی» سایت</h4>
+                                                    <p class="mb-0 text-muted">با فعال‌سازی این حالت، همه صفحات عمومی سایت برای کاربران با صفحه معرفی موقت جایگزین می‌شوند. پنل مدیریت همچنان در دسترس خواهد بود.</p>
+                                                </div>
+                                                @if(option('site_coming_soon_enabled', 'off') === 'on')
+                                                    <span class="badge badge-pill badge-warning mt-50 mt-md-0">در حال نمایش</span>
+                                                @else
+                                                    <span class="badge badge-pill badge-success mt-50 mt-md-0">سایت در دسترس است</span>
+                                                @endif
+                                            </div>
+
+                                            <div class="card-body pt-1">
+                                                <div class="alert alert-info mb-2" role="alert">
+                                                    مسیر ورود و تمام صفحات پنل مدیریت از این محدودیت مستثنا هستند؛ بنابراین هر زمان بخواهید می‌توانید این حالت را خاموش کنید.
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-lg-3 col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-enabled">وضعیت صفحه</label>
+                                                            <select id="site-coming-soon-enabled" name="site_coming_soon_enabled" class="form-control">
+                                                                <option value="off" {{ option('site_coming_soon_enabled', 'off') === 'off' ? 'selected' : '' }}>غیرفعال؛ نمایش کامل سایت</option>
+                                                                <option value="on" {{ option('site_coming_soon_enabled', 'off') === 'on' ? 'selected' : '' }}>فعال؛ نمایش صفحه به‌زودی</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-9 col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-title">عنوان اصلی</label>
+                                                            <input id="site-coming-soon-title" type="text" name="site_coming_soon_title" class="form-control" maxlength="120" value="{{ option('site_coming_soon_title', 'آریا گستر؛ به‌زودی با تجربه‌ای تازه') }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-description">توضیحات صفحه</label>
+                                                            <textarea id="site-coming-soon-description" name="site_coming_soon_description" rows="3" maxlength="500" class="form-control">{{ option('site_coming_soon_description', 'در حال آماده‌سازی نسخه جدید وب‌سایت آریا گستر هستیم تا خرید عمده لوازم جانبی را سریع‌تر، ساده‌تر و حرفه‌ای‌تر کنیم. خیلی زود با محصولات و امکانات تازه در کنار شما خواهیم بود.') }}</textarea>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-8 col-md-7 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-note">متن پایانی</label>
+                                                            <input id="site-coming-soon-note" type="text" name="site_coming_soon_note" class="form-control" maxlength="180" value="{{ option('site_coming_soon_note', 'از همراهی و شکیبایی شما سپاسگزاریم.') }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-4 col-md-5 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-phone">شماره تماس</label>
+                                                            <input id="site-coming-soon-phone" type="text" name="site_coming_soon_phone" class="form-control ltr text-right" maxlength="30" value="{{ option('site_coming_soon_phone', '90005202') }}" placeholder="90005202">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-3 col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-instagram">آیدی اینستاگرام</label>
+                                                            <input id="site-coming-soon-instagram" type="text" name="site_coming_soon_instagram" class="form-control ltr text-right" maxlength="100" value="{{ option('site_coming_soon_instagram', 'ariyajanebi.ir') }}" placeholder="ariyajanebi.ir">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-3 col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-whatsapp">شماره واتساپ</label>
+                                                            <input id="site-coming-soon-whatsapp" type="text" name="site_coming_soon_whatsapp" class="form-control ltr text-right" maxlength="30" value="{{ option('site_coming_soon_whatsapp', '09055019120') }}" placeholder="09055019120">
+                                                            <small class="text-muted">لینک مستقیم شروع گفت‌وگو به‌صورت خودکار ساخته می‌شود.</small>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-3 col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-bale">آیدی یا لینک بله</label>
+                                                            <input id="site-coming-soon-bale" type="text" name="site_coming_soon_bale" class="form-control ltr text-right" maxlength="150" value="{{ option('site_coming_soon_bale', '09055019120') }}" placeholder="09055019120 یا لینک کامل">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-3 col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="site-coming-soon-rubika">آیدی یا لینک روبیکا</label>
+                                                            <input id="site-coming-soon-rubika" type="text" name="site_coming_soon_rubika" class="form-control ltr text-right" maxlength="150" value="{{ option('site_coming_soon_rubika', '09055019120') }}" placeholder="09055019120 یا لینک کامل">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                                    <small class="text-muted">بعد از ذخیره، وضعیت جدید بدون نیاز به تغییر کد اعمال می‌شود.</small>
+                                                    <div class="mt-1 mt-md-0">
+                                                        @if(option('site_coming_soon_enabled', 'off') === 'on')
+                                                            <a href="{{ url('/') }}" target="_blank" rel="noopener" class="btn btn-outline-primary mr-50">پیش‌نمایش صفحه</a>
+                                                        @endif
+                                                        <button type="submit" class="btn btn-primary glow">ذخیره وضعیت سایت</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <h4 class="mt-2">تنظیمات قیمت ها</h4>
                                         <div class="row">
                                             <div class="col-md-3 col-12">

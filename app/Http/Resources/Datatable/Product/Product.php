@@ -17,6 +17,7 @@ class Product extends JsonResource
     {
         return [
             'id'               => $this->id,
+            'slug'             => $this->slug,
             'image'            => $this->image ? asset($this->image) : asset('/empty.jpg'),
             'title'            => $this->title,
             'created_at'       => jdate($this->created_at)->format('%d %B %Y'),
@@ -26,11 +27,14 @@ class Product extends JsonResource
             'stock_count'      => $this->prices()->sum('stock'),
 
             'links' => [
-                'edit'    => route('admin.products.edit', ['product' => $this]),
-                'destroy' => route('admin.products.destroy', ['product' => $this]),
-                'copy'    => route('admin.products.create', ['product' => $this]),
-                'front'   => Route::has('front.products.show') ? route('front.products.show', ['product' => $this]) : '#',
-            ]
+                // Product route binding uses the slug, not the numeric ID.
+                'edit'    => route('admin.products.edit', ['product' => $this->slug]),
+                'destroy' => route('admin.products.destroy', ['product' => $this->slug]),
+                'copy'    => route('admin.products.create', ['product' => $this->slug]),
+                'front'   => Route::has('front.products.show')
+                    ? route('front.products.show', ['product' => $this->slug])
+                    : '#',
+            ],
         ];
     }
 }

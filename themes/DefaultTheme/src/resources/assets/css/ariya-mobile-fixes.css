@@ -1,0 +1,79 @@
+/*
+ * Aria Gostar responsive storefront fixes.
+ * Loaded after the main theme files so mobile header, top campaign banner
+ * and the homepage slider remain available on small screens.
+ */
+
+@media (max-width: 991.98px) {
+    .ariya-top-header-gif {
+        display: block !important;
+        width: 100%;
+        height: clamp(38px, 12vw, 52px);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .ariya-top-header-gif a,
+    .ariya-top-header-gif img {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ariya-top-header-gif img {
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .mobile-site-header {
+        display: block !important;
+    }
+
+    .ariya-home-slider-fullbleed,
+    .ariya-full-slider-wrap,
+    .ariya-full-slider-wrap .main-slider,
+    .ariya-full-slider-wrap .carousel-inner,
+    .ariya-full-slider-wrap .carousel-item,
+    .ariya-full-slider-wrap .main-slider-slide {
+        width: 100% !important;
+        max-width: none !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+    }
+
+    .ariya-full-slider-wrap .main-slider {
+        display: block;
+        border-radius: 0 !important;
+    }
+
+    .ariya-full-slider-wrap .main-slider img {
+        display: block;
+        width: 100% !important;
+        height: auto !important;
+        max-width: none !important;
+        object-fit: cover;
+        border-radius: 0 !important;
+    }
+
+    .ariya-home-main {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .mobile-site-header__inner {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .mobile-site-header__logo {
+        width: min(180px, 64vw);
+    }
+
+    .mobile-site-header__logo img {
+        max-width: 100%;
+        max-height: 48px;
+    }
+}

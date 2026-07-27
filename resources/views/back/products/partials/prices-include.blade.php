@@ -1,3 +1,8 @@
+@php
+    $inventoryCode = $price->inventoryApiCode();
+    $usesVariantCode = $price->product->usesVariantInventoryCodes();
+@endphp
+
 <div class="row single-price">
 
     <div class="col-12">
@@ -20,10 +25,46 @@
         </div>
     </div>
 
+    <div class="col-12">
+        <div class="alert alert-light-primary border-primary mb-2">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <label class="font-weight-bold">{{ $usesVariantCode ? 'کد خودکار این مدل برای نرم‌افزار انبار' : 'کد خودکار این محصول برای نرم‌افزار انبار' }}</label>
+                    <div class="input-group ltr">
+                        <input type="text" class="form-control inventory-code-readonly" value="{{ $inventoryCode }}" readonly>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-primary copy-generated-inventory-code" data-code="{{ $inventoryCode }}">
+                                <i class="feather icon-copy"></i> کپی کد
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 mt-1 mt-lg-0">
+                    <small class="text-muted">
+                        این کد توسط سایت تولید شده و قابل تغییر نیست. همین کد را داخل نرم‌افزار انبار وارد کنید تا API موجودی این کالا را برگرداند.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-md-3 col-12">
         <div class="form-group">
             <label>قیمت</label>
             <input type="number" data-unit="تومان" class="form-control amount-input price" name="prices[{{ $loop->iteration }}][price]" value="{{ $price->price() }}" required>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-12">
+        <div class="form-group">
+            <label>قیمت خرید</label>
+            <input type="number" data-unit="تومان" class="form-control amount-input purchase-price" name="prices[{{ $loop->iteration }}][purchase_price]" value="{{ data_get($price, 'purchase_price', 0) }}" min="0">
+        </div>
+    </div>
+    <div class="col-md-3 col-12">
+        <div class="form-group">
+            <label>بارکد تنوع</label>
+            <input type="text" class="form-control ltr" name="prices[{{ $loop->iteration }}][barcode]" value="{{ data_get($price, 'barcode') }}" placeholder="اختیاری">
         </div>
     </div>
 
@@ -54,37 +95,21 @@
     </div>
     <div class="col-md-3 col-12">
         <div class="form-group">
-            <label>موجودی انبار</label>
-            <input type="number" class="form-control stock" name="prices[{{ $loop->iteration }}][stock]" value="{{ $price->stock }}" min="0" required>
+            <label>موجودی دریافتی از API انبار</label>
+            <input type="number" class="form-control stock bg-light" name="prices[{{ $loop->iteration }}][stock]" value="{{ $price->stock }}" min="0" readonly required>
+            <small class="text-muted">موجودی از داخل پنل قابل تغییر نیست.</small>
         </div>
     </div>
-    <div class="col-md-4 col-12">
-        <div class="form-group">
-            <label>کد متغیر در نرم‌افزار انبار</label>
-            <input type="text" class="form-control external-stock-code" name="prices[{{ $loop->iteration }}][external_stock_code]" value="{{ $price->external_stock_code }}" maxlength="191" placeholder="مثلاً GD-IP13-001" dir="ltr">
-            <small class="text-muted">این کد بعداً برای دریافت موجودی همین مدل از API استفاده می‌شود.</small>
-        </div>
-    </div>
-    <div class="col-md-4 col-12">
-        <div class="form-group mt-md-2 pt-md-1">
-            <input type="hidden" name="prices[{{ $loop->iteration }}][stock_sync_enabled]" value="0">
-            <div class="custom-control custom-switch custom-switch-success mr-1 mb-1">
-                <input type="checkbox" class="custom-control-input stock-sync-enabled" id="stock-sync-enabled-{{ $loop->iteration }}" name="prices[{{ $loop->iteration }}][stock_sync_enabled]" value="1" {{ $price->stock_sync_enabled ? 'checked' : '' }}>
-                <label class="custom-control-label" for="stock-sync-enabled-{{ $loop->iteration }}">موجودی این مدل از API انبار خوانده شود</label>
-            </div>
-            <small class="text-muted">تا زمان اتصال API، موجودی دستی بالا به‌عنوان مقدار فعلی حفظ می‌شود.</small>
-        </div>
-    </div>
-    <div class="col-md-4 col-12">
+    <div class="col-md-3 col-12">
         <div class="form-group">
             <label>وضعیت آخرین همگام‌سازی</label>
-            <div class="form-control bg-light h-auto warehouse-sync-status">
-                @if ($price->stock_sync_error)
+            <div class="form-control bg-light" style="height:auto;min-height:38px">
+                @if($price->stock_sync_error)
                     <span class="text-danger">{{ $price->stock_sync_error }}</span>
-                @elseif ($price->stock_synced_at)
-                    <span class="text-success">موفق: {{ jdate($price->stock_synced_at)->format('Y/m/d H:i') }}</span>
+                @elseif($price->stock_synced_at)
+                    <span class="text-success">{{ jdate($price->stock_synced_at)->ago() }}</span>
                 @else
-                    <span class="text-muted">هنوز همگام‌سازی نشده است.</span>
+                    <span class="text-muted">هنوز از API دریافت نشده</span>
                 @endif
             </div>
         </div>
@@ -96,9 +121,8 @@
         </div>
     </div>
 
-
     <div class="col-md-12">
-        <button type="button" class="btn btn-flat-danger waves-effect waves-light remove-product-price custom-padding">حذف</i></button>
+        <button type="button" class="btn btn-flat-danger waves-effect waves-light remove-product-price custom-padding">حذف</button>
     </div>
 
     <div class="col-md-12"><hr></div>

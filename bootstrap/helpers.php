@@ -816,7 +816,10 @@ function sluggable_helper_function($string, $separator = '-')
 
 function admin_route_prefix()
 {
-    return config('general.admin_route_prefix');
+    // The administration panel uses the fixed canonical path /admin.
+    // Returning an empty suffix keeps legacy JavaScript URL builders from
+    // producing /admin/admin URLs.
+    return '';
 }
 
 function formatSizeUnits($bytes)

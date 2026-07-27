@@ -61,16 +61,24 @@ use App\Http\Controllers\Back\ProductSqlImportController;
 
 require __DIR__ . '/auth.php';
 
+
+// Keep old double-admin URLs working while the canonical panel URL is /admin.
+Route::get('admin/admin/{path?}', function (?string $path = null) {
+    $target = '/admin' . ($path ? '/' . ltrim($path, '/') : '');
+
+    return redirect($target, 301);
+})->where('path', '.*');
+
 Route::get('province/get-cities', [ProvinceController::class, 'getCities'])->name('provinces.get-cities');
 
-Route::group(['as' => 'admin.', 'prefix' => 'admin/' . admin_route_prefix(), 'middleware' => ['guest']], function () {
+Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['guest']], function () {
     Route::get('login', [MainController::class, 'login'])->middleware(['CheckUserExists'])->name('login');
     Route::get('register', [InstallController::class, 'showRegisterForm'])->name('register')->middleware(['CheckUserNotExists']);
     Route::post('register', [InstallController::class, 'register'])->middleware(['CheckUserNotExists']);
 });
 
 // ------------------ Admin Part Routes
-Route::group(['as' => 'admin.', 'prefix' => 'admin/' . admin_route_prefix(), 'middleware' => ['auth', 'Admin', 'verified', 'CheckPasswordChange', 'password.confirm']], function () {
+Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'Admin', 'verified', 'CheckPasswordChange', 'password.confirm']], function () {
 
     // ------------------ MainController
     Route::get('/', [MainController::class, 'index'])->name('dashboard');
@@ -108,7 +116,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin/' . admin_route_prefix(), 'mi
     Route::get('products/sql-import', [\App\Http\Controllers\Back\ProductSqlImportController::class, 'create'])->name('products.sqlImport.create');
     Route::post('products/sql-import', [\App\Http\Controllers\Back\ProductSqlImportController::class, 'store'])->name('products.sqlImport.store');
     // ------------------ products
-    Route::resource('products', ProductController::class)->except('show');
+    Route::resource('products', ProductController::class)->except('show')->scoped(['product' => 'id']);
     
     Route::post('products/api/index', [ProductController::class, 'apiIndex'])->name('products.apiIndex');
     Route::delete('products/api/multipleDestroy', [ProductController::class, 'multipleDestroy'])->name('products.multipleDestroy');
@@ -127,6 +135,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin/' . admin_route_prefix(), 'mi
     Route::post('product/torobUpload', [ProductController::class, 'torobUpload'])->name('product.torobUpload');
     Route::get('product/prices', [ProductController::class, 'indexPrices'])->name('product.prices.index');
     Route::put('product/prices', [ProductController::class, 'updatePrices'])->name('product.prices.update');
+
 
     // ------------------ warehouse product codes
     Route::get('product-codes', [ProductCodeController::class, 'index'])->name('product-codes.index');

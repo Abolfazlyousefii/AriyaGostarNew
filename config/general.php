@@ -344,5 +344,10 @@ return [
         'debugbar_enabled',
         'enable_help_videos',
         'user_register_gift_credit',
+        'site_coming_soon_enabled',
+        'site_coming_soon_title',
+        'site_coming_soon_description',
+        'site_coming_soon_note',
+        'site_coming_soon_phone',
     ]
 ];

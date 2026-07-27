@@ -2,6 +2,7 @@
 
 @push('styles')
     <link rel="stylesheet" type="text/css" href="{{ asset('back/app-assets/plugins/datatable/datatable.css') }}">
+    <link rel="stylesheet" href="{{ asset('back/assets/css/pages/products-modern.css') }}?v=1">
 @endpush
 
 @section('content')
@@ -27,24 +28,29 @@
                     </div>
                 </div>
             </div>
-            <div class="content-body">
+            <div class="content-body apl-products-page">
 
                 <!-- filter start -->
                 @include('back.products.partials.index-filters', ['filter_action' => route('admin.products.index')])
                 <!-- filter end -->
 
                 <section id="main-card" class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">لیست محصولات</h4>
-                        <div class="heading-elements">
-                            <ul class="list-inline mb-0">
-                                @can('products.export')
-                                    <li><button type="button" data-toggle="modal" data-target="#products-export-modal" class="btn btn-outline-primary waves-effect waves-light"><i class="fa fa-file-excel-o"></i> خروجی گرفتن از لیست</button></li>
-                                @endcan
-                                @if (request()->digikala)
-                                    <li><button type="button" data-toggle="modal" data-target="#add-from-digikala" class="btn btn-outline-success waves-effect waves-light"><i class="fa fa-plus"></i> افزودن از دیجی کالا</button></li>
-                                @endif
-                            </ul>
+                    <div class="card-header apl-products-toolbar">
+                        <div>
+                            <h4 class="card-title">محصولات</h4>
+                            <small class="text-muted">مدیریت موجودی، قیمت، انتشار و تنوع‌های محصولات</small>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <a href="{{ route('admin.products.create') }}" class="btn btn-primary mr-1 mb-50"><i class="feather icon-plus"></i> محصول جدید</a>
+                            @can('products.export')
+                                <button type="button" data-toggle="modal" data-target="#products-export-modal" class="btn btn-outline-success mr-1 mb-50"><i class="fa fa-file-excel-o"></i> اکسل محصولات</button>
+                            @endcan
+                            @can('products.export')
+                                <button type="button" data-toggle="modal" data-target="#products-export-modal" class="btn btn-outline-success mb-50"><i class="feather icon-printer"></i> چاپ لیست</button>
+                            @endcan
+                            @if (request()->digikala)
+                                <button type="button" data-toggle="modal" data-target="#add-from-digikala" class="btn btn-outline-info mr-1 mb-50"><i class="fa fa-plus"></i> افزودن از دیجی‌کالا</button>
+                            @endif
                         </div>
                     </div>
                     <div class="card-content">
@@ -467,6 +473,6 @@
     <script src="{{ asset('back/app-assets/plugins/datatable/core.datatable.js') }}"></script>
     <script src="{{ asset('back/app-assets/plugins/datatable/datatable.checkbox.js') }}"></script>
 
-    <script src="{{ asset('back/assets/js/pages/products/index.js') }}?v=8"></script>
+    <script src="{{ asset('back/assets/js/pages/products/index.js') }}?v=9"></script>
     <script src="{{ asset('back/assets/js/pages/products/filters.js') }}?v=4"></script>
 @endpush

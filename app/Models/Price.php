@@ -22,18 +22,26 @@ class Price extends Model
     protected static function booted()
     {
         static::created(function (Price $price) {
-            if (!$price->stock_code) {
+            if (empty($price->variant_code)) {
                 $price->forceFill([
-                    'stock_code' => self::generateInventoryStockCode($price->id),
+                    'variant_code' => self::generateInventoryVariantCode($price->id),
                 ])->saveQuietly();
             }
         });
     }
 
+    public static function generateInventoryVariantCode(int $id): string
+    {
+        return config('warehouse-inventory.variant_prefix', 'VAR-')
+            . str_pad((string) $id, 8, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Backward-compatible alias for older calls.
+     */
     public static function generateInventoryStockCode(int $id): string
     {
-        return config('warehouse-inventory.variant_prefix', 'ARY-V-')
-            . str_pad((string) $id, 10, '0', STR_PAD_LEFT);
+        return self::generateInventoryVariantCode($id);
     }
 
 
@@ -308,5 +316,21 @@ class Price extends Model
     public function scopeInStock($query)
     {
         return $query->where('stock', '>', 0);
+    }
+
+
+    public function inventoryApiCode(): string
+    {
+        if (!empty($this->variant_code)) {
+            return (string) $this->variant_code;
+        }
+
+        $code = self::generateInventoryVariantCode((int) $this->id);
+
+        $this->forceFill([
+            'variant_code' => $code,
+        ])->saveQuietly();
+
+        return $code;
     }
 }

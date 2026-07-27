@@ -1,0 +1,32 @@
+پکیج اصلاح رسپانسیو قالب آریا
+
+مشکلات برطرف‌شده:
+1) نمایش هدر مخصوص موبایل
+2) نمایش گیف بالای سایت در موبایل و تبلت
+3) نمایش اسلایدر اصلی در موبایل حتی اگر اسلایدر موبایل جداگانه ثبت نشده باشد
+4) استفاده از اسلایدر دسکتاپ به‌عنوان حالت جایگزین موبایل
+5) حفظ اسلایدر تمام‌عرض و قابلیت درگ با موس و لمس
+6) فعال‌شدن منوی پایین موبایل، جستجو و سبد خرید موبایل
+7) استفاده از لوگوی ثبت‌شده در تنظیمات سایت داخل هدر موبایل
+
+روش آپلود:
+- محتویات این پوشه را دقیقاً از ریشه پروژه Laravel روی سرور آپلود کنید.
+- ساختار پوشه‌ها را تغییر ندهید.
+- هنگام آپلود گزینه Replace/Overwrite را بزنید.
+
+بعد از آپلود، از ریشه پروژه این دستورها را اجرا کنید:
+php artisan optimize:clear
+php artisan view:clear
+php artisan cache:clear
+
+سپس مرورگر موبایل را کامل ببندید و دوباره باز کنید یا کش مرورگر را پاک کنید.
+
+فایل‌های اصلی اصلاح‌شده:
+- themes/DefaultTheme/src/resources/views/layouts/master.blade.php
+- themes/DefaultTheme/src/resources/views/partials/mobile-header.blade.php
+- themes/DefaultTheme/src/resources/views/widgets/main-slider.blade.php
+- themes/DefaultTheme/src/resources/views/widgets/fullscreen-slider.blade.php
+- themes/DefaultTheme/src/resources/assets/css/ariya-mobile-fixes.css
+- public/themes/defaultTheme/css/ariya-mobile-fixes.css
+
+فایل‌های وابسته قالب نیز داخل پکیج قرار داده شده‌اند تا نسخه سرور دقیقاً با لوکال هماهنگ شود.

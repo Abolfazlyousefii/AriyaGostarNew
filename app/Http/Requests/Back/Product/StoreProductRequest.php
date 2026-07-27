@@ -31,6 +31,11 @@ class StoreProductRequest extends FormRequest
             'category_id'      => 'required|exists:categories,id',
             'image'            => 'image',
             'slug'             => "nullable|unique:products,slug",
+            'barcode'          => 'nullable|string|max:191|unique:products,barcode',
+            'video_url'        => 'nullable|string|max:2000',
+            'video_cover'      => 'nullable|image|max:4096',
+            'stock_alert'      => 'nullable|integer|min:0',
+            'is_rechargeable'  => 'nullable|boolean',
             'publish_date'     => ['nullable', new CheckJdate('Y-m-d H:i:s')],
             'special_end_date' => ['nullable', new CheckJdate('Y-m-d H:i:s')],
             'spec_type'        => 'required_with:specification_group',
@@ -49,9 +54,9 @@ class StoreProductRequest extends FormRequest
                 'unit'                        => 'required|string',
                 'prices'                      => 'required_if:type,physical|array',
                 'prices.*.price'              => 'required|numeric|min:0',
+                'prices.*.purchase_price'     => 'nullable|numeric|min:0',
+                'prices.*.barcode'            => 'nullable|string|max:191',
                 'prices.*.stock'              => 'required|integer',
-                'prices.*.external_stock_code' => 'nullable|string|max:191',
-                'prices.*.stock_sync_enabled' => 'nullable|boolean',
                 'prices.*.attributes'         => "nullable|array",
                 'prices.*.attributes.*'       => "nullable|exists:attributes,id",
                 'prices.*.cart_max'           => 'nullable|integer',
@@ -79,6 +84,7 @@ class StoreProductRequest extends FormRequest
     {
         $this->merge([
             'special' => $this->has('special'),
+            'is_rechargeable' => $this->has('is_rechargeable'),
         ]);
     }
 }

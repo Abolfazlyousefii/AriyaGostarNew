@@ -6,8 +6,13 @@
                 ? auth()->user()->favorites()->where('product_id', $product->id)->first()
                 : null;
 
-            $productPrices = $product->getPrices;
-            $productPrices->loadMissing(['get_attributes', 'image']);
+            // Use all price rows so variable products can also show out-of-stock models.
+            // A product is variable only when it truly has multiple prices or attribute-linked prices;
+            // cart limits on a simple product must never open the model-selection modal.
+            $productPrices = $product->prices()
+                ->with(['get_attributes', 'image'])
+                ->orderBy('id')
+                ->get();
 
             $availablePrices = $productPrices->filter(function ($priceItem) {
                 return (int) $priceItem->stock > 0;
@@ -19,7 +24,14 @@
                 })->first()
                 ?: $productPrices->first();
 
-            $isVariableProduct = !$product->isSinglePrice() && $productPrices->count() > 0;
+            // Detect a real variable product from its price rows instead of relying on
+            // an optional Product model helper that may not exist in older installations.
+            $isVariableProduct = $productPrices->count() > 1
+                || $productPrices->contains(function ($priceItem) {
+                    return $priceItem->relationLoaded('get_attributes')
+                        ? $priceItem->get_attributes->isNotEmpty()
+                        : $priceItem->get_attributes()->exists();
+                });
             $orderableVariantCount = $productPrices->filter(function ($priceItem) {
                 return (int) $priceItem->stock > 0 && (int) cart_max($priceItem) >= max(1, (int) cart_min($priceItem));
             })->count();

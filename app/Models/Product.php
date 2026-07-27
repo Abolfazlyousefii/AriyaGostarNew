@@ -50,6 +50,18 @@ class Product extends Model implements Sitemapable
     {
         return 'slug';
     }
+    public function resolveRouteBinding($value, $field = null)
+{
+    return static::query()
+        ->where(function ($query) use ($value) {
+            $query->where('slug', $value);
+
+            if (is_numeric($value)) {
+                $query->orWhere('id', (int) $value);
+            }
+        })
+        ->first();
+}
 
     public function sluggable(): array
     {
@@ -207,6 +219,23 @@ class Product extends Model implements Sitemapable
     public function isPhysical()
     {
         return $this->type == 'physical';
+    }
+
+    /**
+     * مشخص می‌کند که محصول واقعاً چند متغیر/قیمت مستقل دارد و
+     * باید برای هر متغیر از کد موجودی جداگانه استفاده شود.
+     */
+    public function usesVariantInventoryCodes(): bool
+    {
+        if (!$this->isPhysical() || $this->price_type !== 'multiple-price') {
+            return false;
+        }
+
+        if ($this->relationLoaded('prices')) {
+            return $this->prices->count() > 1;
+        }
+
+        return $this->prices()->count() > 1;
     }
 
     public function isDownload()

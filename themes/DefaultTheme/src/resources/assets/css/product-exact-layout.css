@@ -1638,3 +1638,153 @@ body.modal-open .modal-backdrop {
         width: 100%;
     }
 }
+
+/* Product variants modal — final clean layout */
+.aex-variants-modal .modal-dialog {
+    width: calc(100% - 32px);
+    max-width: 920px;
+    margin: 24px auto;
+}
+
+.aex-variants-modal .modal-content {
+    max-height: calc(100vh - 48px);
+    border: 0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(20, 35, 50, 0.22);
+}
+
+.aex-variants-modal-header {
+    direction: rtl;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.aex-variants-modal-header > div {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.aex-variants-modal-header .close {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    margin: 0;
+    padding: 0;
+    border-radius: 9px;
+    background: #f3f6f8;
+    color: #4d5963;
+    opacity: 1;
+    line-height: 36px;
+}
+
+.aex-variants-modal-body {
+    min-height: 0;
+    max-height: calc(100vh - 230px);
+    overflow-y: auto;
+}
+
+.aex-multi-model-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+
+.aex-model-card {
+    min-width: 0;
+}
+
+.aex-model-card-main {
+    min-width: 0;
+}
+
+.aex-model-card-copy strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.aex-model-quantity {
+    direction: rtl;
+}
+
+@media (max-width: 767.98px) {
+    .aex-variants-modal .modal-dialog {
+        width: calc(100% - 16px);
+        margin: 8px auto;
+    }
+
+    .aex-variants-modal .modal-content {
+        max-height: calc(100vh - 16px);
+        border-radius: 12px;
+    }
+
+    .aex-variants-modal-body {
+        max-height: calc(100vh - 222px);
+    }
+
+    .aex-multi-model-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/*
+ * Product model selector modal layer fix
+ * Keep the modal above the storefront header and center it in the real viewport.
+ */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+body.modal-open .ariya-site-header,
+body.modal-open .main-header {
+    margin-top: 0 !important;
+    top: 0 !important;
+}
+
+.aex-variants-modal.modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 5000 !important;
+    padding-right: 0 !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body.modal-open .modal-backdrop,
+.modal-backdrop.show {
+    z-index: 4990 !important;
+}
+
+.aex-variants-modal .modal-dialog,
+.aex-variants-modal .modal-dialog.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 32px);
+    max-width: 920px;
+    min-height: 100%;
+    margin: 0 auto !important;
+    padding: 24px 0;
+    transform: none !important;
+}
+
+.aex-variants-modal .modal-content {
+    width: 100%;
+    max-height: calc(100vh - 48px);
+    margin: 0;
+}
+
+@media (max-width: 767.98px) {
+    .aex-variants-modal .modal-dialog,
+    .aex-variants-modal .modal-dialog.modal-dialog-centered {
+        width: calc(100% - 16px);
+        min-height: 100%;
+        margin: 0 auto !important;
+        padding: 8px 0;
+    }
+
+    .aex-variants-modal .modal-content {
+        max-height: calc(100vh - 16px);
+    }
+}

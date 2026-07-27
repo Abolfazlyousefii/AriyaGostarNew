@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Back;
 
-use App\Models\Category;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Cviebrock\EloquentSluggable\Services\SlugService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -16,19 +16,22 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'title' => 'required|string',
-            'type'  => 'required|string|in:productcat,postcat',
+            'title'     => 'required|string|max:255',
+            'type'      => 'required|string|in:productcat,postcat',
             'slug'      => 'nullable|unique:categories,slug',
-            'menu_icon' => 'nullable|image|mimes:png,jpg,jpeg,webp,svg|max:2048',
+            'menu_icon' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
         ]);
 
         $this->authorizeCategory($request->type);
 
         $category = Category::create([
-            'title' => $request->title,
-            'lang'  => app()->getLocale(),
-            'type'  => $request->type,
-            'slug'  => $request->slug ?: $request->title,
+            'title'      => $request->title,
+            'lang'       => app()->getLocale(),
+            'type'       => $request->type,
+            'slug'       => $request->slug ?: $request->title,
+            'published'  => true,
+            'ordering'   => ((int) Category::where('type', $request->type)->max('ordering')) + 1,
+            'category_id'=> null,
         ]);
 
         if ($request->hasFile('menu_icon')) {
@@ -36,9 +39,9 @@ class CategoryController extends Controller
             $category->save();
         }
 
-        Cache::forget('front.productcats');
+        $this->clearFrontCategoryCache();
 
-        return response()->json($category);
+        return response()->json($this->categoryResponse($category));
     }
 
     public function edit(Category $category)
@@ -57,10 +60,11 @@ class CategoryController extends Controller
         $this->authorizeCategory($category->type);
 
         $this->validate($request, [
-            'title' => 'required|string',
-            'image'     => 'nullable|image|max:4096',
-            'menu_icon' => 'nullable|image|mimes:png,jpg,jpeg,webp,svg|max:2048',
-            'slug'      => "nullable|unique:categories,slug,$category->id",
+            'title'            => 'required|string|max:255',
+            'image'            => 'nullable|image|max:4096',
+            'background_image' => 'nullable|image|max:4096',
+            'menu_icon'        => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'slug'             => "nullable|unique:categories,slug,$category->id",
         ]);
 
         $category->update([
@@ -75,12 +79,12 @@ class CategoryController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $file = $request->image;
-            $name = uniqid() . '_' . $category->id . '.' . $file->getClientOriginalExtension();
-            $request->image->storeAs('categories', $name);
+            $file = $request->file('image');
+            $name = uniqid() . '_' . $category->id . '.' . strtolower($file->getClientOriginalExtension());
+            $file->storeAs('categories', $name);
 
             if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+                Storage::disk('public')->delete(ltrim($category->image, '/'));
             }
 
             $category->image = '/uploads/categories/' . $name;
@@ -88,12 +92,12 @@ class CategoryController extends Controller
         }
 
         if ($request->hasFile('background_image')) {
-            $file = $request->background_image;
-            $name = uniqid() . '_' . $category->id . '.' . $file->getClientOriginalExtension();
-            $request->background_image->storeAs('categories', $name);
+            $file = $request->file('background_image');
+            $name = uniqid() . '_' . $category->id . '.' . strtolower($file->getClientOriginalExtension());
+            $file->storeAs('categories', $name);
 
             if ($category->background_image) {
-                Storage::disk('public')->delete($category->background_image);
+                Storage::disk('public')->delete(ltrim($category->background_image, '/'));
             }
 
             $category->background_image = '/uploads/categories/' . $name;
@@ -106,42 +110,50 @@ class CategoryController extends Controller
             $category->save();
         }
 
-        Cache::forget('front.productcats');
+        $this->clearFrontCategoryCache();
 
-        return response()->json($category);
+        return response()->json($this->categoryResponse($category->fresh()));
     }
 
     public function destroy(Category $category)
     {
         $this->authorizeCategory($category->type);
 
-        foreach (Category::whereIn('id', $category->allChildCategories())->get() as $child_category) {
-            if ($child_category->image) {
-                Storage::disk('public')->delete($child_category->image);
+        foreach (Category::whereIn('id', $category->allChildCategories())->get() as $childCategory) {
+            if ($childCategory->image) {
+                Storage::disk('public')->delete(ltrim($childCategory->image, '/'));
             }
-            if ($child_category->background_image) {
-                Storage::disk('public')->delete($child_category->background_image);
+
+            if ($childCategory->background_image) {
+                Storage::disk('public')->delete(ltrim($childCategory->background_image, '/'));
             }
-            $this->deleteMenuIcon($child_category->menu_icon);
-            $child_category->menus()->detach();
-            $child_category->delete();
+
+            $this->deleteMenuIcon($childCategory->menu_icon);
+            $childCategory->menus()->detach();
+            $childCategory->delete();
         }
 
         if ($category->image) {
-            Storage::disk('public')->delete($category->image);
+            Storage::disk('public')->delete(ltrim($category->image, '/'));
         }
+
         if ($category->background_image) {
-            Storage::disk('public')->delete($category->background_image);
+            Storage::disk('public')->delete(ltrim($category->background_image, '/'));
         }
+
         $this->deleteMenuIcon($category->menu_icon);
         $category->menus()->detach();
         $category->delete();
 
-        Cache::forget('front.productcats');
+        $this->clearFrontCategoryCache();
 
         toastr()->success('دسته‌بندی با موفقیت حذف شد.');
 
-        return redirect()->route($category->type == 'productcat' ? 'admin.products.categories.index' : 'admin.posts.categories.index');
+        return redirect()->route(
+            $category->type == 'productcat'
+                ? 'admin.products.categories.index'
+                : 'admin.posts.categories.index'
+        );
     }
 
     public function sort(Request $request)
@@ -153,19 +165,29 @@ class CategoryController extends Controller
 
         $this->authorizeCategory($request->type);
 
-        $categories = $request->categories;
+        $this->ordering = 1;
+        $this->sortCategory($request->categories);
+        $this->clearFrontCategoryCache();
 
-        $this->sort_category($categories);
-        Cache::forget('front.productcats');
-
-        return response()->json('success');
+        return response()->json(['message' => 'ترتیب دسته‌بندی‌ها ذخیره شد.']);
     }
-    private function sort_category($categories, $category_id = null)
+
+    private function sortCategory(array $categories, $categoryId = null): void
     {
-        foreach ($categories as $category) {
-            Category::find($category['id'])->update(['category_id' => $category_id, 'ordering' => $this->ordering++]);
-            if (array_key_exists('children', $category)) {
-                $this->sort_category($category['children'], $category['id']);
+        foreach ($categories as $item) {
+            $category = Category::find($item['id']);
+
+            if (!$category) {
+                continue;
+            }
+
+            $category->update([
+                'category_id' => $categoryId,
+                'ordering'    => $this->ordering++,
+            ]);
+
+            if (!empty($item['children']) && is_array($item['children'])) {
+                $this->sortCategory($item['children'], $category->id);
             }
         }
     }
@@ -173,10 +195,10 @@ class CategoryController extends Controller
     private function authorizeCategory($type)
     {
         switch ($type) {
-            case "postcat":
+            case 'postcat':
                 $this->authorize('posts.category');
                 break;
-            case "productcat":
+            case 'productcat':
                 $this->authorize('products.category');
                 break;
         }
@@ -198,6 +220,25 @@ class CategoryController extends Controller
         }
 
         Storage::disk('public')->delete(ltrim($path, '/'));
+    }
+
+    private function clearFrontCategoryCache(): void
+    {
+        Cache::forget('front.productcats');
+        Cache::forget('front.productcats.megamenu');
+        Cache::forget('front.productcats.megamenu.v2');
+    }
+
+    private function categoryResponse(Category $category): array
+    {
+        return [
+            'id'            => $category->id,
+            'title'         => $category->title,
+            'slug'          => $category->slug,
+            'published'     => (bool) $category->published,
+            'menu_icon'     => $category->menu_icon,
+            'menu_icon_url' => $category->menu_icon ? asset($category->menu_icon) : null,
+        ];
     }
 
     public function generate_slug(Request $request)

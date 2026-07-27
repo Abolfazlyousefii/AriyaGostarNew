@@ -57,18 +57,19 @@
         <link rel="stylesheet" href="{{ mix('css/all.css', config('front.mainfest_path')) }}">
     @endif
 
-    <link rel="stylesheet" href="{{ theme_asset('css/ariya-megamenu.css') }}?v=1">
-
     @if ($current_local['direction'] == 'ltr')
         <link rel="stylesheet" href="{{ theme_asset('css/ltr.css') }}?v=2">
     @endif
+
+    <link rel="stylesheet" href="{{ theme_asset('css/ariya-storefront.css') }}?v=2">
+    <link rel="stylesheet" href="{{ theme_asset('css/ariya-mobile-fixes.css') }}?v=20260727-1">
 
     @stack('styles')
 
     {!! option('info_header_codes') !!}
 </head>
 
-<body>
+<body class="has-mobile-bottom-navigation">
     <div class="wrapper @yield('wrapper-classes')">
 
 
@@ -91,51 +92,40 @@
             </div>
         @endif
 
+        @include('front::partials.mobile-header')
+
         <!-- Start header -->
-        <header class="main-header dt-sl">
-
-            <!-- Start topbar -->
+        <header class="main-header dt-sl ariya-site-header">
             <div class="container main-container">
-                <div class="topbar dt-sl">
-                    <div class="row align-items-center">
-                        <div class="col-lg-2 col-md-3 col-4">
-                            <div class="logo-area float-right">
-                                <a href="{{ route('front.index') }}">
-                                    <img data-src="{{ option('info_logo', theme_asset('img/logo.png')) }}" alt="{{ option('info_site_title', 'لاراول شاپ') }}">
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-5 hidden-sm">
-                            <div class="search-area dt-sl">
-                                <form id="search-form" action="{{ route('front.products.search') }}" class="search">
-                                    <input type="text" name="q" value="{{ request('q') }}" id="search-input" autocomplete="off" placeholder="{{ trans('front::messages.header.Search-for-product') }}">
-                                    <button type="submit"><img data-src="{{ theme_asset('img/theme/search.png') }}" alt="search button"></button>
-                                    <button id="close-search-result" class="close-search-result" type="button"><i class="mdi mdi-close"></i></button>
-                                    <div class="search-result p-0" id="search-result">
-                                        <ul>
-
-                                        </ul>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-8 topbar-left">
-                            @include('front::partials.user-menu')
-                        </div>
+                <div class="ariya-header-primary">
+                    <div class="ariya-header-logo">
+                        <a href="{{ route('front.index') }}" aria-label="{{ option('info_site_title', 'فروشگاه آریا') }}">
+                            <img src="{{ option('info_logo', theme_asset('img/logo.png')) }}"
+                                 alt="{{ option('info_site_title', 'فروشگاه آریا') }}">
+                        </a>
                     </div>
-                </div>
-            </div>
-            <!-- End topbar -->
 
-            <!-- Start bottom-header -->
-            <div class="bottom-header dt-sl mb-sm-bottom-header">
-                <div class="container main-container">
-                    <!-- Start Main-Menu -->
-                    @include('front::partials.menu.menu')
-                    <!-- End Main-Menu -->
+                    <div class="search-area ariya-header-search">
+                        <form id="search-form" action="{{ route('front.products.search') }}" class="search">
+                            <input type="text" name="q" value="{{ request('q') }}" id="search-input" autocomplete="off" placeholder="{{ trans('front::messages.header.Search-for-product') }}">
+                            <button type="submit" aria-label="جستجو"><img src="{{ theme_asset('img/theme/search.png') }}" alt=""></button>
+                            <button id="close-search-result" class="close-search-result" type="button" aria-label="بستن نتایج"><i class="mdi mdi-close"></i></button>
+                            <div class="search-result p-0" id="search-result"><ul></ul></div>
+                        </form>
+                    </div>
+
+                    <ul class="nav ariya-header-actions">
+                        @include('front::partials.user-menu')
+                        @include('front::partials.cart')
+                    </ul>
                 </div>
             </div>
-            <!-- End bottom-header -->
+
+            <div class="bottom-header dt-sl mb-sm-bottom-header ariya-header-navigation">
+                <div class="container main-container">
+                    @include('front::partials.menu.menu')
+                </div>
+            </div>
         </header>
         <!-- End header -->
 
@@ -144,6 +134,10 @@
 
         @include('front::partials.footer')
     </div>
+
+    @include('front::partials.mobile-bottom-navigation')
+    @include('front::partials.mobile-search')
+    @include('front::partials.mobile-cart')
 
     <script>
         var BASE_URL = "{{ route('front.index') }}";
@@ -174,7 +168,7 @@
         <script src="{{ mix('js/all.js', config('front.mainfest_path')) }}"></script>
     @endif
 
-    <script src="{{ theme_asset('js/ariya-megamenu.js') }}?v=1"></script>
+    <script src="{{ theme_asset('js/ariya-storefront.js') }}?v=2"></script>
 
     @stack('scripts')
 

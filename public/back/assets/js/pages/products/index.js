@@ -51,100 +51,103 @@ var product_datatable = (function () {
                 field: 'id',
                 title: '#',
                 sortable: false,
-                width: 20,
-                selector: {
-                    class: ''
-                },
+                width: 28,
+                selector: { class: '' },
                 textAlign: 'center'
             },
             {
                 field: 'productid',
                 sortable: false,
-                width: 50,
-                title: 'ID',
+                width: 55,
+                title: 'شناسه',
                 template: function (row) {
                     return row.id;
                 }
             },
             {
-                field: 'image',
-                title: 'تصویر شاخص',
-                sortable: false,
-                width: 80,
+                field: 'title',
+                title: 'عنوان',
+                width: 230,
                 template: function (row) {
-                    return (
-                        '<img class="post-thumb" src="' +
-                        row.image +
-                        '" alt="' +
-                        row.title +
-                        '">'
-                    );
+                    var code = row.product_code
+                        ? '<small class="d-block text-muted ltr">' + row.product_code + '</small>'
+                        : '';
+                    return '<strong>' + row.title + '</strong>' + code;
                 }
             },
             {
-                field: 'title',
-                title: 'عنوان محصول',
-                width: 200,
+                field: 'price',
+                title: 'قیمت',
+                textAlign: 'center',
+                width: 105,
                 template: function (row) {
-                    return row.title;
+                    return row.price !== null
+                        ? '<span class="ltr">' + Number(row.price).toLocaleString('fa-IR') + '</span>'
+                        : '<span class="text-muted">—</span>';
+                }
+            },
+            {
+                field: 'stock_count',
+                title: 'موجودی',
+                textAlign: 'center',
+                width: 75,
+                template: function (row) {
+                    return '<strong>' + row.stock_count + '</strong>';
+                }
+            },
+            {
+                field: 'category',
+                title: 'دسته‌بندی‌ها',
+                width: 150,
+                template: function (row) {
+                    var values = row.categories && row.categories.length
+                        ? row.categories
+                        : (row.category ? [row.category] : []);
+                    if (!values.length) return '<span class="text-muted">بدون دسته</span>';
+                    return values.map(function (item) {
+                        return '<span class="apl-badge apl-category-badge ml-25">' + item + '</span>';
+                    }).join('');
+                }
+            },
+            {
+                field: 'availability',
+                title: 'وضعیت',
+                textAlign: 'center',
+                width: 90,
+                template: function (row) {
+                    return row.addableToCart
+                        ? '<span class="apl-badge apl-badge-success">موجود</span>'
+                        : '<span class="apl-badge apl-badge-danger">ناموجود</span>';
+                }
+            },
+            {
+                field: 'published',
+                title: 'وضعیت تأیید',
+                textAlign: 'center',
+                width: 95,
+                template: function (row) {
+                    return row.published
+                        ? '<span class="apl-badge apl-badge-success"><i class="feather icon-check-circle ml-25"></i> تأیید</span>'
+                        : '<span class="apl-badge apl-badge-info">پیش‌نویس</span>';
                 }
             },
             {
                 field: 'created_at',
                 sortable: 'desc',
-                title: 'تاریخ ایجاد',
+                title: 'تاریخ ثبت',
+                width: 95,
                 template: function (row) {
                     return '<span class="ltr">' + row.created_at + '</span>';
                 }
             },
             {
-                field: 'admin_updated_at',
-                sortable: 'desc',
-                title: 'تاریخ ویرایش',
-                template: function (row) {
-                    return (
-                        '<span class="ltr">' + row.admin_updated_at + '</span>'
-                    );
-                }
-            },
-            {
-                field: 'addableToCart',
-                title: 'تعداد موجودی',
+                field: 'related_count',
+                title: 'محصولات مشابه',
                 textAlign: 'center',
-                width: 100,
-                // callback function support for column rendering
+                sortable: false,
+                width: 90,
                 template: function (row) {
-                    if (row.addableToCart) {
-                        var addableToCartClass = '';
-                        var addableToCartText = `${row.stock_count}`;
-                    } else {
-                        var addableToCartClass = 'text-danger';
-                        var addableToCartText = 'ناموجود';
-                    }
-                    return `<div class="text text-pill ${addableToCartClass}">${addableToCartText}</div>`;
-                }
-            },
-            {
-                field: 'published',
-                title: 'وضعیت انتشار',
-                textAlign: 'center',
-                width: 80,
-                // callback function support for column rendering
-                template: function (row) {
-                    if (row.published) {
-                        var publishedClass = 'badge-success';
-                        var publishedText = 'منتشر شده';
-                    } else {
-                        var publishedClass = 'badge-danger';
-                        var publishedText = 'پیش نویس';
-                    }
-                    return (
-                        '<div class="badge badge-pill ' +
-                        publishedClass +
-                        ' badge-md">' +
-                        publishedText +
-                        '</div>'
-                    );
+                    return '<span class="apl-badge apl-badge-success">' + row.related_count + '</span>';
                 }
             },
             {
@@ -152,34 +155,15 @@ var product_datatable = (function () {
                 title: 'عملیات',
                 textAlign: 'center',
                 sortable: false,
-                width: 150,
+                width: 145,
                 overflow: 'visible',
                 autoHide: false,
                 template: function (row) {
                     return (
-                        '<a href ="' +
-                        row.links.edit +
-                        '"class="btn btn-warning waves-effect waves-light">ویرایش</a>\
-                    <button data-toggle="modal" data-target="#delete-modal" data-action="' +
-                        row.links.destroy +
-                        '" class="btn btn-danger waves-effect waves-light btn-delete">حذف</button>'
-                    );
-                }
-            },
-            {
-                field: 'quickActions',
-                title: '',
-                textAlign: 'center',
-                sortable: false,
-                width: 50,
-                template: function (row) {
-                    return (
-                        '<a title="کپی کردن" href="' +
-                        row.links.copy +
-                        '" target="_blank"><i class="feather icon-copy"></i></a>\
-                    <a title="مشاهده" href="' +
-                        row.links.front +
-                        '" target="_blank"><i class="feather icon-external-link"></i></a>'
+                        '<a title="ویرایش" href="' + row.links.edit + '" class="apl-action-btn apl-edit"><i class="feather icon-edit-2"></i></a>' +
+                        '<a title="کپی محصول" href="' + row.links.copy + '" class="apl-action-btn apl-copy"><i class="feather icon-copy"></i></a>' +
+                        '<a title="مشاهده" target="_blank" href="' + row.links.front + '" class="apl-action-btn apl-copy"><i class="feather icon-external-link"></i></a>' +
+                        '<button title="حذف" data-toggle="modal" data-target="#delete-modal" data-action="' + row.links.destroy + '" class="apl-action-btn apl-delete btn-delete"><i class="feather icon-trash-2"></i></button>'
                     );
                 }
             }

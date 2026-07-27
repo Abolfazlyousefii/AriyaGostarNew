@@ -6,7 +6,7 @@
             aria-label="{{ option('info_site_title', 'فروشگاه آریا') }}"
         >
             <img
-                src="{{ theme_asset('img/ariya-mobile-logo.png') }}"
+                src="{{ option('info_logo', theme_asset('img/ariya-mobile-logo.png')) }}"
                 alt="{{ option('info_site_title', 'فروشگاه آریا') }}"
                 loading="eager"
                 decoding="async"

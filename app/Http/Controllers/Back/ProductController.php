@@ -108,11 +108,10 @@ class ProductController extends Controller
 
                 $request_price = $value['prices'][$price->id];
 
-                if (isset($request_price['price']) && isset($request_price['stock']) && ($request_price['price'] != $price->price || $request_price['stock'] != $price->stock)) {
-
+                // Stock is managed exclusively by the warehouse API.
+                if (isset($request_price['price']) && $request_price['price'] != $price->price) {
                     $price->update([
                         'price' => $request_price['price'],
-                        'stock' => $request_price['stock'],
                         'discount_price' => get_discount_price($request_price['price'], $price->discount, $product),
                         'regular_price' => get_discount_price($request_price['price'], 0, $product),
                     ]);
@@ -148,6 +147,10 @@ class ProductController extends Controller
             'currency_id',
             'rounding_amount',
             'rounding_type',
+            'barcode',
+            'video_url',
+            'stock_alert',
+            'is_rechargeable',
         ]);
 
         $data['spec_type_id'] = spec_type($request);
@@ -261,7 +264,11 @@ class ProductController extends Controller
             'currency_id',
             'rounding_amount',
             'rounding_type',
-            'stock_increase_sms'
+            'stock_increase_sms',
+            'barcode',
+            'video_url',
+            'stock_alert',
+            'is_rechargeable',
         ]);
 
 
@@ -645,13 +652,13 @@ class ProductController extends Controller
 
                 $update_price->update([
                     "price" => $price["price"],
+                    "purchase_price" => $price["purchase_price"] ?? 0,
+                    "barcode" => $price["barcode"] ?? null,
                     "discount" => $price["discount"],
                     "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
                     "regular_price" => get_discount_price($price["price"], 0, $product),
-                    "stock" => $price["stock"],
-                    "external_stock_code" => isset($price["external_stock_code"]) && trim((string) $price["external_stock_code"]) !== '' ? trim((string) $price["external_stock_code"]) : null,
-                    "stock_sync_enabled" => !empty($price["stock_sync_enabled"]),
-                    "stock_sync_error" => null,
+                    // Existing stock is never overwritten from the admin form.
+                    "stock" => $update_price->stock,
                     "cart_max" => $price["cart_max"],
                     "cart_min" => $price["cart_min"],
                     "discount_expire_at" => $price["discount_expire_at"] ? Jalalian::fromFormat('Y-m-d H:i:s', $price["discount_expire_at"])->toCarbon() : null,
@@ -667,13 +674,14 @@ class ProductController extends Controller
                 $insert_price = $product->prices()->create(
                     [
                         "price" => $price["price"],
+                        "purchase_price" => $price["purchase_price"] ?? 0,
+                        "barcode" => $price["barcode"] ?? null,
                         "discount" => $price["discount"],
                         "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
                         "regular_price" => get_discount_price($price["price"], 0, $product),
-                        "stock" => $price["stock"],
-                        "external_stock_code" => isset($price["external_stock_code"]) && trim((string) $price["external_stock_code"]) !== '' ? trim((string) $price["external_stock_code"]) : null,
-                        "stock_sync_enabled" => !empty($price["stock_sync_enabled"]),
-                        "stock_sync_error" => null,
+                        // New rows start at zero until the warehouse API returns stock.
+                        "stock" => 0,
+                        "stock_sync_enabled" => true,
                         "cart_max" => $price["cart_max"],
                         "cart_min" => $price["cart_min"],
                         "image_id" => $image_id,
@@ -721,6 +729,8 @@ class ProductController extends Controller
 
                 $update_price->update([
                     "price" => $price["price"],
+                    "purchase_price" => $price["purchase_price"] ?? 0,
+                    "barcode" => $price["barcode"] ?? null,
                     "discount" => $price["discount"],
                     "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
                     "regular_price" => get_discount_price($price["price"], 0, $product),
@@ -735,6 +745,8 @@ class ProductController extends Controller
                 $insert_price = $product->prices()->create(
                     [
                         "price" => $price["price"],
+                        "purchase_price" => $price["purchase_price"] ?? 0,
+                        "barcode" => $price["barcode"] ?? null,
                         "discount" => $price["discount"],
                         "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
                         "regular_price" => get_discount_price($price["price"], $price["discount"], $product),
@@ -836,6 +848,19 @@ class ProductController extends Controller
             $request->image->storeAs('products', $name);
 
             $product->image = '/uploads/products/' . $name;
+            $product->save();
+        }
+
+        if ($request->hasFile('video_cover')) {
+            if ($product->video_cover && Storage::exists(str_replace('/uploads/', '', $product->video_cover))) {
+                Storage::delete(str_replace('/uploads/', '', $product->video_cover));
+            }
+
+            $videoCover = $request->file('video_cover');
+            $videoCoverName = uniqid() . '_video_' . $product->id . '.' . $videoCover->getClientOriginalExtension();
+            $videoCover->storeAs('products/video-covers', $videoCoverName);
+
+            $product->video_cover = '/uploads/products/video-covers/' . $videoCoverName;
             $product->save();
         }
 
