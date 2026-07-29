@@ -1,0 +1,39 @@
+بسته نهایی رفع خطای بازدیدکنندگان زنده آریا
+================================================
+
+این پوشه‌ها را دقیقاً روی ریشه پروژه Ariya آپلود و Merge/Replace کنید:
+
+app/
+resources/
+database/
+
+فایل‌های اصلی که جایگزین می‌شوند:
+- app/Http/Controllers/Back/LiveVisitorController.php
+- app/Http/Middleware/TrackLiveVisitor.php
+- app/Models/LiveVisitor.php
+- app/Models/LiveVisitorEvent.php
+
+فایل‌های جدید:
+- app/Support/LiveVisitorSchema.php
+- resources/views/back/statistics/live-visitors/index.blade.php
+- database/migrations/2026_07_28_000000_create_live_visitor_analytics_tables.php
+- database/sql/live_visitor_analytics.sql
+
+بعد از آپلود فقط کش را پاک کنید:
+php artisan optimize:clear
+
+ساخت جدول‌ها خودکار است؛ یعنی با اولین بازشدن سایت یا صفحه
+/admin/statistics/live-visitors
+جدول‌های live_visitors و live_visitor_events ساخته می‌شوند.
+
+روش استاندارد اختیاری:
+php artisan migrate --force
+
+اگر کاربر دیتابیس اجازه CREATE TABLE نداشت، فایل زیر را در HeidiSQL اجرا کنید:
+database/sql/live_visitor_analytics.sql
+
+نکته:
+- routes/web.php و app/Http/Kernel.php در این بسته قرار نگرفته‌اند چون طبق خطای فعلی، مسیر صفحه
+  و Middleware از قبل در پروژه شما ثبت شده‌اند.
+- این نسخه اطلاعات فرم، رمز، محتوای پرداخت یا Query String را ذخیره نمی‌کند.
+- موقعیت مکانی فقط به‌صورت تقریبی و در صورت وجود هدرهای سرور/Cloudflare ثبت می‌شود.

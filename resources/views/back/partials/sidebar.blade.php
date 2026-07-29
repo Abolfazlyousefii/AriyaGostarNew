@@ -16,6 +16,13 @@
                     <span class="menu-title">داشبورد</span>
                 </a>
             </li>
+
+            <li class="{{ active_class('admin.statistics.liveVisitors') }} nav-item">
+                <a href="{{ route('admin.statistics.liveVisitors') }}">
+                    <i class="feather icon-activity"></i>
+                    <span class="menu-title">کاربران آنلاین</span>
+                </a>
+            </li>
             
 
             @can('users')

@@ -170,6 +170,14 @@
 
     <script src="{{ theme_asset('js/ariya-storefront.js') }}?v=2"></script>
 
+    <script>
+        window.ARIYA_LIVE_ANALYTICS = {
+            endpoint: @json(route('live-analytics.collect')),
+            csrf: @json(csrf_token())
+        };
+    </script>
+    <script src="{{ theme_asset('js/live-visitor-tracker.js') }}?v=20260728-1" defer></script>
+
     @stack('scripts')
 
     @if ($current_local['direction'] == 'ltr')

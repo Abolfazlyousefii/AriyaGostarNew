@@ -1,0 +1,63 @@
+diff --git a/resources/views/back/partials/sidebar.blade.php b/resources/views/back/partials/sidebar.blade.php
+index 76da430b..182449b4 100644
+--- a/resources/views/back/partials/sidebar.blade.php
++++ b/resources/views/back/partials/sidebar.blade.php
+@@ -16,6 +16,13 @@
+                     <span class="menu-title">داشبورد</span>
+                 </a>
+             </li>
++
++            <li class="{{ active_class('admin.statistics.liveVisitors') }} nav-item">
++                <a href="{{ route('admin.statistics.liveVisitors') }}">
++                    <i class="feather icon-activity"></i>
++                    <span class="menu-title">کاربران آنلاین</span>
++                </a>
++            </li>
+             
+ 
+             @can('users')
+diff --git a/routes/web.php b/routes/web.php
+index 003d7d4a..acdd5117 100644
+--- a/routes/web.php
++++ b/routes/web.php
+@@ -71,6 +71,11 @@ Route::get('admin/admin/{path?}', function (?string $path = null) {
+ 
+ Route::get('province/get-cities', [ProvinceController::class, 'getCities'])->name('provinces.get-cities');
+ 
++// Live storefront analytics heartbeat (public storefront only).
++Route::post('live-analytics/collect', [\App\Http\Controllers\LiveVisitorTrackerController::class, 'collect'])
++    ->middleware('throttle:120,1')
++    ->name('live-analytics.collect');
++
+ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['guest']], function () {
+     Route::get('login', [MainController::class, 'login'])->middleware(['CheckUserExists'])->name('login');
+     Route::get('register', [InstallController::class, 'showRegisterForm'])->name('register')->middleware(['CheckUserNotExists']);
+@@ -278,6 +283,9 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
+     Route::put('links/groups/update', [LinkController::class, 'updateGroups'])->name('links.groups.update');
+ 
+     // ------------------ statistics
++    Route::get('statistics/live-visitors', [\App\Http\Controllers\Back\LiveVisitorController::class, 'index'])->name('statistics.liveVisitors');
++    Route::get('statistics/live-visitors/feed', [\App\Http\Controllers\Back\LiveVisitorController::class, 'feed'])->name('statistics.liveVisitors.feed');
++
+     Route::get('statistics/viewsList', [StatisticsController::class, 'viewsList'])->name('statistics.viewsList');
+     Route::get('statistics/views', [StatisticsController::class, 'views'])->name('statistics.views');
+     Route::get('statistics/viewCounts', [StatisticsController::class, 'viewCounts'])->name('statistics.viewCounts');
+diff --git a/themes/DefaultTheme/src/resources/views/layouts/master.blade.php b/themes/DefaultTheme/src/resources/views/layouts/master.blade.php
+index 717b4627..1fc064f3 100644
+--- a/themes/DefaultTheme/src/resources/views/layouts/master.blade.php
++++ b/themes/DefaultTheme/src/resources/views/layouts/master.blade.php
+@@ -170,6 +170,14 @@
+ 
+     <script src="{{ theme_asset('js/ariya-storefront.js') }}?v=2"></script>
+ 
++    <script>
++        window.ARIYA_LIVE_ANALYTICS = {
++            endpoint: @json(route('live-analytics.collect')),
++            csrf: @json(csrf_token())
++        };
++    </script>
++    <script src="{{ theme_asset('js/live-visitor-tracker.js') }}?v=20260728-1" defer></script>
++
+     @stack('scripts')
+ 
+     @if ($current_local['direction'] == 'ltr')

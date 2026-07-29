@@ -1,0 +1,13 @@
+فایل‌های جدید:
+app/Models/LiveVisitor.php
+app/Models/LiveVisitorEvent.php
+app/Http/Controllers/LiveVisitorTrackerController.php
+app/Http/Controllers/Back/LiveVisitorController.php
+database/migrations/2026_07_28_120000_create_live_visitor_analytics_tables.php
+public/themes/defaultTheme/js/live-visitor-tracker.js
+resources/views/back/statistics/live-visitors/index.blade.php
+
+فایل‌های ویرایش‌شده:
+routes/web.php
+resources/views/back/partials/sidebar.blade.php
+themes/DefaultTheme/src/resources/views/layouts/master.blade.php

@@ -71,6 +71,11 @@ Route::get('admin/admin/{path?}', function (?string $path = null) {
 
 Route::get('province/get-cities', [ProvinceController::class, 'getCities'])->name('provinces.get-cities');
 
+// Live storefront analytics heartbeat (public storefront only).
+Route::post('live-analytics/collect', [\App\Http\Controllers\LiveVisitorTrackerController::class, 'collect'])
+    ->middleware('throttle:120,1')
+    ->name('live-analytics.collect');
+
 Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['guest']], function () {
     Route::get('login', [MainController::class, 'login'])->middleware(['CheckUserExists'])->name('login');
     Route::get('register', [InstallController::class, 'showRegisterForm'])->name('register')->middleware(['CheckUserNotExists']);
@@ -278,6 +283,9 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::put('links/groups/update', [LinkController::class, 'updateGroups'])->name('links.groups.update');
 
     // ------------------ statistics
+    Route::get('statistics/live-visitors', [\App\Http\Controllers\Back\LiveVisitorController::class, 'index'])->name('statistics.liveVisitors');
+    Route::get('statistics/live-visitors/feed', [\App\Http\Controllers\Back\LiveVisitorController::class, 'feed'])->name('statistics.liveVisitors.feed');
+
     Route::get('statistics/viewsList', [StatisticsController::class, 'viewsList'])->name('statistics.viewsList');
     Route::get('statistics/views', [StatisticsController::class, 'views'])->name('statistics.views');
     Route::get('statistics/viewCounts', [StatisticsController::class, 'viewCounts'])->name('statistics.viewCounts');
