@@ -20,6 +20,12 @@ class Product extends JsonResource
             'slug'             => $this->slug,
             'image'            => $this->image ? asset($this->image) : asset('/empty.jpg'),
             'title'            => $this->title,
+            'product_code'     => $this->product_code,
+            'price'            => $this->getLowestPrice(true),
+            'category'         => $this->category?->title,
+            'categories'       => $this->categories->pluck('title')
+                ->prepend($this->category?->title)->filter()->unique()->values()->all(),
+            'related_count'    => $this->category ? $this->relatedProducts()->count() : 0,
             'created_at'       => jdate($this->created_at)->format('%d %B %Y'),
             'admin_updated_at' => jdate($this->admin_updated_at)->format('%d %B %Y'),
             'addableToCart'    => $this->addableToCart(),

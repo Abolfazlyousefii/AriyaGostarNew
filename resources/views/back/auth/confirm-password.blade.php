@@ -59,7 +59,7 @@
 
 @push('scripts')
     <script>
-        var redirect_url = '{{ Redirect::intended()->getTargetUrl() }}';
+        var redirect_url = @json(session('url.intended', route('admin.dashboard')));
     </script>
-    <script src="{{ asset('back/assets/js/pages/login.js') }}"></script>
+    <script src="{{ asset('back/assets/js/pages/login.js') }}?v=3"></script>
 @endpush

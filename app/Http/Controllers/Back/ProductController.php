@@ -59,7 +59,8 @@ class ProductController extends Controller
     {
         $this->authorize('products.index');
 
-        $products = Product::detectLang()->datatableFilter($request);
+        $products = Product::detectLang()->datatableFilter($request)
+            ->with(['category', 'categories', 'lowestPrice.product']);
 
         $products = datatable($request, $products);
 

@@ -241,15 +241,17 @@ $('.card-header.filter-card').on('click', function (e) {
     }
 });
 
-$('#province, #city').select2({
-    rtl: true,
-    width: '100%'
-});
+if (typeof $.fn.select2 === 'function') {
+    $('#province, #city').select2({
+        rtl: true,
+        width: '100%'
+    });
 
-$('select.select2').select2({
-    rtl: true,
-    width: '100%'
-});
+    $('select.select2').select2({
+        rtl: true,
+        width: '100%'
+    });
+}
 
 $('#province').change(function () {
     var id = $(this).find(':selected').val();

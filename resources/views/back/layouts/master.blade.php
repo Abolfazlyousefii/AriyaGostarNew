@@ -151,7 +151,7 @@
 {{--    @toastr_render--}}
 
     <script src="{{ asset('back/assets/js/helpers.js') }}?v=11"></script>
-    <script src="{{ asset('back/assets/js/scripts.js') }}?v=12"></script>
+    <script src="{{ asset('back/assets/js/scripts.js') }}?v=13"></script>
     <!-- END: Theme JS-->
 
     <script>

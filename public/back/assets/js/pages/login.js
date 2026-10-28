@@ -12,7 +12,7 @@ $(document).ready(function() {
             data: formData,
             success: function(data) {
                 if ($.isEmptyObject(data.error)) {
-                    window.location.href = redirect_url;
+                    window.location.href = window.redirect_url || window.BASE_URL || '/admin';
                 }
             },
             beforeSend: function(xhr) {
