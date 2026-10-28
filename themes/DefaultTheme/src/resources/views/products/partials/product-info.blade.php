@@ -176,8 +176,8 @@ $isVariableProduct = $variantPrices->count() > 1;
                                 </div>
                             </div>
 
-                            
-        
+
+
         @if ($isVariableProduct)
                                 <button
                                     type="button"
@@ -391,10 +391,9 @@ $isVariableProduct = $variantPrices->count() > 1;
                     </div>
                 </div>
             </div>
-        @endif        
-        
+        @endif
+
         @endauth
         {{-- GUEST_VARIANT_MODAL_LOCK_END --}}
     </div>
 </div>
-
