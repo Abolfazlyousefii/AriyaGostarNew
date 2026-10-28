@@ -1,6 +1,9 @@
 <?php
 
+use App\Events\OrderPaid;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StaticPageController;
 use Themes\DefaultTheme\src\Controllers\MainController;
 use Themes\DefaultTheme\src\Controllers\PostController;
 use Themes\DefaultTheme\src\Controllers\ProductController;
@@ -18,6 +21,7 @@ use Themes\DefaultTheme\src\Controllers\TicketController;
 use Themes\DefaultTheme\src\Controllers\VerifyController;
 use Themes\DefaultTheme\src\Controllers\DiscountController;
 use Themes\DefaultTheme\src\Controllers\WalletController;
+use Themes\DefaultTheme\src\Controllers\BundleShowcaseController;
 
 // ------------------ Front Part Routes
 
@@ -31,32 +35,48 @@ Route::group(['as' => 'front.'], function () {
     Route::get('posts/category/{category}', [PostController::class, 'category'])->name('posts.category');
 
     // ------------------ products
+    // ARIYA_TASK01_STAGE04_MODEL_SELECTOR_V2
+    Route::get('quick-wholesale', [\Themes\DefaultTheme\src\Controllers\QuickWholesaleController::class, 'index'])->name('quick-wholesale.index');
+    Route::post('quick-wholesale/cart', [\Themes\DefaultTheme\src\Controllers\QuickWholesaleController::class, 'store'])
+        ->middleware(['auth', 'throttle:12,1'])
+        ->name('quick-wholesale.store');
+
     Route::resource('products', ProductController::class)->only(['show', 'index']);
     Route::get('products/category/{category}', [ProductController::class, 'category'])->name('products.category');
     Route::get('products/category-products/{category}', [ProductController::class, 'categoryProducts'])->name('products.category-products');
     Route::get('products/category-specials/{category}', [ProductController::class, 'categorySpecials'])->name('products.category-specials');
     Route::get('search', [ProductController::class, 'search'])->name('products.search');
-    Route::post('search', [ProductController::class, 'ajax_search'])->name('products.ajax_search');
+    Route::post('search', [\App\Http\Controllers\StorefrontSearchController::class, 'ajax'])->name('products.ajax_search');
     Route::get('product/specials', [ProductController::class, 'specials'])->name('products.specials');
     Route::get('product/discount', [ProductController::class, 'discount'])->name('products.discount');
-    Route::get('product/{product}/prices', [ProductController::class, 'prices'])->name('products.prices');
+    // ARIYA_BUNDLE_SHOWCASE_READONLY_V1 — GET only; no cart, payment or inventory mutations.
+    Route::get('bundles/{bundleOffer}', [BundleShowcaseController::class, 'show'])->name('bundles.show');
+    Route::get('bundles/{bundleOffer}/variants', [BundleShowcaseController::class, 'variants'])->name('bundles.variants');
+    Route::get('bundles/{bundleOffer}/suggestion', [BundleShowcaseController::class, 'suggestion'])->name('bundles.suggestion');
+    Route::get('product/{product}/prices', [ProductController::class, 'prices'])->middleware('auth')->name('products.prices');
+    Route::get(
+        'product/{product}/card-variants',
+        [ProductController::class, 'cardVariants']
+    )->middleware('auth')->name('products.card-variants');
     Route::get('product/compare/{product1}/{product2?}/{product3?}', [ProductController::class, 'compare'])->name('products.compare');
     Route::post('product/compare', [ProductController::class, 'similarCompare'])->name('products.similar-compare');
-    Route::get('products/{price}/priceChart', [ProductController::class, 'priceChart'])->name('products.priceChart');
+    Route::get('products/{price}/priceChart', [ProductController::class, 'priceChart'])->middleware('auth')->name('products.priceChart');
     Route::get('p/{id}', [ProductController::class, 'shortLink'])->name('products.shortLink');
 
 
     // ------------------ cart
-    Route::get('cart', [CartController::class, 'show'])->name('cart');
-    Route::post('cart/{product}', [CartController::class, 'store'])->name('cart.store');
-    Route::post('cart/{product}/variants', [CartController::class, 'storeVariants'])->name('cart.store-variants');
-    Route::put('cart', [CartController::class, 'update']);
-    Route::delete('cart/{id}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::get('cart-stock/{product}', [CartController::class, 'availability'])->middleware(['auth', 'throttle:90,1'])->name('cart.availability');
+    Route::get('cart', [CartController::class, 'show'])->middleware('auth')->name('cart');
+    Route::post('cart/{product}', [CartController::class, 'store'])->middleware('auth')->name('cart.store');
+    Route::post('cart/{product}/variants', [CartController::class, 'storeVariants'])->middleware('auth')->name('cart.store-variants');
+    Route::put('cart', [CartController::class, 'update'])->middleware('auth');
+    Route::delete('cart/{id}', [CartController::class, 'destroy'])->middleware('auth')->name('cart.destroy');
 
     Route::post('stock-notify', [StockNotifyController::class, 'store']);
 
 
     // ------------------ pages
+    Route::get('about-us', [StaticPageController::class, 'aboutUs'])->name('about-us');
     Route::get('pages/{page}', [PageController::class, 'show'])->name('pages.show');
 
     // ------------------ brands
@@ -145,4 +165,10 @@ Route::group(['as' => 'front.'], function () {
 // get auth user in 404 page
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
+});
+
+Route::get('test', function () {
+    $Order=\App\Models\Order::find(24);
+    event(new OrderPaid($Order));
+
 });

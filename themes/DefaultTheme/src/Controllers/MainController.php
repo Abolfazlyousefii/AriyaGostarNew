@@ -27,9 +27,12 @@ class MainController extends Controller
         $cart     = auth()->user()->cart;
         $gateways = Gateway::active()->orderBy('ordering')->get();
 
-        if (!$cart || !$cart->products->count() || !check_cart_quantity()) {
+        if (!$cart || !$cart->products->count()) {
             return redirect()->route('front.cart');
         }
+
+        $stockReview = app(\App\Services\Inventory\CartStockAvailability::class)->forCart($cart);
+        if (!$stockReview['status']) return redirect()->route('front.cart')->withErrors($stockReview['errors']);
 
         $discount_status = check_cart_discount();
 
@@ -42,7 +45,8 @@ class MainController extends Controller
             'discount_status',
             'gateways',
             'wallet',
-            'carriers'
+            'carriers',
+            'stockReview'
         ));
     }
 

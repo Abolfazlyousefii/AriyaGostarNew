@@ -24,17 +24,23 @@
                 })->first()
                 ?: $productPrices->first();
 
-            // Detect a real variable product from its price rows instead of relying on
-            // an optional Product model helper that may not exist in older installations.
-            $isVariableProduct = $productPrices->count() > 1
-                || $productPrices->contains(function ($priceItem) {
-                    return $priceItem->relationLoaded('get_attributes')
-                        ? $priceItem->get_attributes->isNotEmpty()
-                        : $priceItem->get_attributes()->exists();
-                });
+            // Reuse the same variable-product rule everywhere. The loaded relation
+            // prevents extra queries while rendering this page.
+            $product->setRelation('prices', $productPrices);
+            $variantPrices = $productPrices->filter(function ($priceItem) {
+    return $priceItem->get_attributes->isNotEmpty()
+        || !empty($priceItem->variant_code)
+        || !empty($priceItem->external_variant_id);
+});
+
+$isVariableProduct = $variantPrices->count() > 1;
             $orderableVariantCount = $productPrices->filter(function ($priceItem) {
                 return (int) $priceItem->stock > 0 && (int) cart_max($priceItem) >= max(1, (int) cart_min($priceItem));
             })->count();
+            $productUnit = trim((string) $product->getUnit());
+            $automaticBundleOrderBlocked = (bool) ($product->is_bundle ?? false)
+                && ($product->bundle_stock_mode ?? 'physical') === 'automatic'
+                && !config('services.inventory_stock.enabled', false);
         @endphp
 
         <div class="row no-gutters aex-product-info-row">
@@ -93,6 +99,8 @@
                     </div>
                 </header>
 
+                {{-- GUEST_VARIANT_LOCK_START --}}
+                @auth
                 @if ($isVariableProduct)
                     <div class="aex-variant-picker-summary">
                         <div class="aex-variant-picker-icon" aria-hidden="true">
@@ -122,22 +130,43 @@
                     <div class="aex-stock-status" role="status">
                         موجودی محصول
                         <strong>({{ number_format($defaultDisplayPrice->stock) }})</strong>
-                        {{ $product->getUnit() }} می‌باشد
+                        @if ($productUnit !== '')
+                            {{ $productUnit }} می‌باشد
+                        @endif
                     </div>
                 @endif
+                @endauth
+                {{-- GUEST_VARIANT_LOCK_END --}}
             </section>
 
             <aside class="col-lg-5 col-md-5 aex-buy-column">
                 <div
                     class="aex-buy-card aex-buy-card--price-only"
                     data-default-price="{{ auth()->check() && $defaultDisplayPrice ? $defaultDisplayPrice->salePrice() : 0 }}"
+                    data-default-regular-price="{{ auth()->check() && $defaultDisplayPrice ? $defaultDisplayPrice->regularPrice() : 0 }}"
                 >
                     @auth
-                        @if ($defaultDisplayPrice && $product->isPhysical() && $product->addableToCart())
+                        <div id="stock-preflight-feedback" data-action="{{ route('front.cart.availability', ['product' => $product]) }}" class="alert d-none" role="status" aria-live="polite" style="white-space:pre-line"></div>
+                        @if ($automaticBundleOrderBlocked)
+                            <div class="alert alert-warning" role="status">خرید این بسته به‌زودی فعال می‌شود. سرویس رزرو امن موجودی انبار هنوز فعال نیست.</div>
+                        @elseif ($defaultDisplayPrice && $product->isPhysical() && $product->addableToCart())
                             <div class="aex-price-area aex-price-area--single">
                                 <span class="aex-price-label">قیمت</span>
 
+                                @if(($product->is_bundle ?? false) && $defaultDisplayPrice->hasDiscount())
+                                    <div class="mb-2" dir="rtl" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                                        <span style="border-radius:6px;background:#fef2f2;color:#b91c1c;padding:4px 8px;font-weight:700">{{ (int) $defaultDisplayPrice->discount() }}٪ تخفیف بسته</span>
+                                        <del style="color:#64748b">{{ number_format($defaultDisplayPrice->regularPrice()) }} {{ trans('front::messages.currency.suffix') }}</del>
+                                        <small style="color:#15803d;font-weight:700">سود شما: {{ number_format($defaultDisplayPrice->regularPrice() - $defaultDisplayPrice->salePrice()) }} {{ trans('front::messages.currency.suffix') }}</small>
+                                    </div>
+                                @endif
                                 <div class="aex-price-values">
+                                    {{-- ARIYA_FRONT_PRICE_STRIKE_V1: display only; sale amount remains unchanged --}}
+                                    <del id="aex-main-original-price"
+                                         data-currency="{{ trans('front::messages.currency.suffix') }}"
+                                         style="{{ $defaultDisplayPrice->salePrice() < $defaultDisplayPrice->regularPrice() ? 'display:block;' : 'display:none;' }}color:#858b93;font-size:14px;font-weight:500;margin-bottom:4px;text-decoration:line-through;">
+                                        {{ number_format($defaultDisplayPrice->regularPrice()) }} {{ trans('front::messages.currency.suffix') }}
+                                    </del>
                                     <div class="aex-final-price">
                                         <span id="aex-main-price-value" class="price">
                                             {{ number_format($defaultDisplayPrice->salePrice()) }}
@@ -147,7 +176,9 @@
                                 </div>
                             </div>
 
-                            @if ($isVariableProduct)
+                            
+        
+        @if ($isVariableProduct)
                                 <button
                                     type="button"
                                     class="aex-add-to-cart aex-add-selected-to-cart"
@@ -212,6 +243,8 @@
             </aside>
         </div>
 
+        {{-- GUEST_VARIANT_MODAL_LOCK_START --}}
+        @auth
         @if ($isVariableProduct)
             <div
                 class="modal fade aex-variants-modal"
@@ -270,6 +303,7 @@
                                         data-search="{{ mb_strtolower($variantName) }}"
                                         data-price-id="{{ $variantPrice->id }}"
                                         data-price="{{ auth()->check() ? $variantPrice->salePrice() : 0 }}"
+                                        data-regular-price="{{ auth()->check() ? $variantPrice->regularPrice() : 0 }}"
                                         data-stock="{{ $variantStock }}"
                                         data-min="{{ $variantMin }}"
                                         data-max="{{ $variantMax }}"
@@ -290,7 +324,7 @@
 
                                                 <span class="aex-model-stock {{ $canOrderVariant ? 'is-available' : 'is-empty' }}">
                                                     @if ($canOrderVariant)
-                                                        موجودی: {{ number_format($variantStock) }} {{ $product->getUnit() }}
+                                                        موجودی: {{ number_format($variantStock) }}@if ($productUnit !== '') {{ $productUnit }}@endif
                                                     @else
                                                         ناموجود
                                                     @endif
@@ -299,6 +333,9 @@
 
                                             @auth
                                                 <span class="aex-model-price">
+                                                    @if ($variantPrice->salePrice() < $variantPrice->regularPrice())
+                                                        <del style="display:block;color:#858b93;font-size:12px;font-weight:500;text-decoration:line-through;">{{ number_format($variantPrice->regularPrice()) }}</del>
+                                                    @endif
                                                     {{ number_format($variantPrice->salePrice()) }}
                                                     <small>{{ trans('front::messages.currency.suffix') }}</small>
                                                 </span>
@@ -354,6 +391,10 @@
                     </div>
                 </div>
             </div>
-        @endif
+        @endif        
+        
+        @endauth
+        {{-- GUEST_VARIANT_MODAL_LOCK_END --}}
     </div>
 </div>
+

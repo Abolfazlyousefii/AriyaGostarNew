@@ -1,7 +1,3 @@
-$('.cart_quantity').on('click keyup keydown keypress focus', function (e) {
-    e.preventDefault();
-});
-
 $('.counter-box .inc').on('click', function (e) {
     if (
         parseInt($(this).parent().find('.cart_quantity').val()) >=
@@ -11,6 +7,7 @@ $('.counter-box .inc').on('click', function (e) {
             'شما بیشترین تعداد ممکن برای این محصول را انتخاب کرده اید.'
         );
         e.preventDefault();
+        return;
     }
 
     this.parentNode.querySelector('input[type=number]').stepUp();
@@ -24,6 +21,7 @@ $('.counter-box .dec').on('click', function (e) {
     ) {
         $('#delete-form').attr('action', $(this).data('action'));
         jQuery('#delete-modal').modal('show');
+        return;
     }
 
     this.parentNode.querySelector('input[type=number]').stepDown();
@@ -77,7 +75,7 @@ $(document).on('click', '#update-cart, #checkout-link', function () {
             var errors = request.responseJSON.errors;
             if (errors) {
                 errors.forEach(function (error) {
-                    $('#cart-errors').prepend('<p>' + error + '</p>');
+                    $('<p>').text(error).prependTo('#cart-errors');
                 });
 
                 $('#cart-errors').show();
@@ -96,4 +94,9 @@ $(document).on('click', '#update-cart, #checkout-link', function () {
         contentType: false,
         processData: false
     });
+});
+
+$(document).on('click', '.cart-remove-unavailable', function () {
+    $('#delete-form').attr('action', $(this).data('action'));
+    $('#delete-modal').modal('show');
 });
