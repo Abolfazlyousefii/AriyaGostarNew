@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use App\Support\ImageStorage;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Morilog\Jalali\Jalalian;
@@ -50,6 +51,13 @@ class ProductController extends Controller
     {
         $brands = Brand::orderBy('name')->select('id', 'name')->get();
         $attributeGroups = AttributeGroup::detectLang()->orderBy('ordering')->get();
+        $attributeFields = $attributeGroups->map(function ($group) {
+            return [
+                'id' => $group->id,
+                'name' => $group->name,
+                'type' => $group->type,
+            ];
+        })->values();
         $specTypes = SpecType::orderBy('name')->select('id', 'name')->get();
 
         return view('back.products.index', compact('brands', 'attributeGroups', 'specTypes'));
@@ -199,6 +207,13 @@ class ProductController extends Controller
         $specTypes = SpecType::detectLang()->orderBy('name')->get();
         $sizetypes = SizeType::detectLang()->get();
         $attributeGroups = AttributeGroup::detectLang()->orderBy('ordering')->get();
+        $attributeFields = $attributeGroups->map(function ($group) {
+            return [
+                'id' => $group->id,
+                'name' => $group->name,
+                'type' => $group->type,
+            ];
+        })->values();
         $currencies = Currency::latest()->get();
         $brands = Brand::detectLang()->orderBy('name')->get();
 
@@ -217,6 +232,7 @@ class ProductController extends Controller
             'specTypes',
             'sizetypes',
             'attributeGroups',
+            'attributeFields',
             'copy_product',
             'currencies',
             'brands',
@@ -230,6 +246,13 @@ class ProductController extends Controller
         $specTypes = SpecType::detectLang()->orderBy('name')->get();
         $sizetypes = SizeType::detectLang()->get();
         $attributeGroups = AttributeGroup::detectLang()->orderBy('ordering')->get();
+        $attributeFields = $attributeGroups->map(function ($group) {
+            return [
+                'id' => $group->id,
+                'name' => $group->name,
+                'type' => $group->type,
+            ];
+        })->values();
         $currencies = Currency::whereNull('deleted_at')->orWhere('id', $product->currency_id)->latest()->get();
         $brands = Brand::detectLang()->orderBy('name')->get();
         return view('back.products.edit', compact(
@@ -238,6 +261,7 @@ class ProductController extends Controller
             'specTypes',
             'sizetypes',
             'attributeGroups',
+            'attributeFields',
             'currencies',
             'brands',
         ));
@@ -342,26 +366,21 @@ class ProductController extends Controller
     public function image_store(Request $request)
     {
         $this->validate($request, [
-            'file' => 'required|image|max:10240',
+            'file' => ImageStorage::validationRules(true, 10240),
         ]);
 
         $image = $request->file('file');
 
-        $currentDate = Carbon::now()->toDateString();
-        $imagename = 'img' . '-' . $currentDate . '-' . uniqid() . '.' . $image->getClientOriginalExtension();
-
-        $image->storeAs('tmp', $imagename);
+        $path = ImageStorage::store($image, 'tmp');
+        $imagename = basename(ImageStorage::diskPath($path));
 
         return response()->json(['imagename' => $imagename]);
     }
 
     public function image_delete(Request $request)
     {
-        $filename = $request->get('filename');
-
-        if (Storage::exists('tmp/' . $filename)) {
-            Storage::delete('tmp/' . $filename);
-        }
+        $filename = basename((string) $request->get('filename'));
+        ImageStorage::delete('/uploads/tmp/' . $filename);
 
         return response('success');
     }
@@ -371,14 +390,10 @@ class ProductController extends Controller
         $product->tags()->detach();
         $product->specifications()->detach();
 
-        if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
-        }
+        ImageStorage::delete($product->image);
 
         foreach ($product->gallery as $image) {
-            if (Storage::disk('public')->exists($image->image)) {
-                Storage::disk('public')->delete($image->image);
-            }
+            ImageStorage::delete($image->image);
 
             $image->delete();
         }
@@ -619,84 +634,86 @@ class ProductController extends Controller
 
     private function updateProductPrices(Product $product, Request $request)
     {
-        if ($product->isDownload()) {
+        // Bundle prices/variants are synchronized from Inventory. Updating Site-only
+        // metadata must not soft-delete their prices or remove them from carts.
+        if ($product->isDownload() || $product->is_bundle) {
             return;
         }
 
         $prices_id = [];
 
-        foreach ($request->prices as $price) {
-
-            $attributes = array_filter($price['attributes'] ?? []);
-
-            $update_price = false;
-
-            foreach ($product->prices()->withTrashed()->get() as $product_price) {
-                $product_price_attributes = $product_price->get_attributes()->get()->pluck('id')->toArray();
-
-                sort($attributes);
-                sort($product_price_attributes);
-
-                if ($attributes == $product_price_attributes) {
-                    $update_price = $product_price;
-                    break 1;
-                }
-            }
-
-            $image_id = null;
-
-            if (isset($price['image']) && $price['image']) {
-                $image_id = $product->gallery()->where('image', 'like', "%" . $price["image"] . "%")->first()->id ?? null;
-            }
-
-            if ($update_price) {
-
-                $update_price->update([
-                    "price" => $price["price"],
-                    "purchase_price" => $price["purchase_price"] ?? 0,
-                    "barcode" => $price["barcode"] ?? null,
-                    "discount" => $price["discount"],
-                    "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
-                    "regular_price" => get_discount_price($price["price"], 0, $product),
-                    // Existing stock is never overwritten from the admin form.
-                    "stock" => $update_price->stock,
-                    "cart_max" => $price["cart_max"],
-                    "cart_min" => $price["cart_min"],
-                    "discount_expire_at" => $price["discount_expire_at"] ? Jalalian::fromFormat('Y-m-d H:i:s', $price["discount_expire_at"])->toCarbon() : null,
-                    "image_id" => $image_id,
-                    "deleted_at" => null,
-                ]);
-
-                $update_price->get_attributes()->sync($attributes);
-
-                $prices_id[] = $update_price->id;
-            } else {
-
-                $insert_price = $product->prices()->create(
-                    [
-                        "price" => $price["price"],
-                        "purchase_price" => $price["purchase_price"] ?? 0,
-                        "barcode" => $price["barcode"] ?? null,
-                        "discount" => $price["discount"],
-                        "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
-                        "regular_price" => get_discount_price($price["price"], 0, $product),
-                        // New rows start at zero until the warehouse API returns stock.
-                        "stock" => 0,
-                        "stock_sync_enabled" => true,
-                        "cart_max" => $price["cart_max"],
-                        "cart_min" => $price["cart_min"],
-                        "image_id" => $image_id,
-                        "discount_expire_at" => $price["discount_expire_at"] ? Jalalian::fromFormat('Y-m-d H:i:s', $price["discount_expire_at"])->toCarbon() : null,
-                    ]
-                );
-
-                foreach ($attributes as $attribute) {
-                    $insert_price->get_attributes()->attach([$attribute]);
-                }
-
-                $prices_id[] = $insert_price->id;
-            }
-        }
+//        foreach ($request->prices as $price) {
+//
+//            $attributes = array_filter($price['attributes'] ?? []);
+//
+//            $update_price = false;
+//
+//            foreach ($product->prices()->withTrashed()->get() as $product_price) {
+//                $product_price_attributes = $product_price->get_attributes()->get()->pluck('id')->toArray();
+//
+//                sort($attributes);
+//                sort($product_price_attributes);
+//
+//                if ($attributes == $product_price_attributes) {
+//                    $update_price = $product_price;
+//                    break 1;
+//                }
+//            }
+//
+//            $image_id = null;
+//
+//            if (isset($price['image']) && $price['image']) {
+//                $image_id = $product->gallery()->where('image', 'like', "%" . $price["image"] . "%")->first()->id ?? null;
+//            }
+//
+//            if ($update_price) {
+//
+//                $update_price->update([
+//                    "price" => $price["price"],
+//                    "purchase_price" => $price["purchase_price"] ?? 0,
+//                    "barcode" => $price["barcode"] ?? null,
+//                    "discount" => $price["discount"],
+//                    "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
+//                    "regular_price" => get_discount_price($price["price"], 0, $product),
+//                    // Existing stock is never overwritten from the admin form.
+//                    "stock" => $update_price->stock,
+//                    "cart_max" => $price["cart_max"],
+//                    "cart_min" => $price["cart_min"],
+//                    "discount_expire_at" => $price["discount_expire_at"] ? Jalalian::fromFormat('Y-m-d H:i:s', $price["discount_expire_at"])->toCarbon() : null,
+//                    "image_id" => $image_id,
+//                    "deleted_at" => null,
+//                ]);
+//
+//                $update_price->get_attributes()->sync($attributes);
+//
+//                $prices_id[] = $update_price->id;
+//            } else {
+//
+//                $insert_price = $product->prices()->create(
+//                    [
+//                        "price" => $price["price"],
+//                        "purchase_price" => $price["purchase_price"] ?? 0,
+//                        "barcode" => $price["barcode"] ?? null,
+//                        "discount" => $price["discount"],
+//                        "discount_price" => get_discount_price($price["price"], $price["discount"], $product),
+//                        "regular_price" => get_discount_price($price["price"], 0, $product),
+//                        // New rows start at zero until the warehouse API returns stock.
+//                        "stock" => 0,
+//                        "stock_sync_enabled" => true,
+//                        "cart_max" => $price["cart_max"],
+//                        "cart_min" => $price["cart_min"],
+//                        "image_id" => $image_id,
+//                        "discount_expire_at" => $price["discount_expire_at"] ? Jalalian::fromFormat('Y-m-d H:i:s', $price["discount_expire_at"])->toCarbon() : null,
+//                    ]
+//                );
+//
+//                foreach ($attributes as $attribute) {
+//                    $insert_price->get_attributes()->attach([$attribute]);
+//                }
+//
+//                $prices_id[] = $insert_price->id;
+//            }
+//        }
 
         $product->prices()->whereNotIn('id', $prices_id)->delete();
 
@@ -840,47 +857,54 @@ class ProductController extends Controller
     private function updateProductImages(Product $product, Request $request)
     {
         if ($request->hasFile('image')) {
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
+            if ($product->image && Storage::exists($product->image)) {
+                Storage::delete($product->image);
             }
 
             $file = $request->image;
             $name = uniqid() . '_' . $product->id . '.' . $file->getClientOriginalExtension();
-            $request->image->storeAs('products', $name);
-
+            $request->image->storeAs('/uploads/products/', $name);
             $product->image = '/uploads/products/' . $name;
+            $product->site_to_inventory_verified = 0;
             $product->save();
         }
 
         if ($request->hasFile('video_cover')) {
-            if ($product->video_cover && Storage::exists(str_replace('/uploads/', '', $product->video_cover))) {
-                Storage::delete(str_replace('/uploads/', '', $product->video_cover));
-            }
-
-            $videoCover = $request->file('video_cover');
-            $videoCoverName = uniqid() . '_video_' . $product->id . '.' . $videoCover->getClientOriginalExtension();
-            $videoCover->storeAs('products/video-covers', $videoCoverName);
-
-            $product->video_cover = '/uploads/products/video-covers/' . $videoCoverName;
-            $product->save();
+            ImageStorage::replace(
+                $request->file('video_cover'),
+                'products/video-covers',
+                $product->video_cover,
+                function (string $newPath) use ($product): void {
+                    $product->video_cover = $newPath;
+                    $product->saveOrFail();
+                }
+            );
         }
 
-        $product_images = $product->gallery()->pluck('image')->toArray();
-        $images = explode(',', $request->images);
+        $product_images = $product->gallery()
+            ->pluck('image')
+            ->toArray();
+
+        $images = collect(str($request->images)->explode(','))
+            ->map(fn( $image ) => parse_url($image, PHP_URL_PATH))
+            ->map(fn( $path ) => ltrim($path, '/'))
+            ->values()
+            ->toArray();
+
         $deleted_images = array_diff($product_images, $images);
 
-        foreach ($deleted_images as $del_img) {
-            $del_img = $product->gallery()->where('image', $del_img)->first();
+        foreach ( $deleted_images as $del_img ) {
+            $galleryImage = $product->gallery()
+                ->where('image', $del_img)
+                ->first();
 
-            if (!$del_img) {
+            if ( !$galleryImage ) {
                 continue;
             }
 
-            if (Storage::disk('public')->exists($del_img)) {
-                Storage::disk('public')->delete($del_img);
-            }
+            ImageStorage::delete($galleryImage->image);
 
-            $del_img->delete();
+            $galleryImage->delete();
         }
 
         $ordering = 1;
@@ -893,12 +917,14 @@ class ProductController extends Controller
 
                 $imageAttrId = $color_selects[$image] ?? null;
 
-                if (Storage::exists('tmp/' . $image)) {
+                $temporaryKey = 'tmp/' . basename($image);
+                $destinationKey = 'products/' . basename($image);
 
-                    Storage::move('tmp/' . $image, 'products/' . $image);
+                if (ImageStorage::exists($temporaryKey)) {
+                    $galleryPath = ImageStorage::move($temporaryKey, $destinationKey);
 
                     $product->gallery()->create([
-                        'image' => '/uploads/products/' . $image,
+                        'image' => $galleryPath,
                         'ordering' => $ordering++,
                         'color_id' => $imageAttrId
                     ]);

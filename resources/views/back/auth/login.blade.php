@@ -29,7 +29,7 @@
                                     <p class="px-2">لطفا فیلدهای زیر را پر کنید.</p>
                                     <div class="card-content mb-2">
                                         <div class="card-body pt-1">
-                                            <form id="login-form" method="POST" action="{{ route('login') }}">
+                                            <form id="login-form" method="POST" action="{{ route('admin.login.store') }}">
                                                 @csrf
                                                 <fieldset class="form-label-group form-group position-relative has-icon-left">
                                                     <input type="text" class="form-control" id="user-name" placeholder="نام کاربری" name="username" value="{{ old('username') }}">
