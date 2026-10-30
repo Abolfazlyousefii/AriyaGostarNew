@@ -61,3 +61,5 @@ error_log
 *.orig
 
 /public/ariya-laravel/
+
+*.repaired
