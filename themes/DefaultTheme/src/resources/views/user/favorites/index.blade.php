@@ -19,7 +19,7 @@
                                     <div class="card-horizontal-product">
                                         <div class="card-horizontal-product-thumb">
                                             <a href="{{ route('front.products.show', ['product' => $favorite->product]) }}">
-                                                <img data-src="{{  $favorite->product->image ? asset($favorite->product->image) : asset('/no-image-product.png') }}" alt="{{ $favorite->product->title }}">
+                                                <img data-src="{{ $favorite->product->imageUrl('/no-image-product.png') }}" alt="{{ $favorite->product->title }}">
                                             </a>
                                         </div>
                                         <div class="card-horizontal-product-content">

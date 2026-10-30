@@ -3,36 +3,90 @@
 namespace App\Services\Sms;
 
 use App\Contracts\SmsContract;
-use App\Contracts\SmsNotificationContract;
-use Exception;
+use Illuminate\Support\Facades\Log;
 use Melipayamak\MelipayamakApi;
+use RuntimeException;
+use Throwable;
 
-class MelipayamakSms extends SmsService implements SmsContract, SmsNotificationContract
+class MelipayamakSms extends SmsService implements SmsContract
 {
     public function send()
     {
         $method = $this->method();
         $data   = $this->$method();
 
-        $input_data   = $data['input_data'];
-        $mobile       = $this->mobile();
-        $bodyId       = $data['bodyId'];
+        $inputData = $data['input_data'];
+        $mobile    = $this->mobile();
+        $bodyId    = $data['bodyId'];
+        $response  = null;
+
+        Log::info('Melipayamak SMS request.', [
+            'mobile' => $mobile,
+            'bodyId' => $bodyId,
+            'input_data' => $inputData,
+        ]);
 
         try {
-            $username  = option('MELIPAYAMAK_PANEL_USERNAME');
-            $password  = option('MELIPAYAMAK_PANEL_PASSWORD');
-            $api       = new MelipayamakApi($username, $password);
-            $sms       = $api->sms('soap');
-            $to        = $mobile;
-            $text      = implode(';', $input_data);
-            $response  = $sms->sendByBaseNumber($text, $to, $bodyId);
+            $username = trim((string) option('MELIPAYAMAK_PANEL_USERNAME'));
+            $password = (string) option('MELIPAYAMAK_PANEL_PASSWORD');
 
-            $message = json_encode($response);
-        } catch (Exception $e) {
-            $message = $e->getMessage();
+            if ($username === '' || trim($password) === '') {
+                throw new RuntimeException('Melipayamak credentials are not configured.');
+            }
+
+            if (empty($bodyId)) {
+                throw new RuntimeException('Melipayamak pattern bodyId is empty.');
+            }
+
+            $api      = new MelipayamakApi($username, $password);
+            $sms      = $api->sms('soap');
+            $text     = implode(';', $inputData);
+            $response = $sms->sendByBaseNumber($text, $mobile, $bodyId);
+
+            Log::info('Melipayamak SMS response.', [
+                'mobile' => $mobile,
+                'bodyId' => $bodyId,
+                'response' => $response,
+            ]);
+
+            $responseCode = is_numeric($response) ? (int) $response : null;
+
+            if ($responseCode === null || $responseCode <= 0) {
+                $message = match ($responseCode) {
+                    -110 => 'کد پترن ملی پیامک معتبر نیست یا اجازه ارسال ندارد.',
+                    -104 => 'اعتبار یا دسترسی پنل ملی پیامک بررسی شود.',
+                    -100 => 'نام کاربری یا رمز پنل ملی پیامک صحیح نیست.',
+                    default => 'Melipayamak rejected the SMS request.',
+                };
+
+                Log::warning('Melipayamak rejected SMS.', [
+                    'code' => $responseCode,
+                    'bodyId' => $bodyId,
+                    'mobile' => $mobile,
+                ]);
+
+                throw new RuntimeException(
+                    $message . ' Response: ' .
+                    (is_scalar($response) ? (string) $response : json_encode($response))
+                );
+            }
+        } catch (Throwable $exception) {
+            Log::error('Melipayamak SMS exception.', [
+                'mobile' => $mobile,
+                'bodyId' => $bodyId,
+                'input_data' => $inputData,
+                'response' => $response,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw new RuntimeException(
+                'Melipayamak SMS delivery failed.',
+                0,
+                $exception
+            );
         }
 
-        return $message;
+        return json_encode($response);
     }
 
     public function verifyCode()

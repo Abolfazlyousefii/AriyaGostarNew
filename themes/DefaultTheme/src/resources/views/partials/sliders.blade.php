@@ -36,7 +36,7 @@
                     @foreach ($main_sliders as $slider)
                         <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                             <a class="main-slider-slide" href="{{ $slider->link }}">
-                                <img src="{{ asset($slider->image) }}" alt="{{ $slider->title }}" class="img-fluid">
+	                            <img src="{{ media_url($slider->image) }}" alt="{{ $slider->title }}" class="img-fluid">
                             </a>
                         </div>
                     @endforeach
@@ -62,7 +62,7 @@
                     @foreach ($mobile_sliders as $slider)
                         <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                             <a class="main-slider-slide" href="{{ $slider->link }}">
-                                <img src="{{ asset($slider->image) }}" alt="{{ $slider->title }}" class="img-fluid">
+	                            <img src="{{ media_url($slider->image) }}" alt="{{ $slider->title }}" class="img-fluid">
                             </a>
                         </div>
                     @endforeach

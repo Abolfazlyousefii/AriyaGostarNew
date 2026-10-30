@@ -2,14 +2,16 @@
 
 namespace App\Providers;
 
+use App\Listeners\OrderPaid\CreateInvoiceFromOrder;
+use App\Listeners\User\SyncUserToINV;
+use App\Listeners\UserLogin\GetCart;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
 
-class EventServiceProvider extends ServiceProvider
-{
+class EventServiceProvider extends ServiceProvider {
     /**
      * The event listener mappings for the application.
      *
@@ -17,24 +19,25 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
         Login::class => [
-            'App\Listeners\UserLogin\GetCart'
+            GetCart::class,
+            SyncUserToINV::class,
         ],
 
         Registered::class => [
-            'App\Listeners\User\Registered',
-            'App\Listeners\User\AddGiftCredit',
-            'App\Listeners\User\CreateReferralDiscounts',
+//            'App\Listeners\User\Registered',
+//            'App\Listeners\User\AddGiftCredit',
+//            'App\Listeners\User\CreateReferralDiscounts',
+            SyncUserToINV::class,
         ],
 
         'App\Events\OrderCreated' => [
             'App\Listeners\OrderCreated\SaveAddress',
             'App\Listeners\OrderCreated\ChangePrices',
-            'App\Listeners\CreateInventoryOrderOutboxEvent',
         ],
 
         'App\Events\OrderPaid' => [
+            'App\Listeners\OrderPaid\CreateInvoiceFromOrder',
             'App\Listeners\OrderPaid',
-            'App\Listeners\CreateInventoryOrderOutboxEvent',
         ],
 
         'App\Events\WalletAmountIncreased' => [
@@ -49,7 +52,7 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\Product\CreatePricesChange',
         ],
 
-        'App\Events\ContactCreated' => []
+        'App\Events\ContactCreated' => [],
     ];
 
     /**
@@ -57,8 +60,7 @@ class EventServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
-    {
+    public function boot() {
         //
     }
 }

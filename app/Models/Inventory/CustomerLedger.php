@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models\Inventory;
+
+use Illuminate\Database\Eloquent\Model;
+
+class CustomerLedger extends Model {
+    protected $connection = 'inv';
+
+    public function scopeEffectiveForBalance( $query ) {
+        return $query->where(function ( $q ) {
+            $q->where('reference_type', '!=', Invoice::class)
+                ->orWhereNull('reference_type')
+                ->orWhereExists(function ( $sub ) {
+                    $sub->selectRaw('1')
+                        ->from('invoices')
+                        ->whereColumn('invoices.id', 'customer_ledgers.reference_id')
+                        ->whereNotIn('invoices.status', Invoice::cancelledStatuses());
+                });
+        });
+    }
+
+    protected $fillable = [
+        'customer_id',
+        'type',
+        'amount',
+        'reference_type',
+        'reference_id',
+        'note',
+    ];
+
+    public function customer() {
+        return $this->belongsTo(Customer::class);
+    }
+}

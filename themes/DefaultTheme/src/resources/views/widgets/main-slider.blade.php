@@ -41,12 +41,12 @@
                     @endforeach
                 </ol>
                 <div class="carousel-inner">
-                    @foreach ($main_sliders as $slider)
-                        <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
-                            <a class="main-slider-slide" href="{{ $slider->link }}">
-                                <img
-                                    src="{{ asset($slider->image) }}"
-                                    alt="{{ $slider->title }}"
+                @foreach ($main_sliders as $slider)
+		                <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+	                        <a class="main-slider-slide" href="{{ $slider->link }}">
+	                            <img
+		                                src="{{ media_url($slider->image) }}"
+		                                alt="{{ $slider->title }}"
                                     class="img-fluid"
                                     draggable="false"
                                 >
@@ -83,8 +83,8 @@
                         <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                             <a class="main-slider-slide" href="{{ $slider->link }}">
                                 <img
-                                    src="{{ asset($slider->image) }}"
-                                    alt="{{ $slider->title }}"
+		                                src="{{ media_url($slider->image) }}"
+		                                alt="{{ $slider->title }}"
                                     class="img-fluid"
                                     loading="eager"
                                     decoding="async"
@@ -192,4 +192,105 @@
             }
         }
     </style>
+
+        <style>
+            /* ARIYA-MOBILE-SLIDER-FLICKER-FIX */
+            @media (max-width: 991.98px) {
+                #main-slider-res .carousel-inner {
+                    position: relative !important;
+                    display: block !important;
+                    overflow: hidden !important;
+                }
+                #main-slider-res .carousel-item {
+                    position: absolute !important;
+                    inset: 0 !important;
+                    width: 100% !important;
+                    display: block !important;
+                    opacity: 0 !important;
+                    visibility: hidden !important;
+                    pointer-events: none !important;
+                    z-index: 1 !important;
+                    transform: none !important;
+                }
+                #main-slider-res .carousel-item.active {
+                    position: relative !important;
+                    inset: auto !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    pointer-events: auto !important;
+                    z-index: 2 !important;
+                }
+                #main-slider-res .carousel-item-next,
+                #main-slider-res .carousel-item-prev,
+                #main-slider-res .carousel-item-next.carousel-item-left,
+                #main-slider-res .carousel-item-prev.carousel-item-right {
+                    position: absolute !important;
+                    inset: 0 !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    z-index: 3 !important;
+                }
+            }
+        </style>
 @endonce
+
+
+<style>
+    /* ARIYA-MOBILE-SLIDER-FLICKER-FIX-FINAL */
+    @media (max-width: 991.98px) {
+        #main-slider-res {
+            position: relative !important;
+            overflow: hidden !important;
+            isolation: isolate !important;
+        }
+
+        #main-slider-res .carousel-inner {
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
+            overflow: hidden !important;
+        }
+
+        #main-slider-res .carousel-item {
+            position: absolute !important;
+            inset: 0 !important;
+            display: block !important;
+            float: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            z-index: 1 !important;
+            transform: none !important;
+        }
+
+        #main-slider-res .carousel-item.active {
+            position: relative !important;
+            inset: auto !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            z-index: 2 !important;
+        }
+
+        #main-slider-res .carousel-item-next,
+        #main-slider-res .carousel-item-prev,
+        #main-slider-res .carousel-item-next.carousel-item-left,
+        #main-slider-res .carousel-item-prev.carousel-item-right {
+            position: absolute !important;
+            inset: 0 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: none !important;
+            z-index: 3 !important;
+        }
+
+        #main-slider-res .active.carousel-item-left,
+        #main-slider-res .active.carousel-item-right {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+    }
+</style>

@@ -4,6 +4,9 @@ namespace Themes\DefaultTheme\src\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Models\Product;
+use App\Services\Catalog\ProductCatalogService;
+use Illuminate\Http\Request;
 
 class BrandController extends Controller
 {
@@ -14,14 +17,20 @@ class BrandController extends Controller
         return view('front::brands.index', compact('brands'));
     }
 
-    public function show(Brand $brand)
+    public function show(Brand $brand, Request $request)
     {
-        $products = $brand->products()
+        $query = Product::detectLang()
             ->published()
-            ->orderByStock()
-            ->latest()
-            ->paginate(20);
+            ->where('products.brand_id', $brand->id);
 
-        return view('front::brands.show', compact('brand', 'products'));
+        $data = app(ProductCatalogService::class)->build($query, $request);
+
+        return view('front::brands.show', array_merge($data, [
+            'brand' => $brand,
+            'catalogTitle' => $brand->name,
+            'filterAction' => route('front.brands.show', ['brand' => $brand]),
+            'filterResetUrl' => route('front.brands.show', ['brand' => $brand]),
+            'showBrandFilter' => false,
+        ]));
     }
 }

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Back;
 
 use App\Models\Banner;
 use App\Http\Controllers\Controller;
+use App\Services\Media\ImageStorageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class BannerController extends Controller
 {
@@ -26,7 +26,7 @@ class BannerController extends Controller
         return view('back.banners.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ImageStorageService $imageStorage)
     {
         $this->validate($request, [
             'image'       => 'image|required|max:2048',
@@ -35,16 +35,17 @@ class BannerController extends Controller
             'description' => 'nullable',
         ]);
 
-        $file = $request->image;
-        $name = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $request->image->storeAs('banners', $name);
+        $path = $imageStorage->store(
+            $request->file('image'),
+            'banners'
+        );
 
         Banner::create([
             'link'        => $request->link,
             'lang'        => app()->getLocale(),
             'group'       => $request->group,
             'published'   => $request->published ? true : false,
-            'image'       => '/uploads/banners/' . $name,
+            'image'       => $path,
             'title'       => $request->title,
             'description' => $request->description,
         ]);
@@ -59,7 +60,7 @@ class BannerController extends Controller
         return view('back.banners.edit', compact('banner'));
     }
 
-    public function update(Banner $banner, Request $request)
+    public function update(Banner $banner, Request $request, ImageStorageService $imageStorage)
     {
         $this->validate($request, [
             'image' => 'image|max:2048',
@@ -68,15 +69,13 @@ class BannerController extends Controller
 
         if ($request->hasFile('image')) {
 
-            if ($banner->image) {
-                Storage::disk('public')->delete($banner->image);
-            }
+            $path = $imageStorage->store(
+                $request->file('image'),
+                'banners',
+                $banner->image
+            );
 
-            $file = $request->image;
-            $name = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $request->image->storeAs('banners', $name);
-
-            $banner->image = '/uploads/banners/' . $name;
+            $banner->image = $path;
             $banner->save();
         }
 
@@ -93,10 +92,10 @@ class BannerController extends Controller
         return response("success");
     }
 
-    public function destroy(Banner $banner)
+    public function destroy(Banner $banner, ImageStorageService $imageStorage)
     {
         if ($banner->image) {
-            Storage::disk('public')->delete($banner->image);
+            $imageStorage->delete($banner->image);
         }
 
         $banner->delete();
@@ -118,7 +117,7 @@ class BannerController extends Controller
             Banner::findOrFail($banner)->update([
                 'ordering' => $i++,
             ]);
-        };
+        }
 
         return response('success');
     }

@@ -14,6 +14,14 @@ return [
     |
     */
 
+    // Enable only after Inventory migration + paid-order import have been deployed and tested.
+    'inventory_stock' => [
+        'enabled' => env('INVENTORY_STOCK_ENABLED', true),
+        'transport' => env('INVENTORY_STOCK_TRANSPORT', 'api'),
+        'base_url' => env('INVENTORY_STOCK_API_BASE_URL'),
+        'token' => env('INVENTORY_STOCK_API_TOKEN'),
+    ],
+
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),

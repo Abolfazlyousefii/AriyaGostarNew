@@ -1,3 +1,4 @@
+@auth
 <div class="ah-tab-content dt-sl">
     <div class="section-title text-sm-title title-wide no-after-title-wide mb-0 dt-sl">
         <h2>{{ trans('front::messages.products.product-files') }}</h2>
@@ -48,3 +49,15 @@
         </div>
     </div>
 </div>
+@else
+<div class="ah-tab-content dt-sl">
+    <div class="text-center py-4">
+        <a
+            href="{{ route('login', ['redirect' => route('front.products.show', ['product' => $product])]) }}"
+            class="btn btn-primary"
+        >
+            مشاهده قیمت پس از ورود
+        </a>
+    </div>
+</div>
+@endauth

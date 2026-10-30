@@ -1,6 +1,17 @@
 @php
-    $variables      = get_widget($widget);
-    $products       = $variables['products'];
+    $variables = get_widget($widget);
+    $products = $variables['products'];
+
+    // ARIYA_SALES_CONTROL_COLORFUL_WIDGET_V1
+    if ($widget->option('products_type') === 'discount') {
+        $controlledProducts = app(
+            \App\Services\Sales\SalesCampaignService::class
+        )->showcaseProducts('discount');
+
+        if ($controlledProducts !== null) {
+            $products = $controlledProducts;
+        }
+    }
 @endphp
 
 <!-- Start special products -->

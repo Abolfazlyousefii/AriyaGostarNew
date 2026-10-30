@@ -467,6 +467,87 @@
                                         @endif
 
                                         @php
+                                            $gateway = $gateways->where('key', 'sep')->first();
+                                        @endphp
+
+                                        @if ($gateway)
+                                            <div class="row">
+
+                                                <div class="form-group col-md-12">
+                                                    <fieldset class="checkbox">
+                                                        <div class="vs-checkbox-con vs-checkbox-primary">
+
+                                                            <input
+                                                                data-class="sep"
+                                                                type="checkbox"
+                                                                name="gateways[{{ $gateway->id }}][is_active]"
+                                                                {{ $gateway->is_active ? 'checked' : '' }}
+                                                            >
+
+                                                            <span class="vs-checkbox">
+                                                                <span class="vs-checkbox--check">
+                                                                    <i class="vs-icon feather icon-check"></i>
+                                                                </span>
+                                                            </span>
+
+                                                            <span>
+                                                                درگاه پرداخت الکترونیک سامان SEP
+                                                            </span>
+
+                                                        </div>
+                                                    </fieldset>
+                                                </div>
+
+                                                <div class="col-md-2 form-group">
+                                                    <label>ترتیب نمایش</label>
+
+                                                    <div class="input-group mb-75">
+                                                        <input
+                                                            type="number"
+                                                            name="gateways[{{ $gateway->id }}][ordering]"
+                                                            class="form-control ltr sep"
+                                                            value="{{ $gateway->ordering }}"
+                                                        >
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-4 form-group">
+                                                    <label>عنوان</label>
+
+                                                    <div class="input-group mb-75">
+                                                        <input
+                                                            type="text"
+                                                            name="gateways[{{ $gateway->id }}][name]"
+                                                            class="form-control sep"
+                                                            value="{{ $gateway->name }}"
+                                                        >
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-4 form-group">
+                                                    <label>Terminal ID</label>
+
+                                                    <div class="input-group mb-75">
+                                                        <input
+                                                            type="text"
+                                                            name="gateways[{{ $gateway->id }}][configs][terminalId]"
+                                                            class="form-control ltr sep"
+                                                            value="{{ $gateway->config('terminalId') }}"
+                                                            required
+                                                        >
+                                                    </div>
+
+                                                    <small class="text-muted">
+                                                        شماره ترمینال دریافتی از SEP
+                                                    </small>
+                                                </div>
+
+                                            </div>
+
+                                            <hr>
+                                        @endif
+
+                                        @php
                                             $gateway = $gateways->where('key', 'saman')->first();
                                         @endphp
 
@@ -602,43 +683,41 @@
                                         @endif
 add
 
-{{--                                        @php--}}
-{{--                                            $gateway = $gateways->where('key', 'local')->first();--}}
-{{--                                        @endphp--}}
-{{--                                        @if ($gateway)--}}
-{{--                                            <div class="row">--}}
-{{--                                                <div class="form-group col-md-12">--}}
-{{--                                                    <fieldset class="checkbox">--}}
-{{--                                                        <div class="vs-checkbox-con vs-checkbox-primary">--}}
-{{--                                                            <input data-class="local" type="checkbox"--}}
-{{--                                                                   name="gateways[{{ $gateway->id }}][is_active]"--}}
-{{--                                                                {{ $gateway->is_active ? 'checked' : '' }}>--}}
-{{--                                                            <span class="vs-checkbox">--}}
-{{--                                                                <span class="vs-checkbox--check">--}}
-{{--                                                                    <i class="vs-icon feather icon-check"></i>--}}
-{{--                                                                </span>--}}
-{{--                                                            </span>--}}
-{{--                                                            <span class="">درگاه تست (Local)</span>--}}
-{{--                                                        </div>--}}
-{{--                                                    </fieldset>--}}
-{{--                                                </div>--}}
-{{--                                                <div class="col-md-2 form-group">--}}
-{{--                                                    <label>ترتیب نمایش</label>--}}
-{{--                                                    <div class="input-group mb-75">--}}
-{{--                                                        <input type="number" name="gateways[{{ $gateway->id }}][ordering]"--}}
-{{--                                                               class="form-control ltr local" value="{{ $gateway->ordering }}">--}}
-{{--                                                    </div>--}}
-{{--                                                </div>--}}
-{{--                                                <div class="col-md-4 form-group">--}}
-{{--                                                    <label>عنوان</label>--}}
-{{--                                                    <div class="input-group mb-75">--}}
-{{--                                                        <input type="text" name="gateways[{{ $gateway->id }}][name]"--}}
-{{--                                                               class="form-control local" value="{{ $gateway->name }}">--}}
-{{--                                                    </div>--}}
-{{--                                                </div>--}}
-{{--                                            </div>--}}
-{{--                                            <hr>--}}
-{{--                                        @endif--}}
+@if (config('general.local_payment_test_enabled'))
+                                            @php
+                                                $gateway = $gateways->where('key', 'local')->first();
+                                            @endphp
+                                            @if ($gateway)
+                                                <div class="row">
+                                                    <div class="form-group col-md-12">
+                                                        <fieldset class="checkbox">
+                                                            <div class="vs-checkbox-con vs-checkbox-primary">
+                                                                <input data-class="local" type="checkbox"
+                                                                       name="gateways[{{ $gateway->id }}][is_active]"
+                                                                       {{ $gateway->is_active ? 'checked' : '' }}>
+                                                                <span class="vs-checkbox"><span class="vs-checkbox--check"><i class="vs-icon feather icon-check"></i></span></span>
+                                                                <span>درگاه پرداخت تست (بدون پول واقعی — فقط سایت لوکال)</span>
+                                                            </div>
+                                                        </fieldset>
+                                                    </div>
+                                                    <div class="col-md-2 form-group">
+                                                        <label>ترتیب نمایش</label>
+                                                        <div class="input-group mb-75">
+                                                            <input type="number" name="gateways[{{ $gateway->id }}][ordering]"
+                                                                   class="form-control ltr local" value="{{ $gateway->ordering }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4 form-group">
+                                                        <label>عنوان</label>
+                                                        <div class="input-group mb-75">
+                                                            <input type="text" name="gateways[{{ $gateway->id }}][name]"
+                                                                   class="form-control local" value="{{ $gateway->name }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                            @endif
+                                        @endif
 
 
 

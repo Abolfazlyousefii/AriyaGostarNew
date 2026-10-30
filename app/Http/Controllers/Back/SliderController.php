@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Back;
 
 use App\Http\Controllers\Controller;
 use App\Models\Slider;
+use App\Services\Media\ImageStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,16 +27,17 @@ class SliderController extends Controller
         return view('back.sliders.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ImageStorageService $imageStorage)
     {
         $this->validate($request, [
             'image' => 'image|required|max:2048',
             'group' => 'required'
         ]);
 
-        $file = $request->image;
-        $name = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $request->image->storeAs('sliders', $name);
+        $path = $imageStorage->store(
+            $request->file('image'),
+            'sliders'
+        );
 
         Slider::create([
             'title'       => $request->title,
@@ -43,7 +45,7 @@ class SliderController extends Controller
             'group'       => $request->group,
             'description' => $request->description,
             'published'   => $request->published ? true : false,
-            'image'       => '/uploads/sliders/' . $name,
+            'image'       => $path,
             'lang'        => app()->getLocale(),
         ]);
 
@@ -67,14 +69,14 @@ class SliderController extends Controller
         if ($request->hasFile('image')) {
 
             if ($slider->image) {
-                Storage::disk('public')->delete($slider->image);
+                Storage::disk('arvan')->delete($slider->image);
             }
 
             $file = $request->image;
             $name = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $request->image->storeAs('sliders', $name);
+            $request->image->storeAs('sliders', $name, 'arvan');
 
-            $slider->image = '/uploads/sliders/' . $name;
+            $slider->image = 'sliders/' . $name;
             $slider->save();
         }
 
@@ -94,7 +96,7 @@ class SliderController extends Controller
     public function destroy(Slider $slider)
     {
         if ($slider->image) {
-            Storage::disk('public')->delete($slider->image);
+            Storage::disk('arvan')->delete($slider->image);
         }
 
         $slider->delete();

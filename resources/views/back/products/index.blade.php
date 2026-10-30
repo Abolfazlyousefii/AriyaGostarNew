@@ -41,7 +41,7 @@
                             <small class="text-muted">مدیریت موجودی، قیمت، انتشار و تنوع‌های محصولات</small>
                         </div>
                         <div class="d-flex flex-wrap align-items-center">
-                            <a href="{{ route('admin.products.create') }}" class="btn btn-primary mr-1 mb-50"><i class="feather icon-plus"></i> محصول جدید</a>
+                            <a href="https://inv.ariyajanebi.ir/products/create" class="btn btn-primary mr-1 mb-50"><i class="feather icon-plus"></i> محصول جدید</a>
                             @can('products.export')
                                 <button type="button" data-toggle="modal" data-target="#products-export-modal" class="btn btn-outline-success mr-1 mb-50"><i class="fa fa-file-excel-o"></i> اکسل محصولات</button>
                             @endcan

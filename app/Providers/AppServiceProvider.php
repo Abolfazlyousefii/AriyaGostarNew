@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Inventory\Customer;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\User;
@@ -18,6 +19,7 @@ use App\Observers\BannerObserver;
 use App\Observers\SliderObserver;
 use App\Observers\ProductObserver;
 use App\Observers\CategoryObserver;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Request;
@@ -43,7 +45,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Keep generated storefront URLs HTTPS when TLS is terminated by the CDN.
+        // Do not trust arbitrary X-Forwarded-* headers.
+        if ($this->app->environment('production')
+            && parse_url((string) config('app.url'), PHP_URL_SCHEME) === 'https') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Schema::defaultStringLength(191);
+
+        Relation::morphMap([
+            'wallet' => Customer::class,
+        ]);
 
         $this->loadTheme();
 
@@ -52,16 +65,6 @@ class AppServiceProvider extends ServiceProvider
             if (!$this->app->runningInConsole()) {
                 $this->viewComposer();
                 $this->configs();
-            }
-        } else if (!application_installed() && !$this->app->runningInConsole()) {
-            if (!file_exists(base_path('.env'))) {
-                copy(base_path('.env.example'), base_path('.env'));
-            }
-
-            $this->app->bind(EnvironmentManager::class, MyEnvironmentManager::class);
-
-            if (request()->segment(1) != 'install') {
-                return redirect('install')->send();
             }
         }
 

@@ -1,20 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\Integrations\Inventory\InventoryEventController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-
-Route::post('integrations/inventory/v1/events', App\Http\Controllers\Api\Integrations\Inventory\InventoryEventController::class);
+Route::post('/integrations/inventory/events', InventoryEventController::class)
+    ->name('integrations.inventory.events');
 
 require __DIR__.'/api/v1.php';
+require __DIR__.'/api/v2.php';

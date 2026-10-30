@@ -8,7 +8,7 @@
             <tr>
                 <th scope="row">کاربر مربوطه</th>
                 <td>
-                    {{ $wallet_history->wallet->user->fullname }}<a class="float-right" href="{{ route('admin.users.show', ['user' => $wallet_history->wallet->user]) }}" target="_blank"><i class="feather icon-external-link"></i></a>
+                    {{ $wallet_history->customer->display_name }}<a class="float-right" href="{{ route('admin.users.show', ['user' => $wallet_history->customer]) }}" target="_blank"><i class="feather icon-external-link"></i></a>
                 </td>
             </tr>
 
@@ -50,7 +50,7 @@
 
             <tr>
                 <th scope="row">توضیحات</th>
-                <td>{!! $wallet_history->description !!}</td>
+                <td>{!! $wallet_history->note !!}</td>
             </tr>
 
             @if ($wallet_history->transaction)

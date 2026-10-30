@@ -26,11 +26,36 @@ class InventoryEventController extends Controller
         $hash = hash('sha256', $request->getContent());
         $existing = InventoryInboundEvent::where('event_id', $eventId)->first();
         if ($existing) {
-            if ($existing->payload_hash !== $hash) return response()->json(['message'=>'Event payload conflict'], 409);
-            return response()->json(['status'=>'already_processed','event_status'=>$existing->status]);
+            if ($existing->payload_hash !== $hash) {
+                return response()->json(['message' => 'Event payload conflict'], 409);
+            }
+
+            // Inventory retries with the same stable event id. If the first request
+            // created the row but processing failed, do not acknowledge it as complete;
+            // retry the processor so a transient Site error cannot strand the event.
+            if ($existing->status !== 'processed') {
+                app(CatalogEventProcessor::class)->process($existing);
+            }
+
+            $existing->refresh();
+
+            return response()->json([
+                'status' => $existing->status === 'processed' ? 'already_processed' : $existing->status,
+                'event_status' => $existing->status,
+            ]);
         }
-        $event = InventoryInboundEvent::create(['event_id'=>$eventId,'source'=>$request->header('X-Ariya-Source','inventory'),'event_type'=>$type,'payload_hash'=>$hash,'payload'=>$data,'status'=>'pending']);
+
+        $event = InventoryInboundEvent::create([
+            'event_id' => $eventId,
+            'source' => $request->header('X-Ariya-Source', 'inventory'),
+            'event_type' => $type,
+            'payload_hash' => $hash,
+            'payload' => $data,
+            'status' => 'pending',
+        ]);
+
         app(CatalogEventProcessor::class)->process($event);
-        return response()->json(['status'=>$event->fresh()->status]);
+
+        return response()->json(['status' => $event->fresh()->status]);
     }
 }

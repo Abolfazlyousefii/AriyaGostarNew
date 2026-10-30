@@ -29,6 +29,13 @@ class UserPolicy
         return $user->can('users.update') && ($model->level != 'creator');
     }
 
+    public function updateStatus(User $user, User $model)
+    {
+        return $user->can('users.update')
+            && $user->id !== $model->id
+            && $model->level === 'user';
+    }
+
     public function delete(User $user, User $model)
     {
         return $user->can('users.delete') && ($model->level != 'creator');

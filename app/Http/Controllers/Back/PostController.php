@@ -50,7 +50,7 @@ class PostController extends Controller
         if ($request->hasFile('image')) {
             $file          = $request->image;
             $name          = uniqid() . '.' . $file->getClientOriginalExtension();
-            $image         = $request->image->storeAs('posts', $name);
+            $image         = $request->image->storeAs('posts', $name, 'post_uploads');
             $data['image'] = '/uploads/' . $image;
         }
 
@@ -82,11 +82,11 @@ class PostController extends Controller
         if ($request->hasFile('image')) {
             $file          = $request->image;
             $name          = uniqid() . '.' . $file->getClientOriginalExtension();
-            $image         = $request->image->storeAs('posts', $name);
+            $image         = $request->image->storeAs('posts', $name, 'post_uploads');
             $data['image'] = '/uploads/' . $image;
 
             if ($post->image) {
-                Storage::disk('public')->delete($post->image);
+                Storage::disk('post_uploads')->delete(preg_replace('#^/uploads/#', '', $post->image));
             }
         } else {
             $data['image'] = $post->image;
@@ -103,7 +103,7 @@ class PostController extends Controller
     {
 
         if ($post->image) {
-            Storage::disk('public')->delete($post->image);
+            Storage::disk('post_uploads')->delete(preg_replace('#^/uploads/#', '', $post->image));
         }
 
         $post->delete();

@@ -25,7 +25,7 @@ class Cart extends Model
         $price = 0;
 
         foreach ($this->products as $product) {
-            $price += ($product->prices()->find($product->pivot->price_id)->salePrice() * $product->pivot->quantity);
+            $price += (($product->prices()->find($product->pivot->price_id)?->salePrice() ?? 0) * $product->pivot->quantity);
         }
 
         return $price;
@@ -37,7 +37,7 @@ class Cart extends Model
 
         foreach ($this->products as $product) {
             $product_price = $product->prices()->find($product->pivot->price_id);
-            $price += ($product_price->salePrice() * $product->pivot->quantity);
+            $price += (($product_price?->salePrice() ?? 0) * $product->pivot->quantity);
         }
 
         return $price;
@@ -48,7 +48,7 @@ class Cart extends Model
         $price  = $this->discountPrice() + $this->shippingCostAmount();
         $price -= $this->discountCodeTotal();
 
-        return intval($price);
+        return max(0, (int) round($price));
     }
 
     public function getQuantityAttribute()
@@ -137,7 +137,7 @@ class Cart extends Model
         foreach ($this->products as $product) {
             $product_price = $product->prices()->find($product->pivot->price_id);
 
-            if ($product_price->hasDiscount()) {
+            if ($product_price && $product_price->hasDiscount()) {
                 $discount += ($product_price->regularPrice() * $product->pivot->quantity) - ($product_price->discountPrice() * $product->pivot->quantity);
             }
         }
@@ -252,19 +252,18 @@ class Cart extends Model
             return $this->shippingCostAmount();
         }
 
+        // The coupon is an additional discount on the *already discounted* eligible
+        // merchandise, never on the original price before a bundle/product sale.
         if ($discount->type == 'amount') {
-            return $price > $discount->amount ? $discount->amount : $price;
+            return min($price, max(0, (int) $discount->amount));
         }
 
-        $discount_amount = $price * ($discount->amount / 100);
-
-        if ($discount->discount_ceiling && $discount_amount > $discount->discount_ceiling) {
-            return $discount->discount_ceiling;
+        $discountAmount = (int) round($price * max(0, (float) $discount->amount) / 100);
+        if ($discount->discount_ceiling) {
+            $discountAmount = min($discountAmount, max(0, (int) $discount->discount_ceiling));
         }
 
-
-
-        return $discount_amount;
+        return min($price, $discountAmount);
     }
 
     public function includeDiscountProductsPrice()
@@ -308,13 +307,24 @@ class Cart extends Model
 
         foreach ($query->get() as $product) {
             $product_price = $product->prices()->find($product->pivot->price_id);
-
-            if (!$product_price->discount || !$this->discount->not_discount_products) {
-                $price += ($product_price->price * $product->pivot->quantity);
+            if (!$product_price) {
+                continue;
             }
+
+            // A kit's built-in discount must stack with otherwise eligible coupons.
+            // The "exclude discounted products" option still governs ordinary sale
+            // products; product/category include/exclude rules continue to apply.
+            if ($this->discount->not_discount_products && $product_price->hasDiscount()
+                && !(bool) ($product->is_bundle ?? false)) {
+                continue;
+            }
+
+            // salePrice() uses the storefront currency (toman). `price` stores
+            // rials and would both ignore bundle savings and overstate the coupon.
+            $price += $product_price->salePrice() * $product->pivot->quantity;
         }
 
-        return $price;
+        return max(0, (int) round($price));
     }
 
     public function hasPhysicalProduct()

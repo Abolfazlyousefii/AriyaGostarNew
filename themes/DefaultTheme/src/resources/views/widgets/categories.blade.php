@@ -140,7 +140,97 @@
         }
     </style>
 
-    <section class="ariya-home-categories">
+
+    <!-- ARIYA_TASK02_3C08_HOVER_V1 -->
+    <style>
+        /* Task 08: calm category hover, no jump or crop. */
+
+        .ariya-home-categories .ariya-category-item,
+        .ariya-home-categories .ariya-category-item:hover,
+        .ariya-home-categories .ariya-category-item:focus {
+            transform: none !important;
+            transition: none !important;
+        }
+
+        .ariya-home-categories .ariya-category-image,
+        .ariya-home-categories .ariya-category-item:hover .ariya-category-image {
+            overflow: visible !important;
+            transform: none !important;
+        }
+
+        .ariya-home-categories .ariya-category-image img {
+            transform: none !important;
+            filter: saturate(.65) !important;
+            transition: filter 350ms ease !important;
+        }
+
+        .ariya-home-categories .ariya-category-item:hover .ariya-category-image img,
+        .ariya-home-categories .ariya-category-item:focus-visible .ariya-category-image img {
+            transform: none !important;
+            filter: saturate(1) !important;
+        }
+
+        /* Remove shine overlays only from homepage category items. */
+        .ariya-home-categories .ariya-category-item::before,
+        .ariya-home-categories .ariya-category-item::after,
+        .ariya-home-categories .ariya-category-image::before,
+        .ariya-home-categories .ariya-category-image::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ariya-home-categories .ariya-category-image img {
+                transition: none !important;
+            }
+        }
+    </style>
+    <!-- ARIYA_TASK02_3C09_UNIFORM_V1 -->
+<style>
+    /* Task 09: consistent circular category thumbnails */
+
+    .ariya-home-categories .ariya-category-image {
+        box-sizing: border-box !important;
+        width: min(125px, 100%) !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+        flex: 0 0 auto;
+        margin: 0 auto 10px !important;
+        overflow: visible !important;
+    }
+
+    .ariya-home-categories .ariya-category-image img {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        object-fit: contain !important;
+        object-position: center !important;
+    }
+
+    .ariya-home-categories .ariya-category-title {
+        display: block !important;
+        width: 100% !important;
+        margin: 2px 0 0 !important;
+        line-height: 1.75 !important;
+        text-align: center !important;
+    }
+
+    @media (max-width: 991px) {
+        .ariya-home-categories .ariya-category-image {
+            width: min(105px, 100%) !important;
+        }
+    }
+
+    @media (max-width: 575px) {
+        .ariya-home-categories .ariya-category-image {
+            width: min(82px, 100%) !important;
+        }
+    }
+</style>
+<section class="ariya-home-categories">
         <div class="ariya-category-slider-wrap">
             <div class="owl-carousel ariya-categories-carousel">
 
@@ -149,8 +239,18 @@
                         <a href="{{ $category->link }}" class="ariya-category-item">
 
                             <span class="ariya-category-image">
-                                @if($category->image)
-                                    <img src="{{ asset($category->image) }}" alt="{{ $category->title }}">
+                                @php
+                                    // New category media lives on the configured storage disk;
+                                    // legacy /uploads/category files remain public local assets.
+                                    $categoryImageUrl = category_image_url($category->image ?? null);
+                                    if ($categoryImageUrl !== '' && $category->updated_at) {
+                                        // The updated-at token defeats cached stale image URLs after edits.
+                                        $categoryImageUrl .= (str_contains($categoryImageUrl, '?') ? '&' : '?')
+                                            . 'v=' . $category->updated_at->timestamp;
+                                    }
+                                @endphp
+                                @if($categoryImageUrl !== '')
+                                    <img src="{{ $categoryImageUrl }}" alt="{{ $category->title }}" loading="lazy" decoding="async">
                                 @endif
                             </span>
 

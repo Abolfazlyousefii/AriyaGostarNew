@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Back;
 
 use App\Http\Controllers\Controller;
+use App\Models\OneTimeCode;
 use App\Models\User;
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +15,7 @@ use App\Models\Role;
 use App\Rules\NotSpecialChar;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Morilog\Jalali\Jalalian;
@@ -78,11 +81,13 @@ class UserController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $file = $request->image;
-            $name = uniqid() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
-            $request->image->storeAs('users', $name);
+            $file = $request->file('image');
 
-            $user->image = '/uploads/users/' . $name;
+            $name = uniqid() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+
+            $file->storeAs('users', $name, 'arvan');
+
+            $user->image = 'users/' . $name;
             $user->save();
         }
 
@@ -135,11 +140,18 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $file = $request->image;
-            $name = uniqid() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
-            $request->image->storeAs('users', $name);
 
-            $user->image = '/uploads/users/' . $name;
+            if ($user->image) {
+                ImageStorage::delete($user->image);
+            }
+
+            $file = $request->file('image');
+
+            $name = uniqid() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+
+            $file->storeAs('users', $name, 'arvan');
+
+            $user->image = 'users/' . $name;
             $user->save();
         }
 
@@ -156,10 +168,48 @@ class UserController extends Controller
         return view('back.users.show', compact('user'));
     }
 
+    public function updateStatus(Request $request, User $user)
+    {
+        $this->authorize('updateStatus', $user);
+
+        $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $isActive = $request->boolean('is_active');
+
+        DB::transaction(function () use ($user, $isActive) {
+            $user->forceFill([
+                'is_active' => $isActive,
+            ]);
+
+            if (! $isActive) {
+                $user->setRememberToken(Str::random(60));
+                OneTimeCode::where('user_id', $user->id)->delete();
+
+                if (config('session.driver') === 'database') {
+                    DB::table(config('session.table', 'sessions'))
+                        ->where('user_id', $user->id)
+                        ->delete();
+                }
+            }
+
+            $user->save();
+        });
+
+        toastr()->success(
+            $isActive
+                ? 'حساب کاربری با موفقیت فعال شد.'
+                : 'حساب کاربری با موفقیت غیرفعال شد.'
+        );
+
+        return redirect()->route('admin.users.show', $user);
+    }
+
     public function destroy(User $user, $multiple = false)
     {
         if ($user->image) {
-            Storage::disk('public')->delete($user->image);
+            ImageStorage::delete($user->image);
         }
 
         $user->delete();
@@ -254,14 +304,17 @@ class UserController extends Controller
                 'image' => 'image|max:2048',
             ]);
 
-            $imageName = time() . '_' . $user->id . '.' . $request->image->getClientOriginalExtension();
-            $request->image->move(public_path('uploads/users/'), $imageName);
-
-            if ($user->image && file_exists(public_path($user->image))) {
-                unlink(public_path($user->image));
+            if ($user->image) {
+                ImageStorage::delete($user->image);
             }
 
-            $user->image = '/uploads/users/' . $imageName;
+            $file = $request->file('image');
+
+            $imageName = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+
+            $file->storeAs('users', $imageName, 'arvan');
+
+            $user->image = 'users/' . $imageName;
         }
 
         $user->first_name = $request->first_name;

@@ -41,7 +41,8 @@ class SettingController extends Controller
             'info_icon'        => 'image|max:2048',
             'info_logo'        => 'image|max:2048',
             'info_city_id'     => 'exists:cities,id',
-            'info_province_id' => 'exists:provinces,id',
+            'info_province_id'      => 'exists:provinces,id',
+            'minimum_order_amount'  => 'required|integer|min:0',
         ]);
 
         if ($request->hasFile('info_icon')) {

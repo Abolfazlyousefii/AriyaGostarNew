@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AttributeGroup extends Model
 {
-    use Filterable, Languageable;
+    use Filterable, Languageable, SoftDeletes;
 
     protected $guarded = ['id'];
 

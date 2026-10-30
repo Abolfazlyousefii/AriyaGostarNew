@@ -17,6 +17,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\UserOption;
 use App\Models\Viewer;
+use App\Services\Media\ImageStorageService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -27,6 +28,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Milon\Barcode\DNS1D;
+
+if (!function_exists('media_url')) {
+    function media_url(?string $path, string $fallback = '/no-image-product.png'): string
+    {
+        return app(ImageStorageService::class)->url($path, $fallback);
+    }
+}
 
 /* add active class to li */
 
@@ -721,6 +729,10 @@ function get_gateway_configs($gateway)
                 $configs['merchantId'] = $gateway->config('merchantId');
                 break;
             }
+        case "sep": {
+            $configs['terminalId'] = $gateway->config('terminalId');
+            break;
+        }
         case "behpardakht": {
                 $configs['terminalId'] = $gateway->config('terminalId');
                 $configs['username']   = $gateway->config('username');

@@ -1,4 +1,1 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
+# Published storefront assets are versioned; backups are ignored by the root rules.

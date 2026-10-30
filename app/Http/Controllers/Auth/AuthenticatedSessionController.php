@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Providers\RouteServiceProvider;
+use App\Support\AuthRedirect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -32,10 +35,24 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        if (! $request->user() || ! $request->user()->isAdmin()) {
+            RateLimiter::hit($request->throttleKey());
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'username' => __('auth.failed'),
+            ]);
+        }
+
         $request->session()->regenerate();
         $request->session()->put('auth.password_confirmed_at', time());
 
-        return response('success');
+        return response()->json([
+            'status' => 'success',
+            'redirect' => AuthRedirect::pullAdminDestination($request),
+        ]);
     }
 
     /**

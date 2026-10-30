@@ -261,6 +261,27 @@
                                                 </fieldset>
                                             </div>
 
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <div class="controls">
+                                                        <label>حداقل مبلغ سفارش <small>(تومان)</small></label>
+                                                        <input
+                                                            type="number"
+                                                            name="minimum_order_amount"
+                                                            class="form-control"
+                                                            min="0"
+                                                            step="1000"
+                                                            required
+                                                            value="{{ option('minimum_order_amount', 3000000) }}"
+                                                            placeholder="3000000"
+                                                        >
+                                                        <small class="text-muted">
+                                                            برای مثال 3000000 یعنی سه میلیون تومان
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
 
                                         <div class="row p-0">

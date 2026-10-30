@@ -3,15 +3,12 @@
 
         <div class="col-12">
             <div class="row">
-                @foreach ($attributeGroups as $attributeGroup)
+                @foreach ($attributeFields as $attributeGroup)
                     <div class="col-md-3 col-12">
                         <div class="form-group">
-                            <label>{{ $attributeGroup->name }}</label>
-                            <select class="form-control price-attribute-select select2" data-group-id="{{ $attributeGroup->id }}" data-type="{{ $attributeGroup->type }}" name="attribute">
+                            <label>{{ $attributeGroup['name'] }}</label>
+                            <select class="form-control price-attribute-select select2" data-group-id="{{ $attributeGroup['id'] }}" data-type="{{ $attributeGroup['type'] }}" data-options-loaded="0" data-selected-id="" name="attribute">
                                 <option value="">انتخاب کنید</option>
-                                @foreach ($attributeGroup->get_attributes()->orderBy('ordering')->orderBy('name')->get() as $attribute)
-                                    <option value="{{ $attribute->id }}">{{ $attribute->name }}</option>
-                                @endforeach
                             </select>
                         </div>
                     </div>

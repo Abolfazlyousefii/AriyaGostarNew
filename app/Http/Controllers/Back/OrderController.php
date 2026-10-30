@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\Carrier;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Province;
 use App\Models\SizeType;
@@ -22,6 +23,7 @@ use App\Http\Requests\Back\Order\OrderStoreRequest;
 use App\Http\Resources\Api\V1\Product\ProductResource;
 use App\Http\Resources\Datatable\Order\OrderCollection;
 use App\Models\Sms;
+use App\Services\Inventory\InventoryOrderRevisionService;
 use App\Services\Sms\SmsService;
 
 class OrderController extends Controller
@@ -51,19 +53,27 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        if ($order->in_person) {
-            return view('back.orders.inPersonShow', compact('order'));
-        }
+        // Admin order page: the OrderPolicy is checked by authorizeResource in the constructor.
+        // Never apply the storefront customer's user_id ownership test to authorized admins.
+        $this->authorize('orders.view');
+        $order->loadMissing(['items.product', 'items.get_price.product', 'transactions', 'user']);
 
-        return view('back.orders.show', compact('order'));
+        $inventoryRevision = app(InventoryOrderRevisionService::class)->forOrder($order);
+
+        return view('back.orders.show', compact('order', 'inventoryRevision'));
     }
-
     public function create()
     {
         $provinces = Province::detectLang()->orderBy('ordering')->get();
         $carriers  = Carrier::active()->get();
+        $categories = Category::query()
+            ->where('type', 'productcat')
+            ->published()
+            ->orderBy('ordering')
+            ->orderBy('title')
+            ->get();
 
-        return view('back.orders.create', compact('provinces', 'carriers'));
+        return view('back.orders.create', compact('provinces', 'carriers', 'categories'));
     }
 
     public function store(OrderStoreRequest $request)
@@ -83,7 +93,15 @@ class OrderController extends Controller
 
         foreach ($request->products as $requestProduct) {
             $product = Product::find($requestProduct['id']);
-            $price   = $product->prices()->find($requestProduct['price_id']);
+            $price = $product
+                ? $product->prices()->find($requestProduct['price_id'])
+                : null;
+
+            if (!$product || !$price) {
+                throw ValidationException::withMessages([
+                    'products' => 'قیمت انتخاب‌شده برای یکی از محصولات معتبر نیست.',
+                ]);
+            }
 
             $orderItems[] = [
                 'product_id'      => $product->id,
@@ -477,12 +495,12 @@ class OrderController extends Controller
 
         switch ($request->export_type) {
             case 'excel': {
-                    return $this->exportExcel($orders, $request);
-                    break;
-                }
+                return $this->exportExcel($orders, $request);
+                break;
+            }
             default: {
-                    return $this->exportPrint($orders, $request);
-                }
+                return $this->exportPrint($orders, $request);
+            }
         }
     }
 
@@ -503,21 +521,21 @@ class OrderController extends Controller
 
         switch ($input) {
             case "username": {
-                    $users = User::with('address')
-                        ->where('username', 'like', "%$term%")
-                        ->latest()->take(10)
-                        ->get();
-                    break;
-                }
+                $users = User::with('address')
+                    ->where('username', 'like', "%$term%")
+                    ->latest()->take(10)
+                    ->get();
+                break;
+            }
             case "first_name":
             case "last_name": {
-                    $users = User::with('address')
-                        ->where('first_name', 'like', "%$term%")
-                        ->orWhere('last_name', 'like', "%$term%")
-                        ->latest()->take(10)
-                        ->get();
-                    break;
-                }
+                $users = User::with('address')
+                    ->where('first_name', 'like', "%$term%")
+                    ->orWhere('last_name', 'like', "%$term%")
+                    ->latest()->take(10)
+                    ->get();
+                break;
+            }
         }
 
         return response()->json($users);
@@ -527,22 +545,54 @@ class OrderController extends Controller
     {
         $this->authorize('orders.create');
 
-        $term = $request->term;
+        $validated = $request->validate([
+            'category_id' => 'required|integer|exists:categories,id',
+            'term' => 'nullable|string|max:150',
+        ]);
 
-        if (!$term) {
-            return;
+        $category = Category::query()
+            ->whereKey($validated['category_id'])
+            ->where('type', 'productcat')
+            ->first();
+
+        if (!$category) {
+            throw ValidationException::withMessages([
+                'category_id' => 'دسته‌بندی انتخاب‌شده معتبر نیست.',
+            ]);
         }
 
+        $categoryIds = $category->allChildCategories();
+        $term = trim($validated['term'] ?? '');
+        $normalizedPriceId = preg_replace('/^p-/i', '', $term);
+
         $products = Product::with('prices')
-            ->where(function ($query) use ($term) {
-                $query->where('title', 'like', "%$term%")->orWhere('title_en', 'like', "%$term%");
+            ->whereHas('prices')
+            ->where(function ($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds)
+                    ->orWhereHas('categories', function ($query) use ($categoryIds) {
+                        $query->whereIn('categories.id', $categoryIds);
+                    });
             })
-            ->orWhereHas('prices', function ($query) use ($term) {
-                $query->where('id', str_replace('p-', '', $term))->orWhere('id', str_replace('P-', '', $term));
+            ->when($term !== '', function ($query) use ($term, $normalizedPriceId) {
+                $query->where(function ($query) use ($term, $normalizedPriceId) {
+                    $query->where('products.title', 'like', "%{$term}%")
+                        ->orWhere('products.title_en', 'like', "%{$term}%")
+                        ->orWhere('products.product_code', 'like', "%{$term}%")
+                        ->orWhereHas('prices', function ($query) use ($term, $normalizedPriceId) {
+                            $query->where(function ($query) use ($term, $normalizedPriceId) {
+                                $query->where('variant_code', 'like', "%{$term}%")
+                                    ->orWhere('variant_name', 'like', "%{$term}%");
+
+                                if (ctype_digit($normalizedPriceId)) {
+                                    $query->orWhere('id', (int) $normalizedPriceId);
+                                }
+                            });
+                        });
+                });
             })
             ->orderByStock()
             ->latest()
-            ->take(10)
+            ->take(20)
             ->get();
 
         return ProductResource::collection($products);

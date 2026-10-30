@@ -113,8 +113,27 @@
                                         <div class="tab-pane" id="products-tab-content" role="tabpanel" aria-labelledby="products-tab">
                                             <div class="col-12" id="order-products-list"></div>
 
-                                            <div class="col-md-8 offset-md-2 text-center mt-2">
-                                                <input id="add-product-to-order" data-action="{{ route('admin.orders.productsList') }}" type="text" placeholder="افزودن محصول" class="form-control">
+                                            <div class="col-12 mt-2">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group text-right">
+                                                            <label for="order-product-category">دسته‌بندی</label>
+                                                            <select id="order-product-category" class="form-control">
+                                                                <option value="">انتخاب دسته‌بندی</option>
+                                                                @foreach ($categories as $category)
+                                                                    <option value="{{ $category->id }}">{{ $category->full_title ?? $category->title }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <div class="form-group text-right">
+                                                            <label for="add-product-to-order">جستجوی محصول</label>
+                                                            <input id="add-product-to-order" data-action="{{ route('admin.orders.productsList') }}" type="text" placeholder="ابتدا دسته‌بندی را انتخاب کنید" class="form-control" disabled>
+                                                            <small class="form-text text-muted">می‌توانید با نام محصول، کد محصول یا کد واریانت جستجو کنید.</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="tab-pane" id="order-info-tab-content" role="tabpanel" aria-labelledby="order-info-tab">
@@ -188,5 +207,5 @@
 
 @push('scripts')
     <script src="{{ asset('back/app-assets/plugins/ejs/ejs.min.js') }}"></script>
-    <script src="{{ asset('back/assets/js/pages/orders/create.js') }}?v=1"></script>
+    <script src="{{ asset('back/assets/js/pages/orders/create.js') }}?v=2"></script>
 @endpush

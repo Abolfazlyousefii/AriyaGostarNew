@@ -23,7 +23,9 @@ $('#one-time-login-form').submit(function(e) {
             type: 'POST',
             data: formData,
             success: function(data) {
-                window.location.href = redirect_url;
+                window.location.href = data && data.redirect
+                    ? data.redirect
+                    : redirect_url;
             },
 
             beforeSend: function(xhr) {

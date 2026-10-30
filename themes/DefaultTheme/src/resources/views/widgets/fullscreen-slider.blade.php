@@ -17,7 +17,7 @@
                 @foreach ($main_sliders as $slider)
                     <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                         <a class="main-slider-slide" href="{{ $slider->link }}" draggable="false">
-                            <img src="{{ asset($slider->image) }}" alt="{{ $slider->title }}" draggable="false">
+                            <img src="{{ media_url($slider->image) }}" alt="{{ $slider->title }}" draggable="false">
                         </a>
                     </div>
                 @endforeach
@@ -38,7 +38,7 @@
                 @foreach ($responsive_sliders as $slider)
                     <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                         <a class="main-slider-slide" href="{{ $slider->link }}" draggable="false">
-                            <img src="{{ asset($slider->image) }}" alt="{{ $slider->title }}" draggable="false">
+                            <img src="{{ media_url($slider->image) }}" alt="{{ $slider->title }}" draggable="false">
                         </a>
                     </div>
                 @endforeach

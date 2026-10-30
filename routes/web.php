@@ -35,6 +35,8 @@ use App\Http\Controllers\Back\PermissionController;
 use App\Http\Controllers\Back\PriceController;
 use App\Http\Controllers\Back\ReviewController;
 use App\Http\Controllers\Back\SettingController;
+use App\Http\Controllers\Back\SalesControlController;
+
 use App\Http\Controllers\Back\SizeTypeController;
 use App\Http\Controllers\Back\SmsController;
 use App\Http\Controllers\Back\StatisticsController;
@@ -47,6 +49,7 @@ use App\Http\Controllers\Back\WidgetController;
 use App\Http\Controllers\PushSubscriptionController;
 use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 use App\Http\Controllers\Back\ProductSqlImportController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +81,7 @@ Route::post('live-analytics/collect', [\App\Http\Controllers\LiveVisitorTrackerC
 
 Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['guest']], function () {
     Route::get('login', [MainController::class, 'login'])->middleware(['CheckUserExists'])->name('login');
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware(['CheckUserExists'])->name('login.store');
     Route::get('register', [InstallController::class, 'showRegisterForm'])->name('register')->middleware(['CheckUserNotExists']);
     Route::post('register', [InstallController::class, 'register'])->middleware(['CheckUserNotExists']);
 });
@@ -103,6 +107,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
 
     // ------------------ users
     Route::resource('users', UserController::class);
+    Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status.update');
     Route::get('login/{user}', [UserController::class, 'loginAsUser'])->name('users.login');
     Route::post('users/api/index', [UserController::class, 'apiIndex'])->name('users.apiIndex');
     Route::delete('users/api/multipleDestroy', [UserController::class, 'multipleDestroy'])->name('users.multipleDestroy');
@@ -110,6 +115,20 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::get('users/{user}/views', [UserController::class, 'views'])->name('users.views');
     Route::get('user/profile', [UserController::class, 'showProfile'])->name('user.profile.show');
     Route::put('user/profile', [UserController::class, 'updateProfile'])->name('user.profile.update');
+
+    // ------------------ membership requests
+    Route::get('membership-requests', [\App\Http\Controllers\Back\MembershipRequestController::class, 'index'])
+        ->name('membership-requests.index');
+
+    Route::get('membership-requests/{membershipRequest}', [\App\Http\Controllers\Back\MembershipRequestController::class, 'show'])
+        ->name('membership-requests.show');
+
+    Route::post('membership-requests/{membershipRequest}/approve', [\App\Http\Controllers\Back\MembershipRequestController::class, 'approve'])
+        ->name('membership-requests.approve');
+
+    Route::post('membership-requests/{membershipRequest}/reject', [\App\Http\Controllers\Back\MembershipRequestController::class, 'reject'])
+        ->name('membership-requests.reject');
+
 
     // ------------------ wallets
     Route::resource('wallets', WalletController::class)->only(['show', 'index']);
@@ -121,6 +140,20 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::get('products/sql-import', [\App\Http\Controllers\Back\ProductSqlImportController::class, 'create'])->name('products.sqlImport.create');
     Route::post('products/sql-import', [\App\Http\Controllers\Back\ProductSqlImportController::class, 'store'])->name('products.sqlImport.store');
     // ------------------ products
+    // ARIYA_BUNDLES_V1 — nested inside Sales Control / Storefront panel.
+
+    // ------------------ sales control / storefront merchandising
+    Route::get('sales-control', [SalesControlController::class, 'index'])
+        ->name('sales-control.index');
+
+    Route::post('sales-control', [SalesControlController::class, 'save'])
+        ->name('sales-control.save');
+
+    Route::post('sales-control/{salesControl}/reset', [SalesControlController::class, 'reset'])
+        ->name('sales-control.reset');
+
+    Route::delete('sales-control/{salesControl}', [SalesControlController::class, 'destroy'])
+        ->name('sales-control.destroy');
     Route::resource('products', ProductController::class)->except('show')->scoped(['product' => 'id']);
     
     Route::post('products/api/index', [ProductController::class, 'apiIndex'])->name('products.apiIndex');
@@ -151,9 +184,25 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::get('prices', [PriceController::class, 'index'])->name('prices.index');
     Route::get('prices/show', [PriceController::class, 'show'])->name('prices.show');
     Route::post('prices', [PriceController::class, 'store'])->name('prices.store');
+    // ARIYA_DIRECT_DISCOUNT_ROUTE_V1 (scoped to physical product's existing price row)
+    Route::post('products/{product}/direct-discount', [\App\Http\Controllers\Back\ProductDirectDiscountController::class, 'update'])
+        ->middleware('can:products.update')->name('products.direct-discount.update');
+    // ARIYA_DIRECT_DISCOUNT_APPLY_ALL_V1: a single all-variant POST.
+    Route::post('products/{product}/direct-discount/apply-all', [\App\Http\Controllers\Back\ProductBulkDirectDiscountController::class, 'applyAll'])
+        ->middleware('can:products.update')->name('products.direct-discount.apply-all');
 
     // ------------------ discounts
     Route::resource('discounts', DiscountController::class)->except(['show']);
+    // ARIYA_BULK_DISCOUNT_ROUTES_V1 (independent from coupons/direct discounts)
+    Route::get('bulk-discounts', [\App\Http\Controllers\Back\BulkDiscountController::class, 'index'])->name('bulk-discounts.index');
+    Route::post('bulk-discounts/submit', [\App\Http\Controllers\Back\BulkDiscountController::class, 'submit'])->middleware(\App\Http\Middleware\BulkDiscountStepThrottle::class)->name('bulk-discounts.submit');
+    Route::get('bulk-discounts/{campaign}/edit', [\App\Http\Controllers\Back\BulkDiscountController::class, 'edit'])->name('bulk-discounts.edit');
+    Route::post('bulk-discounts/{campaign}/update', [\App\Http\Controllers\Back\BulkDiscountController::class, 'update'])->name('bulk-discounts.update');
+    Route::post('bulk-discounts/{campaign}/toggle', [\App\Http\Controllers\Back\BulkDiscountController::class, 'toggle'])->name('bulk-discounts.toggle');
+    Route::post('bulk-discounts/{campaign}/remove-product', [\App\Http\Controllers\Back\BulkDiscountController::class, 'removeProduct'])->name('bulk-discounts.remove-product');
+    Route::post('bulk-discounts/{campaign}/add-products', [\App\Http\Controllers\Back\BulkDiscountController::class, 'addProducts'])->name('bulk-discounts.add-products');
+    Route::post('bulk-discounts/{campaign}/schedule/{item}', [\App\Http\Controllers\Back\BulkDiscountController::class, 'schedule'])->name('bulk-discounts.schedule');
+    Route::delete('bulk-discounts/{campaign}', [\App\Http\Controllers\Back\BulkDiscountController::class, 'destroy'])->name('bulk-discounts.destroy');
 
     // ------------------ provinces
     Route::resource('provinces', ProvinceController::class);
@@ -236,6 +285,10 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::put('orders/in-person/{order}', [OrderController::class, 'inPersonUpdate'])->name('orders.inPersonUpdate');
     Route::post('orders/api/shippings-status', [OrderController::class, 'shippingsStatus'])->name('orders.shippings-status');
     Route::post('orders/{order}/shipping-status', [OrderController::class, 'shipping_status'])->name('orders.shipping-status');
+    Route::post('orders/{order}/confirm-bank-transfer', [\App\Http\Controllers\Back\ManualOrderPaymentController::class, 'confirm'])
+        ->middleware('throttle:6,1')->name('orders.manual-payment.confirm');
+    Route::post('orders/{order}/approve-erp-credit', [\App\Http\Controllers\Back\CreditOrderController::class, 'approve'])
+        ->middleware('throttle:4,1')->name('orders.approve-erp-credit');
     Route::post('orders/{order}/tracking-code', [OrderController::class, 'tracking_code'])->name('orders.tracking-code');
     Route::get('orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
     Route::get('orders/{order}/shipping-form', [OrderController::class, 'shippingForm'])->name('orders.shipping-form');
@@ -394,3 +447,17 @@ Route::get('refresh-csrf', function () {
 })->name('csrf');
 
 Route::get('torob/products', [ProductController::class, 'torobProductsList']);
+
+Route::get('/test', function () {return
+\App\Models\Inventory\Product::all()->take(4);
+});
+
+// ARIYA_CUSTOMER_JOURNEY_ROUTES_V1: customer events and restricted admin exports.
+Route::post('customer-journey/event', [\App\Http\Controllers\CustomerJourneyEventController::class, 'store'])
+    ->middleware(['auth', 'throttle:30,1'])->name('customer-journey.event');
+Route::get('admin/users/{user}/activity', [\App\Http\Controllers\Back\CustomerJourneyController::class, 'index'])
+    ->middleware(['auth', 'Admin', 'verified', 'CheckPasswordChange', 'password.confirm'])
+    ->name('admin.customer-journey.index');
+Route::get('admin/users/{user}/activity/download', [\App\Http\Controllers\Back\CustomerJourneyController::class, 'download'])
+    ->middleware(['auth', 'Admin', 'verified', 'CheckPasswordChange', 'password.confirm', 'throttle:12,1'])
+    ->name('admin.customer-journey.download');

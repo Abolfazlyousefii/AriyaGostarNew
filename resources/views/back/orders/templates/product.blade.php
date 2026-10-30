@@ -1,11 +1,15 @@
 <script id="product-template" type="template/html">
 
     <%
-        let priceItem = product.prices.find(item => (item.id == $('#add-product-to-order').val().replace('\\-', 'p-').replace("p-", "") || item.id == $('#add-product-to-order').val().replace('\\-', 'P-').replace("P-", "")));
+        const prices = Array.isArray(product.prices) ? product.prices : [];
+        let priceItem = prices.find(item => String(item.id) === String(initialPriceId));
 
-        if(priceItem == undefined) {
-            priceItem = product.prices[0]
+        if (priceItem == undefined) {
+            priceItem = prices[0];
         }
+
+        const salePrice = priceItem.sale_price ?? priceItem.price ?? 0;
+        const regularPrice = priceItem.regular_price ?? salePrice;
     %>
 
     <div class="row order-single-product">
@@ -16,27 +20,37 @@
             <div class="mb-1">
                 <strong><%= product.title %></strong>
             </div>
-            <% if (priceItem.attributes.length) { %>
+            <% if (prices.length > 1) { %>
                 <div class="mb-1">
                     <select class="form-control price-select">
-                        <% product.prices.forEach(function(price){ %>
+                        <% prices.forEach(function(price, priceIndex){ %>
+                            <%
+                                const attributes = Array.isArray(price.attributes) ? price.attributes : [];
+                                const attributeLabel = attributes.map(function(attribute) {
+                                    const groupName = attribute && attribute.group && attribute.group.name ? attribute.group.name : '';
+                                    const attributeName = attribute && attribute.name ? attribute.name : '';
+                                    return groupName && attributeName ? `${groupName} : ${attributeName}` : attributeName;
+                                }).filter(Boolean).join('، ');
+                                let priceLabel = price.variant_name || attributeLabel || `واریانت #${price.id}`;
 
-                            <option value="<%= price.id %>" data-price="<%= JSON.stringify(price) %>" <% if (priceItem.id == price.id) { %> selected <% } %>>
-                                <% let attcount = 0 %>
-                                <% price.attributes.forEach(function(attribute){ %>
-                                    <%= attribute.group.name %> : <%= attribute.name %>
-                                    <% if (++attcount < price.attributes.length) { %>
-                                        ,
-                                    <% } %>
-                                <% }); %>
+                                if (price.variant_code) {
+                                    priceLabel += ` - کد: ${price.variant_code}`;
+                                }
+
+                                if (price.stock !== undefined && price.stock !== null && price.stock !== '') {
+                                    priceLabel += ` - موجودی: ${price.stock}`;
+                                }
+                            %>
+                            <option value="<%= price.id %>" data-price-index="<%= priceIndex %>" <% if (priceItem.id == price.id) { %> selected <% } %>>
+                                <%= priceLabel %>
                             </option>
                         <% }); %>
                     </select>
                 </div>
             <% } %>
-            <strong class="text-success"><span class="sale-price"><%= number_format(priceItem.price) %></span> تومان</strong>
+            <strong class="text-success"><span class="sale-price"><%= number_format(salePrice) %></span> تومان</strong>
 
-            <del class="text-danger regular-price-container <% if (!priceItem.regular_price) { %> d-none <% } %>"><span class="regular-price"><%= number_format(priceItem.regular_price) %></span> تومان</del>
+            <del class="text-danger regular-price-container <% if (!priceItem.discount) { %> d-none <% } %>"><span class="regular-price"><%= number_format(regularPrice) %></span> تومان</del>
 
             <input class="selected-price" name="products[<%= productsCount %>][price_id]" type="hidden" value="<%= priceItem.id %>">
             <input name="products[<%= productsCount %>][id]" type="hidden" value="<%= product.id %>">
@@ -44,19 +58,19 @@
         <div class="col-md-2" style="padding-top: 18px;">
             <div class="form-group">
                 <label for="">قیمت</label>
-                <input type="number" name="products[<%= productsCount %>][price]" class="form-control product-price amount-input ltr" value="<%= priceItem.regular_price %>">
+                <input type="number" name="products[<%= productsCount %>][price]" class="form-control product-price amount-input ltr" value="<%= regularPrice %>" readonly>
             </div>
         </div>
         <div class="col-md-2" style="padding-top: 18px;">
             <div class="form-group">
                 <label for="">تخفیف (تومان)</label>
-                <input type="number" name="products[<%= productsCount %>][discount]" class="form-control ltr product-discount amount-input" value="<%= priceItem.regular_price - priceItem.price %>">
+                <input type="number" name="products[<%= productsCount %>][discount]" class="form-control ltr product-discount amount-input" value="<%= regularPrice - salePrice %>" readonly>
             </div>
         </div>
         <div class="col-md-2" style="padding-top: 18px;">
             <div class="form-group">
                 <label for="">تعداد</label>
-                <input type="number" name="products[<%= productsCount %>][quantity]" class="form-control product-quantity ltr" max="<%= priceItem.stock %>" min="1" value="1">
+                <input type="number" name="products[<%= productsCount %>][quantity]" class="form-control product-quantity ltr" <% if (priceItem.stock !== undefined && priceItem.stock !== null && priceItem.stock !== '') { %>max="<%= priceItem.stock %>"<% } %> min="1" value="1">
             </div>
         </div>
         <div class="col-md-2" style="padding-top: 38px;">

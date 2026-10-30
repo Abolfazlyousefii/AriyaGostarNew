@@ -24,7 +24,7 @@ class ProductResource extends JsonResource
             'title_en'             => $this->title_en,
             'category_id'          => $this->category_id,
             'slug'                 => $this->slug,
-            'image'                => $this->image ? asset($this->image) : null,
+            'image'                => $this->resource->imageUrl('/no-image-product.png'),
             'unit'                 => $this->unit,
             'type'                 => $this->type,
             'price'                => $this->getLowestPrice(true),

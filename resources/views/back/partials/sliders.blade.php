@@ -24,8 +24,7 @@
                                     </td>
                                     <td>
                                         <div class="slider-thumb">
-                                            <img src="{{ asset($slider->image) }}" alt="avtar img holder">
-                                        </div>
+	                                        <img src="{{ media_url($slider->image) }}" alt="avtar img holder">                                        </div>
                                     </td>
                                     <td>{{ $slider->title ?: '--' }}</td>
                                     <td class="text-center">

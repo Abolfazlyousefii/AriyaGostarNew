@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use App\Services\Catalog\ProductCatalogService;
 
 class ProductController extends Controller
 {
@@ -191,69 +192,94 @@ class ProductController extends Controller
         return redirect()->route('front.products.category-products', ['category' => $category]);
     }
 
-    public function categoryProducts(Category $category)
+    public function categoryProducts(Category $category, Request $request)
     {
         $this->isShowable($category);
 
-        $ids       = $category->allPublishedProducts()->pluck('id');
-        $products  = Product::orderByStock()->frontFilter($category)->latest()->whereIn('products.id', $ids)->paginate(20);
-        $min_price = Price::where('stock', '>', 0)->whereIn('product_id', $ids)->min('price');
-        $max_price = Price::where('stock', '>', 0)->whereIn('product_id', $ids)->max('price');
+        $ids = $category->allPublishedProducts()->pluck('id');
 
-        return view('front::products.category-products', compact('products', 'category', 'min_price', 'max_price'));
+        $query = Product::detectLang()
+            ->published()
+            ->whereIn('products.id', $ids);
+
+        $data = app(ProductCatalogService::class)->build($query, $request, $category);
+
+        return view('front::products.category-products', array_merge($data, [
+            'category' => $category,
+            'categoryContext' => $category,
+            'catalogTitle' => $category->title,
+            'filterAction' => route('front.products.category-products', ['category' => $category]),
+            'filterResetUrl' => route('front.products.category-products', ['category' => $category]),
+            'showCategoryFilter' => false,
+        ]));
     }
 
-    public function categorySpecials(Category $category)
+    public function categorySpecials(Category $category, Request $request)
     {
         $this->isShowable($category);
 
-        $products = Product::detectLang()
+        $ids = $category->allPublishedProducts()->pluck('id');
+
+        $query = Product::detectLang()
             ->published()
             ->special()
-            ->whereIn('category_id', $category->allChildCategories())
-            ->latest()
-            ->paginate(20);
+            ->whereIn('products.id', $ids);
 
-        return view('front::products.category-products', compact(
-            'products',
-            'category'
-        ));
+        $data = app(ProductCatalogService::class)->build($query, $request, $category);
+
+        return view('front::products.category-products', array_merge($data, [
+            'category' => $category,
+            'categoryContext' => $category,
+            'catalogTitle' => $category->title,
+            'filterAction' => route('front.products.category-specials', ['category' => $category]),
+            'filterResetUrl' => route('front.products.category-specials', ['category' => $category]),
+            'showCategoryFilter' => false,
+        ]));
     }
 
     public function search(Request $request)
     {
-        $products = Product::detectLang()
-            ->published()
-            ->search($request->q)
-            ->orderByStock()
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        $query = Product::detectLang()->published();
 
-        return view('front::products.search', compact('products'));
+        $data = app(ProductCatalogService::class)->build($query, $request);
+
+        return view('front::products.search', array_merge($data, [
+            'catalogTitle' => trans('front::messages.products.looking-for') . ' ' . trim((string) $request->q),
+            'filterAction' => route('front.products.search'),
+            'filterResetUrl' => route('front.products.search', ['q' => $request->q]),
+        ]));
     }
 
-    public function specials()
+    public function specials(Request $request)
     {
-        $products = Product::detectLang()
+        $query = Product::detectLang()
             ->published()
-            ->special()
-            ->latest()
-            ->paginate(20);
+            ->special();
 
-        return view('front::products.specials', compact('products'));
+        $data = app(ProductCatalogService::class)->build($query, $request);
+
+        return view('front::products.specials', array_merge($data, [
+            'catalogTitle' => trans('front::messages.products.special-products'),
+            'filterAction' => route('front.products.specials'),
+            'filterResetUrl' => route('front.products.specials'),
+        ]));
     }
 
-    public function discount()
+    public function discount(Request $request)
     {
-        $products = Product::detectLang()
+        $query = Product::detectLang()
             ->published()
             ->available()
-            ->discount()
-            ->latest()
-            ->paginate(20);
+            ->discount();
 
-        return view('front::products.discounts', compact('products'));
+        $data = app(ProductCatalogService::class)->build($query, $request);
+
+        return view('front::products.discounts', array_merge($data, [
+            'catalogTitle' => trans('front::messages.products.discounted-products'),
+            'filterAction' => route('front.products.discount'),
+            'filterResetUrl' => route('front.products.discount'),
+            'showDiscountFilter' => false,
+        ]));
     }
 
     public function ajax_search(Request $request)
@@ -281,6 +307,23 @@ class ProductController extends Controller
         return response($results);
     }
 
+    public function cardVariants(Product $product)
+    {
+        if (!$product->isShowable() || !$product->usesVariantInventoryCodes()) {
+            abort(404);
+        }
+
+        $variantPrices = $product->prices()
+            ->with(['get_attributes.group'])
+            ->orderBy('ordering')
+            ->orderBy('id')
+            ->get();
+
+        return view(
+            'front::products.partials.quick-variants-modal-content',
+            compact('product', 'variantPrices')
+        );
+    }
     public function show(Product $product)
     {
         if (!$product->isShowable()) {
@@ -356,23 +399,39 @@ class ProductController extends Controller
             abort(403);
         }
 
-        $mac     = $request->mac;
-        $time    = $request->time;
-        $expired = Carbon::now()->addHours(5)->getTimestamp() < $time;
-        $hash    = config('app.key') . $time . $price->id;
+        $mac  = (string) $request->query('mac', '');
+        $time = filter_var(
+            $request->query('time'),
+            FILTER_VALIDATE_INT
+        );
 
-        $check   = Hash::check($hash, $mac);
-        $file    = $price->file;
+        /*
+         * The signed timestamp stored in the link is the expiry moment.
+         * Reject missing, malformed and expired links before checking the MAC.
+         */
+        if (!$time || $time <= Carbon::now()->getTimestamp() || $mac === '') {
+            return view('front::errors.errors')->with(
+                'message',
+                trans('front::messages.controller.download-link-failed')
+            );
+        }
+
+        $hash  = config('app.key') . $time . $price->id;
+        $check = Hash::check($hash, $mac);
+        $file  = $price->file;
 
         if (!$file || !Storage::disk($file->disk)->exists('product-files/' . $file->file)) {
             return view('front::errors.errors')->with('message', 'فایل یافت نشد');
         }
 
-        if ($check && !$expired) {
+        if ($check) {
             return Storage::disk($file->disk)->download('product-files/' . $file->file);
         }
 
-        return view('front::errors.errors')->with('message',  trans('front::messages.controller.download-link-failed'));
+        return view('front::errors.errors')->with(
+            'message',
+            trans('front::messages.controller.download-link-failed')
+        );
     }
 
     public function comments(Product $product, Request $request)

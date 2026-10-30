@@ -1,6 +1,8 @@
+@auth
 @if ($product->isPhysical() && isset($variant_prices) && $variant_prices->count() > 1)
     @php
         $activeVariantId = optional($selected_price)->id;
+        $productUnit = trim((string) $product->getUnit());
     @endphp
 
     <section class="variant-order-panel mt-3" data-product="{{ $product->slug }}" data-action="{{ route('front.cart.store-variants', ['product' => $product]) }}">
@@ -61,7 +63,7 @@
                         <strong>{{ $variantTitle }}</strong>
                         <small>
                             @if ($isAvailable)
-                                موجودی: {{ number_format($variantPrice->stock) }} {{ $product->getUnit() }}
+                                موجودی: {{ number_format($variantPrice->stock) }}@if ($productUnit !== '') {{ $productUnit }}@endif
                             @else
                                 ناموجود
                             @endif
@@ -105,3 +107,4 @@
         </div>
     </section>
 @endif
+@endauth

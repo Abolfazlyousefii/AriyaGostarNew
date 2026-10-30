@@ -34,10 +34,6 @@ jQuery('#product-create-form, #product-edit-form').validate({
     rules: {
         title: {
             required: true
-        },
-        weight: {
-            required: true,
-            digits: true
         }
     }
 });
@@ -435,6 +431,57 @@ sizeSortable();
 
 //------------ prices js codes
 
+var priceAttributeGroups = [];
+var priceAttributeGroupsById = {};
+
+try {
+    priceAttributeGroups = JSON.parse(
+        $('#price-attribute-groups-data').text() || '[]'
+    );
+} catch (error) {
+    priceAttributeGroups = [];
+}
+
+priceAttributeGroups.forEach(function (group) {
+    priceAttributeGroupsById[String(group.id)] = group;
+});
+
+function hydratePriceAttributeSelect(select) {
+    var $select = $(select);
+    if (!$select.length || String($select.attr('data-options-loaded')) === '1') {
+        return $select;
+    }
+
+    var group = priceAttributeGroupsById[String($select.data('group-id'))];
+    if (!group) return $select;
+
+    var selectedId = String($select.val() || $select.data('selected-id') || '');
+    var existing = {};
+    $select.find('option').each(function () {
+        existing[String(this.value)] = true;
+    });
+
+    (group.attributes || []).forEach(function (attribute) {
+        var id = String(attribute.id);
+        if (!existing[id]) {
+            $('<option>').val(id).text(attribute.name).appendTo($select);
+            existing[id] = true;
+        }
+    });
+
+    $select.attr('data-options-loaded', '1');
+    if (selectedId) $select.val(selectedId);
+    return $select;
+}
+
+$(document).on(
+    'focus mousedown select2:opening',
+    'select.price-attribute-select',
+    function () {
+        hydratePriceAttributeSelect(this);
+    }
+);
+
 $('#add-product-prices').click(function () {
     addProductPrice();
 });
@@ -505,6 +552,9 @@ function addProductPrice(copy = false, initializePlugins = true) {
         .attr('name', 'prices[' + count + '][attributes][]')
         .attr('data-number', count)
         .each(function (index, el) {
+            if (typeof selectedIds != 'undefined' && selectedIds[index]) {
+                hydratePriceAttributeSelect(el);
+            }
             $(el)
                 .val(
                     typeof selectedIds != 'undefined' ? selectedIds[index] : ''
@@ -638,13 +688,7 @@ $('.prices-option-div select').trigger('change');
 
 //------------ bulk variable product prices
 
-var bulkPriceGroups = [];
-
-try {
-    bulkPriceGroups = JSON.parse($('#bulk-price-groups-data').text() || '[]');
-} catch (error) {
-    bulkPriceGroups = [];
-}
+var bulkPriceGroups = priceAttributeGroups;
 
 function bulkPriceNotify(message, type = 'error') {
     if (typeof toastr !== 'undefined' && toastr[type]) {
@@ -918,6 +962,7 @@ function fillBulkPriceRow(row, groupId, attributeId, values) {
         return false;
     }
 
+    hydratePriceAttributeSelect(target);
     target.val(String(attributeId)).trigger('change');
     row.find('.price').val(values.price);
     row.find('.discount').val(values.discount);

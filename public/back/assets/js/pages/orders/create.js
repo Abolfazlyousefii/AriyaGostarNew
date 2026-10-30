@@ -58,50 +58,138 @@ $('#order-create-form input[name="username"]')
 };
 
 let productsCount = 0;
+const $category = $('#order-product-category');
+const $productSearch = $('#add-product-to-order');
+const disabledProductPlaceholder = 'ابتدا دسته‌بندی را انتخاب کنید';
+const enabledProductPlaceholder = 'نام یا کد محصول را جستجو کنید';
 
-$('#add-product-to-order')
+function getDisplayPrice(price) {
+    if (!price) {
+        return null;
+    }
+
+    return price.sale_price ?? price.price ?? null;
+}
+
+function getInitialPriceId(searchTerm, prices) {
+    const match = String(searchTerm || '').trim().match(/^(?:p-)?(\d+)$/i);
+
+    if (match && prices.some(price => String(price.id) === match[1])) {
+        return match[1];
+    }
+
+    return prices[0].id;
+}
+
+$productSearch
     .autocomplete({
-        delay: 1000,
-        minLength: 3,
-        source: function (term, response) {
+        delay: 300,
+        minLength: 0,
+        source: function (request, response) {
+            if (!$category.val()) {
+                response([]);
+                return;
+            }
+
             $.ajax({
-                url: $('#add-product-to-order').data('action'),
+                url: $productSearch.data('action'),
                 type: 'GET',
-                data: term,
-                success: function (data) {
-                    response(data.data);
+                data: {
+                    term: request.term || '',
+                    category_id: $category.val()
                 },
-                error: function (data) {
-                    //
+                success: function (data) {
+                    response(data && Array.isArray(data.data) ? data.data : []);
+                },
+                error: function () {
+                    response([]);
                 }
             });
         },
         select: function (event, ui) {
+            const prices = Array.isArray(ui.item.prices) ? ui.item.prices : [];
+
+            if (!prices.length) {
+                toastr.error('برای این محصول قیمت قابل انتخابی وجود ندارد.');
+                return false;
+            }
+
+            const initialPriceId = getInitialPriceId($productSearch.val(), prices);
             let template = ejs.render($('#product-template').html(), {
-                product: ui.item
+                product: ui.item,
+                initialPriceId: initialPriceId
+            });
+            const $productRow = $(template);
+
+            $productRow.find('.price-select option').each(function () {
+                const priceIndex = Number($(this).data('price-index'));
+                $(this).data('price', prices[priceIndex]);
             });
 
-            $('#order-products-list').append(template);
+            $('#order-products-list').append($productRow);
             productsCount++;
+
+            $productSearch.val('');
+            return false;
         }
     })
     .autocomplete('instance')._renderItem = function (ul, item) {
-    return $('<li>')
-        .attr('data-value', item.title)
-        .append(
-            `<li data-value="${item.title}" class="d-flex">
-                <img src="${item.image}"
-                    alt="${item.title}" style="width: 50px">
-                <div class="ml-2">
-                    ${item.title}
-                    <small class="text-muted">
-                        <p class="m-0">${number_format(item.price)} تومان</p>
-                    </small>
-                </div>
-            </li>`
-        )
-        .appendTo(ul);
+    const title = item && item.title ? String(item.title) : 'محصول بدون عنوان';
+    const $content = $('<div>').addClass('d-flex align-items-center py-50');
+
+    if (item && item.image) {
+        $('<img>')
+            .attr('src', item.image)
+            .attr('alt', 'تصویر محصول')
+            .css({ width: '50px', height: '50px', objectFit: 'cover' })
+            .appendTo($content);
+    }
+
+    const $details = $('<div>').addClass('ml-2');
+    $('<div>').text(title).appendTo($details);
+
+    if (item && item.product_code) {
+        $('<p>')
+            .addClass('m-0 text-muted small')
+            .text(`کد محصول: ${item.product_code}`)
+            .appendTo($details);
+    }
+
+    const displayPrice = getDisplayPrice(item);
+    if (displayPrice !== null && displayPrice !== '') {
+        $('<p>')
+            .addClass('m-0 text-muted small')
+            .text(`${number_format(displayPrice)} تومان`)
+            .appendTo($details);
+    }
+
+    $content.append($details);
+
+    return $('<li>').append($content).appendTo(ul);
 };
+
+$category.on('change', function () {
+    $productSearch.val('');
+
+    if (!$(this).val()) {
+        $productSearch
+            .prop('disabled', true)
+            .attr('placeholder', disabledProductPlaceholder)
+            .autocomplete('close');
+        return;
+    }
+
+    $productSearch
+        .prop('disabled', false)
+        .attr('placeholder', enabledProductPlaceholder)
+        .autocomplete('search', '');
+});
+
+$productSearch.on('focus', function () {
+    if ($category.val()) {
+        $(this).autocomplete('search', $(this).val());
+    }
+});
 
 $(document).on(
     'click',
@@ -111,38 +199,33 @@ $(document).on(
     }
 );
 $(document).on('change', '.order-single-product .price-select', function () {
-    console.log($(this).val());
     let price = $(this).find('option:selected').data('price');
+    const $productRow = $(this).closest('.order-single-product');
 
-    $(this)
-        .closest('.order-single-product')
-        .find('.selected-price')
-        .val(price.id);
-    $(this)
-        .closest('.order-single-product')
-        .find('.product-quantity')
-        .attr('max', price.cart_max);
+    if (!price) {
+        return;
+    }
 
-    $(this)
-        .closest('.order-single-product')
-        .find('.sale-price')
-        .text(number_format(price.sale_price));
+    $productRow.find('.selected-price').val(price.id);
 
-    $(this)
-        .closest('.order-single-product')
-        .find('.regular-price')
-        .text(number_format(price.regular_price));
+    const $quantity = $productRow.find('.product-quantity');
+    if (price.stock !== undefined && price.stock !== null && price.stock !== '') {
+        $quantity.attr('max', price.stock);
+    } else {
+        $quantity.removeAttr('max');
+    }
+
+    const salePrice = getDisplayPrice(price) ?? 0;
+    const regularPrice = price.regular_price ?? salePrice;
+    $productRow.find('.sale-price').text(number_format(salePrice));
+    $productRow.find('.regular-price').text(number_format(regularPrice));
+    $productRow.find('.product-price').val(regularPrice);
+    $productRow.find('.product-discount').val(regularPrice - salePrice);
 
     if (price.discount) {
-        $(this)
-            .closest('.order-single-product')
-            .find('.regular-price-container')
-            .removeClass('d-none');
+        $productRow.find('.regular-price-container').removeClass('d-none');
     } else {
-        $(this)
-            .closest('.order-single-product')
-            .find('.regular-price-container')
-            .addClass('d-none');
+        $productRow.find('.regular-price-container').addClass('d-none');
     }
 });
 

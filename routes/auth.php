@@ -9,19 +9,23 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/register', [RegisteredUserController::class, 'create'])
-    ->middleware(['guest', 'CheckUserExists'])
+Route::get('/register', function () {
+    return redirect()->route('membership.request');
+})
+    ->middleware('guest')
     ->name('register');
 
-Route::post('/register', [RegisteredUserController::class, 'store'])
-    ->middleware(['guest', 'CheckUserExists']);
+Route::post('/register', function () {
+    return redirect()->route('membership.request');
+})
+    ->middleware('guest');
 
-Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-    ->middleware(['guest', 'CheckUserExists'])
+Route::get('/login', [LoginWithCodeController::class, 'create'])
+    ->middleware('guest')
     ->name('login');
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-    ->middleware(['guest', 'CheckUserExists']);
+Route::post('/login', [LoginWithCodeController::class, 'store'])
+    ->middleware(['guest', 'throttle:10,1']);
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth');
@@ -54,7 +58,7 @@ Route::post('/login-with-code', [LoginWithCodeController::class, 'store'])
     ->name('login-with-code.send');
 
 Route::post('/login-with-code/confirm', [LoginWithCodeController::class, 'confirm'])
-    ->middleware(['guest'])
+    ->middleware(['guest', 'throttle:10,1'])
     ->name('login-with-code.confirm');
 
 Route::get('/one-time-login', [OneTimeLoginController::class, 'create'])
@@ -70,3 +74,18 @@ Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])
 
 Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store'])
     ->middleware('auth');
+
+
+// Public membership request flow.
+// This is intentionally Web-only and independent from site/inventory APIs.
+Route::get('/membership/request', [\App\Http\Controllers\MembershipController::class, 'create'])
+    ->middleware('guest')
+    ->name('membership.request');
+
+Route::post('/membership/request', [\App\Http\Controllers\MembershipController::class, 'store'])
+    ->middleware(['guest', 'throttle:10,1'])
+    ->name('membership.store');
+
+Route::get('/membership/status', [\App\Http\Controllers\MembershipController::class, 'status'])
+    ->middleware('guest')
+    ->name('membership.status');

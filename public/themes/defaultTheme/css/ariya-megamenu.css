@@ -1,0 +1,378 @@
+/* Aria desktop mega menu - isolated from legacy menu styles */
+@media (min-width: 992px) {
+    header.main-header .main-menu {
+        position: relative;
+        overflow: visible;
+    }
+
+    header.main-header .main-menu > ul.list {
+        position: static;
+        overflow: visible;
+    }
+
+    header.main-header .main-menu > ul.list > li.ariya-mega-root {
+        position: static !important;
+        margin-left: 12px;
+    }
+
+    header.main-header .main-menu > ul.list > li.ariya-mega-root::before,
+    header.main-header .main-menu > ul.list > li.ariya-mega-root::after,
+    header.main-header .main-menu > ul.list > li.ariya-mega-root > a::before,
+    header.main-header .main-menu > ul.list > li.ariya-mega-root > a::after {
+        content: none !important;
+        display: none !important;
+    }
+
+    header.main-header .ariya-mega-trigger {
+        min-height: 48px;
+        padding: 0 15px !important;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 10px;
+        color: #363b47 !important;
+        background: #fff;
+        border: 1px solid #e8ad82;
+        border-radius: 11px;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1;
+        transition: border-color .18s ease, box-shadow .18s ease, color .18s ease;
+    }
+
+    header.main-header .ariya-mega-root:hover > .ariya-mega-trigger,
+    header.main-header .ariya-mega-root.is-open > .ariya-mega-trigger,
+    header.main-header .ariya-mega-trigger:focus-visible {
+        color: #bd7546 !important;
+        border-color: #d99768;
+        box-shadow: 0 7px 20px rgba(148, 91, 55, .08);
+        outline: none;
+    }
+
+    .ariya-mega-trigger-icon,
+    .ariya-mega-sidebar-icon {
+        width: 18px;
+        height: 18px;
+        display: grid;
+        grid-template-columns: repeat(2, 6px);
+        grid-template-rows: repeat(2, 6px);
+        gap: 3px;
+        flex: 0 0 18px;
+    }
+
+    .ariya-mega-trigger-icon i,
+    .ariya-mega-sidebar-icon i {
+        display: block;
+        width: 6px;
+        height: 6px;
+        border: 1.5px solid currentColor;
+        border-radius: 1px;
+    }
+
+    .ariya-mega-trigger-icon {
+        color: #bd7546;
+    }
+
+    .ariya-mega-trigger-arrow {
+        width: 8px;
+        height: 8px;
+        margin-right: 2px;
+        border-top: 1.5px solid currentColor;
+        border-left: 1.5px solid currentColor;
+        transform: rotate(45deg) translateY(2px);
+        transition: transform .18s ease;
+    }
+
+    .ariya-mega-root:not(.is-open):not(:hover) .ariya-mega-trigger-arrow {
+        transform: rotate(225deg) translate(-1px, -1px);
+    }
+
+    header.main-header .ariya-mega-shell {
+        --mega-sidebar-width: 238px;
+        position: absolute;
+        z-index: 10020;
+        top: calc(100% + 7px);
+        right: 0;
+        width: min(1158px, calc(100vw - 48px));
+        height: 365px;
+        display: grid;
+        grid-template-columns: var(--mega-sidebar-width) minmax(0, 1fr);
+        direction: rtl;
+        background: #fff;
+        border: 1px solid #e9edf2;
+        border-radius: 12px;
+        box-shadow: 0 18px 45px rgba(31, 39, 51, .10);
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition: opacity .17s ease, visibility .17s ease, transform .17s ease;
+    }
+
+    header.main-header .ariya-mega-root:hover > .ariya-mega-shell,
+    header.main-header .ariya-mega-root.is-open > .ariya-mega-shell {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    .ariya-mega-sidebar {
+        grid-column: 1;
+        height: 100%;
+        padding: 0;
+        background: #fbfbfc;
+        border-left: 1px solid #e9edf2;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #c9cdd4 transparent;
+    }
+
+    .ariya-mega-sidebar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .ariya-mega-sidebar::-webkit-scrollbar-thumb {
+        background: #c9cdd4;
+        border-radius: 10px;
+    }
+
+    .ariya-mega-sidebar-item {
+        min-height: 43px;
+        padding: 0 17px 0 15px !important;
+        display: grid !important;
+        grid-template-columns: 20px minmax(0, 1fr) 10px;
+        align-items: center;
+        gap: 11px;
+        color: #5c606a !important;
+        background: transparent;
+        border-right: 3px solid transparent;
+        border-bottom: 1px solid rgba(232, 235, 239, .42);
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        line-height: 1.45;
+        transition: background .14s ease, color .14s ease, border-color .14s ease;
+    }
+
+    .ariya-mega-sidebar-item:hover,
+    .ariya-mega-sidebar-item:focus-visible,
+    .ariya-mega-sidebar-item.is-active {
+        color: #343944 !important;
+        background: #fff;
+        border-right-color: #e94b76;
+        outline: none;
+    }
+
+    .ariya-mega-sidebar-item.is-active {
+        font-weight: 500 !important;
+    }
+
+    .ariya-mega-sidebar-icon {
+        width: 17px;
+        height: 17px;
+        grid-template-columns: repeat(2, 6px);
+        grid-template-rows: repeat(2, 6px);
+        gap: 3px;
+        color: #89909b;
+    }
+
+    .ariya-mega-sidebar-icon i {
+        width: 6px;
+        height: 6px;
+        border-width: 1.3px;
+    }
+
+    .ariya-mega-sidebar-arrow {
+        width: 7px;
+        height: 7px;
+        justify-self: end;
+        border-bottom: 1px solid #aeb4bd;
+        border-left: 1px solid #aeb4bd;
+        transform: rotate(45deg);
+    }
+
+    .ariya-mega-content {
+        grid-column: 2;
+        min-width: 0;
+        height: 100%;
+        padding: 0 16px 16px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .ariya-mega-panel {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ariya-mega-panel.is-active {
+        display: flex;
+        flex-direction: column;
+        animation: ariyaMegaFade .16s ease both;
+    }
+
+    .ariya-mega-panel-head {
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        border-bottom: 1px solid #f0f1f3;
+    }
+
+    .ariya-mega-current-link {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        color: #4c5059 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        padding: 8px 0 !important;
+    }
+
+    .ariya-mega-current-link i {
+        width: 7px;
+        height: 7px;
+        border-bottom: 1px solid #e44c77;
+        border-left: 1px solid #e44c77;
+        transform: rotate(45deg);
+    }
+
+    .ariya-mega-view-all {
+        min-height: 37px;
+        padding: 0 13px !important;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        color: #c68155 !important;
+        background: #fff;
+        border: 1px solid #efd5c4;
+        border-radius: 8px;
+        font-size: 12px !important;
+        font-weight: 400 !important;
+        transition: background .15s ease, border-color .15s ease;
+    }
+
+    .ariya-mega-view-all:hover {
+        background: #fff9f5;
+        border-color: #dfb899;
+    }
+
+    .ariya-mega-view-all i {
+        width: 8px;
+        height: 8px;
+        border-bottom: 1.5px solid currentColor;
+        border-right: 1.5px solid currentColor;
+        transform: rotate(45deg);
+    }
+
+    .ariya-mega-groups {
+        flex: 1;
+        min-height: 0;
+        padding: 14px 7px 6px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: min-content;
+        align-content: start;
+        column-gap: 44px;
+        row-gap: 19px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #d2d6dc transparent;
+    }
+
+    .ariya-mega-group {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 7px;
+    }
+
+    .ariya-mega-group-title {
+        position: relative;
+        display: inline-flex !important;
+        align-items: center;
+        color: #363a43 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        line-height: 1.6;
+        padding: 0 10px 0 0 !important;
+    }
+
+    .ariya-mega-group-title::before {
+        content: "";
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        right: 0;
+        width: 2px;
+        border-radius: 2px;
+        background: #ed3f70;
+    }
+
+    .ariya-mega-group-title:hover {
+        color: #d94c72 !important;
+    }
+
+    .ariya-mega-group-link {
+        display: block !important;
+        max-width: 100%;
+        color: #757a84 !important;
+        font-size: 12px !important;
+        font-weight: 400 !important;
+        line-height: 1.65;
+        padding: 0 10px 0 0 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: color .14s ease, transform .14s ease;
+    }
+
+    .ariya-mega-group-link:hover {
+        color: #dd5679 !important;
+        transform: translateX(-2px);
+    }
+
+    .ariya-mega-empty {
+        grid-column: 1 / -1;
+        min-height: 170px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9aa0aa;
+        font-size: 13px;
+    }
+
+    .ariya-mega-empty-root {
+        height: 100%;
+    }
+
+    @keyframes ariyaMegaFade {
+        from { opacity: 0; transform: translateY(3px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+}
+
+@media (max-width: 1199px) and (min-width: 992px) {
+    header.main-header .ariya-mega-shell {
+        width: calc(100vw - 38px);
+        right: 0;
+        --mega-sidebar-width: 220px;
+    }
+
+    .ariya-mega-groups {
+        column-gap: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    header.main-header .ariya-mega-shell,
+    header.main-header .ariya-mega-trigger,
+    .ariya-mega-panel.is-active,
+    .ariya-mega-group-link {
+        transition: none !important;
+        animation: none !important;
+    }
+}

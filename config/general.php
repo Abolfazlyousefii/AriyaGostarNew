@@ -241,7 +241,7 @@ return [
         'payments' => [
             'title'  => 'مدیریت پرداخت',
             'values' => [
-                'transactions.index'         => 'لیست تراکنش ها',
+//                'transactions.index'         => 'لیست تراکنش ها',
                 'transactions.view'          => 'مشاهده تراکنش',
                 'transactions.delete'        => 'حذف تراکنش',
                 'currencies'                 => 'مدیریت ارزها',
@@ -290,6 +290,15 @@ return [
         ]
     ],
 
+    // Explicitly opt in to fake payments on this *local-only* Site hostname.
+    // It stays disabled if this config is deployed to a public website.
+    'local_payment_test_enabled' => (bool) env('ARIYA_LOCAL_TEST_PAYMENT', false)
+        && in_array(
+            strtolower((string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST)),
+            ['siteariya.local', 'localhost', '127.0.0.1'],
+            true
+        ),
+
     'supported_gateways' => [
         'behpardakht' => 'به پرداخت ملت',
         'payir'       => 'pay.ir',
@@ -299,11 +308,12 @@ return [
         'irankish'    => 'ایران کیش',
         // 'pasargad'    => 'پاسارگاد',
         'saman'       => 'سامان',
+        'sep'         => 'پرداخت الکترونیک سامان SEP',
         'sepehr'      => 'بانک صادرات',
         'idpay'       => 'idpay',
         'sadad'       => 'بانک ملی',
         'zibal'       => 'زیبال',
-//        'local'       => 'تست',
+        'local'       => 'درگاه پرداخت تست (بدون پول واقعی)',
     ],
 
     'video-helpes' => [

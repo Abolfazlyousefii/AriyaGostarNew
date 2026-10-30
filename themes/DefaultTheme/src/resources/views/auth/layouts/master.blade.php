@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="theme-color" content="#f7858d">
+    <meta name="theme-color" content="#094798">
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
     <meta name="bingbot" content="noindex, nofollow">
-    <meta name="msapplication-navbutton-color" content="#f7858d">
-    <meta name="apple-mobile-web-app-status-bar-style" content="#f7858d">
+    <meta name="msapplication-navbutton-color" content="#094798">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#094798">
     <title>
         @isset($title)
             {{ $title }} |
@@ -32,6 +32,8 @@
 
     @stack('styles')
 
+    <link rel="stylesheet" href="{{ theme_asset('css/ariya-brand.css') }}?v=3">
+
     <!-- theme color file -->
     <link rel="stylesheet" href="{{ theme_asset('css/colors/' . option('dt_theme_color', 'default') . '.css') }}?v={{ time() }}">
 
@@ -41,41 +43,9 @@
 
     <div class="wrapper">
 
-        <!-- Start mini-header -->
-        <header class="mini-header pt-4 pb-4">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12 text-center">
-                        <div class="logo-area-mini-header">
-                            <a href="/">
-                                <img src="{{ option('info_logo', theme_asset('img/logo.png')) }}" alt="{{ option('info_site_title', trans('front::messages.auth.laravel-shop')) }}">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-        <!-- End mini-header -->
 
         @yield('content')
 
-        <!-- Start mini-footer -->
-        <footer class="mini-footer dt-sl">
-            <div class="container main-container">
-                <div class="row">
-
-                    <div class="col-12 mt-2 mb-3">
-                        <div class="footer-light-text">
-                            {{ trans('front::messages.auth.all-rights-reserved-to') }}
-                             ({{ option('info_site_title', trans('front::messages.auth.laravel-shop')) }})
-                            {{ trans('front::messages.auth.is') }}
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </footer>
-        <!-- End mini-footer -->
 
     </div>
 

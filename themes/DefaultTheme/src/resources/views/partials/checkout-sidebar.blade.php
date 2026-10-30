@@ -1,13 +1,22 @@
 <div id="checkout-sidebar" class="col-xl-3 col-lg-4 col-12 w-res-sidebar sticky-sidebar">
     <div class="dt-sn mb-2 details">
         <ul class="checkout-summary-summary">
+            @php
+                $couponDiscount = $cart->discountCodeTotal();
+                $productDiscount = max(0, $cart->totalDiscount() - $couponDiscount);
+            @endphp
             <li>
-                <span>{{ trans('front::messages.partials.total-amount') }}</span><span>{{ trans('front::messages.currency.prefix') }}{{ number_format($cart->price) }} {{ trans('front::messages.currency.suffix') }}</span>
+                <span>{{ trans('front::messages.partials.total-amount') }}</span><span>{{ trans('front::messages.currency.prefix') }}{{ number_format($cart->price + $productDiscount) }} {{ trans('front::messages.currency.suffix') }}</span>
             </li>
 
-            @if($cart->totalDiscount())
+            @if($productDiscount > 0)
                 <li class="checkout-summary-discount">
-                    <span>{{ trans('front::messages.partials.discount') }}</span><span> {{ trans('front::messages.currency.prefix') }}{{ number_format($cart->totalDiscount()) }} {{ trans('front::messages.currency.suffix') }}</span>
+                    <span>تخفیف کالا / بسته</span><span>{{ trans('front::messages.currency.prefix') }}{{ number_format($productDiscount) }} {{ trans('front::messages.currency.suffix') }}</span>
+                </li>
+            @endif
+            @if($couponDiscount > 0)
+                <li class="checkout-summary-discount">
+                    <span>تخفیف کد تخفیف</span><span>{{ trans('front::messages.currency.prefix') }}{{ number_format($couponDiscount) }} {{ trans('front::messages.currency.suffix') }}</span>
                 </li>
             @endif
 

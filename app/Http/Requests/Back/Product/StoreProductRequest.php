@@ -50,8 +50,8 @@ class StoreProductRequest extends FormRequest
 
         if ($this->input('type') == 'physical') {
             $rules = array_merge($rules, [
-                'weight'                      => 'required|integer',
-                'unit'                        => 'required|string',
+                'weight'                      => 'nullable|numeric|min:0',
+                'unit'                        => 'nullable|string|max:191',
                 'prices'                      => 'required_if:type,physical|array',
                 'prices.*.price'              => 'required|numeric|min:0',
                 'prices.*.purchase_price'     => 'nullable|numeric|min:0',
@@ -82,9 +82,13 @@ class StoreProductRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $unit = trim((string) $this->input('unit', ''));
+
         $this->merge([
             'special' => $this->has('special'),
             'is_rechargeable' => $this->has('is_rechargeable'),
+            'unit' => $unit !== '' ? $unit : null,
+            'weight' => $this->filled('weight') ? $this->input('weight') : null,
         ]);
     }
 }

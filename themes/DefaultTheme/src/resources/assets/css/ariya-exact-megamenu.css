@@ -39,3 +39,12 @@
 @media(max-width:1199.98px){.axm-panel{width:min(940px,calc(100vw - 30px))!important;grid-template-columns:minmax(0,1fr) 220px!important}.axm-columns{gap:18px 22px}}
 @media(max-width:991.98px){.axm-root{display:none!important}}
 @media(prefers-reduced-motion:reduce){.axm-panel,.axm-trigger,.axm-trigger-chevron{transition:none!important}}
+
+/* ARIYA-FLAT-CATEGORY-TRIGGER */
+.axm-root > .axm-trigger,
+.axm-root:hover > .axm-trigger,
+.axm-root:focus-within > .axm-trigger,
+.axm-root.is-open > .axm-trigger {
+    border: 0 !important;
+    box-shadow: none !important;
+}

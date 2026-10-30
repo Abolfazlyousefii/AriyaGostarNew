@@ -8,26 +8,78 @@ use App\Models\Widget;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Discount;
+use Illuminate\Support\Facades\Storage;
 
-function get_widget($widget)
-{
+if ( !function_exists('media_url') ) {
+    function media_url( $media, $fallback = null ): string {
+        if ( empty($media) ) {
+            return $fallback ? : '';
+        }
+
+        if ( !is_string($media) ) {
+            return $fallback ? : '';
+        }
+
+        $media = str_replace('\\', '/', trim($media));
+
+        if ( $media === '' ) {
+            return $fallback ? : '';
+        }
+
+        return Storage::url($media);
+    }
+}
+
+if ( !function_exists('category_image_url') ) {
+    function category_image_url( $media ): string {
+        if ( !is_string($media) || trim($media) === '' ) {
+            return '';
+        }
+
+        $path = ltrim(str_replace('\\', '/', trim($media)), '/');
+        if ( preg_match('#^https?://#i', $path) ) {
+            return $path;
+        }
+
+        if ( str_starts_with($path, 'public/') ) {
+            $path = substr($path, strlen('public/'));
+        }
+        if ( str_starts_with($path, 'storage/') ) {
+            return media_url(substr($path, strlen('storage/')));
+        }
+        if ( str_starts_with($path, 'categories/') ) {
+            return media_url($path);
+        }
+        if ( str_starts_with($path, 'uploads/uploads/categories/') ) {
+            $path = substr($path, strlen('uploads/'));
+        }
+
+        return asset($path);
+    }
+}
+
+function get_widget( $widget ) {
     $variables = [];
 
-    switch ($widget->key) {
-        case 'main-slider': {
-            $variables['main_sliders'] = Slider::detectLang()->where('group', 'main_sliders')
+    switch ( $widget->key ) {
+        case 'main-slider':
+        {
+            $variables['main_sliders'] = Slider::detectLang()
+                ->where('group', 'main_sliders')
                 ->where('published', true)
                 ->orderBy('ordering', $widget->option('ordering', 'asc'))
                 ->take($widget->option('number', 5))
                 ->get();
 
-            $variables['mobile_sliders'] = Slider::detectLang()->where('group', 'mobile_sliders')
+            $variables['mobile_sliders'] = Slider::detectLang()
+                ->where('group', 'mobile_sliders')
                 ->where('published', true)
                 ->orderBy('ordering', $widget->option('ordering', 'asc'))
                 ->take($widget->option('number', 5))
                 ->get();
 
-            $variables['index_slider_banners'] = Banner::detectLang()->where('group', 'index_slider_banners')
+            $variables['index_slider_banners'] = Banner::detectLang()
+                ->where('group', 'index_slider_banners')
                 ->where('published', true)
                 ->orderBy('ordering', $widget->option('ordering', 'asc'))
                 ->take(2)
@@ -36,14 +88,17 @@ function get_widget($widget)
             break;
         }
 
-        case 'fullscreen-slider': {
-            $variables['fullscreen_slider'] = Slider::detectLang()->where('group', 'fullscreen_slider')
+        case 'fullscreen-slider':
+        {
+            $variables['fullscreen_slider'] = Slider::detectLang()
+                ->where('group', 'fullscreen_slider')
                 ->where('published', true)
                 ->orderBy('ordering', $widget->option('ordering', 'asc'))
                 ->take($widget->option('number', 5))
                 ->get();
 
-            $variables['mobile_sliders'] = Slider::detectLang()->where('group', 'mobile_sliders')
+            $variables['mobile_sliders'] = Slider::detectLang()
+                ->where('group', 'mobile_sliders')
                 ->where('published', true)
                 ->orderBy('ordering', $widget->option('ordering', 'asc'))
                 ->take($widget->option('number', 5))
@@ -52,8 +107,10 @@ function get_widget($widget)
             break;
         }
 
-        case 'middle-banners': {
-            $variables['index_middle_banners'] = Banner::detectLang()->where('group', 'index_middle_banners')
+        case 'middle-banners':
+        {
+            $variables['index_middle_banners'] = Banner::detectLang()
+                ->where('group', 'index_middle_banners')
                 ->where('published', true)
                 ->orderBy('ordering', $widget->option('ordering', 'asc'))
                 ->take($widget->option('number', 2))
@@ -62,8 +119,10 @@ function get_widget($widget)
             break;
         }
 
-        case 'coworker-sliders': {
-            $variables['coworker_sliders'] = Slider::detectLang()->where('group', 'coworker_sliders')
+        case 'coworker-sliders':
+        {
+            $variables['coworker_sliders'] = Slider::detectLang()
+                ->where('group', 'coworker_sliders')
                 ->where('published', true)
                 ->orderBy('ordering')
                 ->take($widget->option('number', 2))
@@ -72,8 +131,10 @@ function get_widget($widget)
             break;
         }
 
-        case 'sevices-sliders': {
-            $variables['sevices_sliders'] = Slider::detectLang()->where('group', 'sevices_sliders')
+        case 'sevices-sliders':
+        {
+            $variables['sevices_sliders'] = Slider::detectLang()
+                ->where('group', 'sevices_sliders')
                 ->where('published', true)
                 ->orderBy('ordering')
                 ->take($widget->option('number', 2))
@@ -82,36 +143,42 @@ function get_widget($widget)
             break;
         }
 
-        case 'categories': {
+        case 'categories':
+        {
+            $ids             = [];
+            $category_filter = $widget->options->where('key', 'categories')
+                ->first();
 
-            $ids = [];
-            $category_filter = $widget->options->where('key', 'categories')->first();
-
-            if ($category_filter && $category_filter->hasCategory()) {
-                $ids = $category_filter->categories()->pluck('categories.id');
+            if ( $category_filter && $category_filter->hasCategory() ) {
+                $ids = $category_filter->categories()
+                    ->pluck('categories.id');
             }
 
-            $variables['categories'] = Category::detectLang()->published()->where('type', 'productcat')
+            $variables['categories'] = Category::detectLang()
+                ->published()
+                ->where('type', 'productcat')
                 ->orderBy('ordering')
                 ->whereIn('id', $ids)
                 ->get();
 
             break;
         }
-        case 'posts': {
+        case 'posts':
+        {
             $posts = Post::detectLang();
 
-            $category_filter = $widget->options->where('key', 'categories')->first();
+            $category_filter = $widget->options->where('key', 'categories')
+                ->first();
 
-            if ($category_filter && $category_filter->hasCategory()) {
-
-                $ids = $category_filter->categories()->pluck('categories.id');
+            if ( $category_filter && $category_filter->hasCategory() ) {
+                $ids        = $category_filter->categories()
+                    ->pluck('categories.id');
                 $categories = [];
 
-                foreach ($ids as $id) {
+                foreach ( $ids as $id ) {
                     $category = Category::find($id);
 
-                    if ($category) {
+                    if ( $category ) {
                         $categories = array_merge($categories, $category->allChildCategories());
                     }
                 }
@@ -119,18 +186,22 @@ function get_widget($widget)
                 $posts->whereIn('category_id', $categories);
             }
 
-            switch ($widget->option('sort_type', 'latest')) {
-                case 'latest': {
+            switch ( $widget->option('sort_type', 'latest') ) {
+                case 'latest':
+                {
                     $posts->latest();
                     break;
                 }
-                case 'view': {
+                case 'view':
+                {
                     $posts->orderBy('view', 'desc');
                     break;
                 }
             }
 
-            $posts->published()->latest()->take($widget->option('number', 10));
+            $posts->published()
+                ->latest()
+                ->take($widget->option('number', 10));
 
             $variables['posts'] = $posts->get();
 
@@ -138,168 +209,186 @@ function get_widget($widget)
         }
 
         case 'products-default-block':
-        case 'products-colorful-block': {
+        case 'products-colorful-block':
+        {
             $products = Product::detectLang()
-                ->with('lowestPrice', 'category:id,title,slug,type')
-                ->select(
-                    'id',
-                    'title',
-                    'type',
-                    'category_id',
-                    'slug',
-                    'image',
-                    'special',
-                    'image_alt'
-                );
+                ->with('lowestPrice', 'category:id,title,slug,type', 'labels', 'gallery')
+                ->select('id', 'title', 'type', 'category_id', 'slug', 'image', 'special', 'image_alt', 'price_type', 'special_end_date', 'rating');
 
-            $category_filter = $widget->options->where('key', 'categories')->first();
+            $category_filter = $widget->options->where('key', 'categories')
+                ->first();
 
-            if ($category_filter && $category_filter->hasCategory()) {
-
-                $ids = $category_filter->categories()->pluck('categories.id');
+            if ( $category_filter && $category_filter->hasCategory() ) {
+                $ids        = $category_filter->categories()
+                    ->pluck('categories.id');
                 $categories = [];
 
-                foreach ($ids as $id) {
+                foreach ( $ids as $id ) {
                     $category = Category::find($id);
 
-                    if ($category && $widget->option('sub_category_products', 'yes') == 'yes') {
+                    if ( $category && $widget->option('sub_category_products', 'yes') == 'yes' ) {
                         $categories = array_merge($categories, $category->allChildCategories());
-                    } else if ($category) {
-                        $categories = array_merge($categories, [$category->id]);
+                    }
+                    else if ( $category ) {
+                        $categories = array_merge($categories, [ $category->id ]);
                     }
                 }
 
                 $products->whereIn('category_id', $categories);
             }
 
-
-            switch ($widget->option('order_by_stock', 'yes')) {
-                case 'yes': {
+            switch ( $widget->option('order_by_stock', 'yes') ) {
+                case 'yes':
+                {
                     $products->orderByStock();
                     break;
                 }
             }
 
-            switch ($widget->option('products_type', 'all')) {
-                case 'discount': {
+            switch ( $widget->option('products_type', 'all') ) {
+                case 'discount':
+                {
                     $products->discount();
                     break;
                 }
-                case 'special': {
+                case 'special':
+                {
                     $products->special();
                     break;
                 }
             }
 
-            switch ($widget->option('inventory_status', 'all')) {
-                case 'available': {
+            switch ( $widget->option('inventory_status', 'all') ) {
+                case 'available':
+                {
                     $products->available();
                     break;
                 }
-                case 'unavailable': {
+                case 'unavailable':
+                {
                     $products->unavailable();
                     break;
                 }
             }
 
-            switch ($widget->option('sort_type', 'latest')) {
-                case 'latest': {
+            switch ( $widget->option('sort_type', 'latest') ) {
+                case 'latest':
+                {
                     $products->latest();
                     break;
                 }
-                case 'sell': {
+                case 'sell':
+                {
                     $products->orderBy('sell', 'desc');
                     break;
                 }
-                case 'view': {
+                case 'view':
+                {
                     $products->orderBy('view', 'desc');
                     break;
                 }
-                case 'cheapest': {
+                case 'cheapest':
+                {
                     $products->orderByPrice('asc');
                     break;
                 }
-                case 'expensivest': {
+                case 'expensivest':
+                {
                     $products->orderByPrice('desc');
                     break;
                 }
             }
 
-            $products->published()->latest()->take($widget->option('number', 10));
+            $products->published()
+                ->latest()
+                ->take($widget->option('number', 10));
 
-            $variables['products'] = $products->get();
+            $variables['products'] = \App\Support\AriyaHomeProductMixer::forWidget($widget, $products);
 
             break;
         }
 
-        case 'products-discount-block': {
+        case 'products-discount-block':
+        {
             $discount = Discount::find($widget->option("discount_id"));
 
-            $discount_products = $discount->allProducts()->pluck("id");
-            $products = Product::detectLang()->whereIn("id", $discount_products)
-                ->with('lowestPrice', 'category:id,title,slug,type')
-                ->select(
-                    'id',
-                    'title',
-                    'type',
-                    'category_id',
-                    'slug',
-                    'image',
-                    'special',
-                    'image_alt'
-                );
+            // A widget can outlive the discount selected in the admin panel.
+            // Keep the homepage available and let the view show its regular
+            // in-stock fallback products until another discount is selected.
+            if (!$discount) {
+                $variables['products'] = collect();
+                $variables['timer'] = null;
+                break;
+            }
 
-            switch ($widget->option('order_by_stock', 'yes')) {
-                case 'yes': {
+            $discount_products = $discount->allProducts()
+                ->pluck("id");
+            $products          = Product::detectLang()
+                ->whereIn("id", $discount_products)
+                ->with('lowestPrice', 'category:id,title,slug,type', 'labels', 'gallery')
+                ->select('id', 'title', 'type', 'category_id', 'slug', 'image', 'special', 'image_alt', 'price_type', 'special_end_date', 'rating');
+
+            switch ( $widget->option('order_by_stock', 'yes') ) {
+                case 'yes':
+                {
                     $products->orderByStock();
                     break;
                 }
             }
 
-            switch ($widget->option('inventory_status', 'all')) {
-                case 'available': {
+            switch ( $widget->option('inventory_status', 'all') ) {
+                case 'available':
+                {
                     $products->available();
                     break;
                 }
-                case 'unavailable': {
+                case 'unavailable':
+                {
                     $products->unavailable();
                     break;
                 }
             }
 
-            switch ($widget->option('sort_type', 'latest')) {
-                case 'latest': {
+            switch ( $widget->option('sort_type', 'latest') ) {
+                case 'latest':
+                {
                     $products->latest();
                     break;
                 }
-                case 'sell': {
+                case 'sell':
+                {
                     $products->orderBy('sell', 'desc');
                     break;
                 }
-                case 'view': {
+                case 'view':
+                {
                     $products->orderBy('view', 'desc');
                     break;
                 }
-                case 'cheapest': {
+                case 'cheapest':
+                {
                     $products->orderByPrice('asc');
                     break;
                 }
-                case 'expensivest': {
+                case 'expensivest':
+                {
                     $products->orderByPrice('desc');
                     break;
                 }
             }
 
-            $products->published()->latest()->take($widget->option('number', 10));
+            $products->published()
+                ->latest()
+                ->take($widget->option('number', 10));
 
-
-            $variables['products'] = $products->get();
-            $variables['timer']   = jdate($discount->end_date)->getTimestamp() * 1000;
+            $variables['products'] = \App\Support\AriyaHomeProductMixer::forWidget($widget, $products);
+            $variables['timer']    = jdate($discount->end_date)->getTimestamp() * 1000;
 
             break;
         }
-        case 'custom-page': {
-            $variables['page'] = Page::find($widget->option("page_id"));
+        case 'custom-page':
+        {
+            $variables['page']        = Page::find($widget->option("page_id"));
             $variables['block_color'] = $widget->option("block_color");
 
             break;
@@ -309,272 +398,276 @@ function get_widget($widget)
     return $variables;
 }
 
-function widget_seeder()
-{
+function widget_seeder() {
     $theme = current_theme_name();
 
-    $widget_exists = Widget::where('theme', $theme)->first();
+    $widget_exists = Widget::where('theme', $theme)
+        ->first();
 
-    if (!$widget_exists) {
+    if ( !$widget_exists ) {
         $widgets = [
             [
-                'widget' => [
-                    'title' => 'اسلایدر اصلی و بنر کناری',
-                    'key' => 'main-slider',
-                    'theme' => $theme,
-                    'ordering' => 1
+                'widget'  => [
+                    'title'    => 'اسلایدر اصلی و بنر کناری',
+                    'key'      => 'main-slider',
+                    'theme'    => $theme,
+                    'ordering' => 1,
                 ],
                 'options' => [
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '10',
                     ],
                     [
-                        'key' => 'banner_position',
+                        'key'   => 'banner_position',
                         'value' => 'left',
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'محصولات تخفیف دار',
-                    'key' => 'products-default-block',
-                    'theme' => $theme,
-                    'ordering' => 2
+                'widget'  => [
+                    'title'    => 'محصولات تخفیف دار',
+                    'key'      => 'products-default-block',
+                    'theme'    => $theme,
+                    'ordering' => 2,
                 ],
                 'options' => [
                     [
-                        'key' => 'title',
+                        'key'   => 'title',
                         'value' => 'محصولات تخفیف دار',
                     ],
                     [
-                        'key' => 'products_type',
+                        'key'   => 'products_type',
                         'value' => 'discount',
                     ],
                     [
-                        'key' => 'inventory_status',
+                        'key'   => 'inventory_status',
                         'value' => 'available',
                     ],
                     [
-                        'key' => 'sort_type',
+                        'key'   => 'sort_type',
                         'value' => 'latest',
                     ],
                     [
-                        'key' => 'order_by_stock',
+                        'key'   => 'order_by_stock',
                         'value' => 'yes',
                     ],
                     [
-                        'key' => 'link',
+                        'key'   => 'link',
                         'value' => '/product/discount',
                     ],
                     [
-                        'key' => 'link_title',
+                        'key'   => 'link_title',
                         'value' => 'مشاهده همه',
                     ],
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '10',
                     ],
-                ]
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'محصولات ویژه',
-                    'key' => 'products-colorful-block',
-                    'theme' => $theme,
-                    'ordering' => 3
+                'widget'  => [
+                    'title'    => 'محصولات ویژه',
+                    'key'      => 'products-colorful-block',
+                    'theme'    => $theme,
+                    'ordering' => 3,
                 ],
                 'options' => [
                     [
-                        'key' => 'products_type',
+                        'key'   => 'products_type',
                         'value' => 'special',
                     ],
                     [
-                        'key' => 'inventory_status',
+                        'key'   => 'inventory_status',
                         'value' => 'available',
                     ],
                     [
-                        'key' => 'sort_type',
+                        'key'   => 'sort_type',
                         'value' => 'latest',
                     ],
                     [
-                        'key' => 'order_by_stock',
+                        'key'   => 'order_by_stock',
                         'value' => 'yes',
                     ],
                     [
-                        'key' => 'link',
+                        'key'   => 'link',
                         'value' => '/product/specials',
                     ],
                     [
-                        'key' => 'link_title',
+                        'key'   => 'link_title',
                         'value' => 'مشاهده همه',
                     ],
                     [
-                        'key' => 'block_color',
+                        'key'   => 'block_color',
                         'value' => '#ef394e',
                     ],
                     [
-                        'key' => 'image',
+                        'key'   => 'image',
                         'value' => theme_asset("img/theme/amazing-1.png"),
                     ],
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '10',
                     ],
-                ]
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'بنر دوتایی',
-                    'key' => 'middle-banners',
-                    'theme' => $theme,
-                    'ordering' => 4
+                'widget'  => [
+                    'title'    => 'بنر دوتایی',
+                    'key'      => 'middle-banners',
+                    'theme'    => $theme,
+                    'ordering' => 4,
                 ],
                 'options' => [
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '2',
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'دسته بندی ها',
-                    'key' => 'categories',
-                    'theme' => $theme,
-                    'ordering' => 5
+                'widget'  => [
+                    'title'    => 'دسته بندی ها',
+                    'key'      => 'categories',
+                    'theme'    => $theme,
+                    'ordering' => 5,
                 ],
                 'options' => [
                     [
-                        'key' => 'categories',
-                        'value' => 'on',
-                        'type' => 'product_categories',
-                        'categories' => Category::where('show_in_index', 1)->pluck('id')
-                    ]
-                ]
+                        'key'        => 'categories',
+                        'value'      => 'on',
+                        'type'       => 'product_categories',
+                        'categories' => Category::where('show_in_index', 1)
+                            ->pluck('id'),
+                    ],
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'جدید ترین محصولات',
-                    'key' => 'products-default-block',
-                    'theme' => $theme,
-                    'ordering' => 6
+                'widget'  => [
+                    'title'    => 'جدید ترین محصولات',
+                    'key'      => 'products-default-block',
+                    'theme'    => $theme,
+                    'ordering' => 6,
                 ],
                 'options' => [
                     [
-                        'key' => 'title',
+                        'key'   => 'title',
                         'value' => 'جدید ترین محصولات',
                     ],
                     [
-                        'key' => 'products_type',
+                        'key'   => 'products_type',
                         'value' => 'all',
                     ],
                     [
-                        'key' => 'inventory_status',
+                        'key'   => 'inventory_status',
                         'value' => 'all',
                     ],
                     [
-                        'key' => 'sort_type',
+                        'key'   => 'sort_type',
                         'value' => 'latest',
                     ],
                     [
-                        'key' => 'order_by_stock',
+                        'key'   => 'order_by_stock',
                         'value' => 'no',
                     ],
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '10',
                     ],
-                ]
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'پرفروش ترین محصولات',
-                    'key' => 'products-colorful-block',
-                    'theme' => $theme,
-                    'ordering' => 7
+                'widget'  => [
+                    'title'    => 'پرفروش ترین محصولات',
+                    'key'      => 'products-colorful-block',
+                    'theme'    => $theme,
+                    'ordering' => 7,
                 ],
                 'options' => [
                     [
-                        'key' => 'products_type',
+                        'key'   => 'products_type',
                         'value' => 'all',
                     ],
                     [
-                        'key' => 'inventory_status',
+                        'key'   => 'inventory_status',
                         'value' => 'available',
                     ],
                     [
-                        'key' => 'sort_type',
+                        'key'   => 'sort_type',
                         'value' => 'sell',
                     ],
                     [
-                        'key' => 'order_by_stock',
+                        'key'   => 'order_by_stock',
                         'value' => 'yes',
                     ],
                     [
-                        'key' => 'block_color',
+                        'key'   => 'block_color',
                         'value' => '#304ffe',
                     ],
                     [
-                        'key' => 'image',
+                        'key'   => 'image',
                         'value' => theme_asset("img/theme/amazing-2.png"),
                     ],
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '10',
                     ],
-                ]
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'اسلایدر لوگو همکاران',
-                    'key' => 'coworker-sliders',
-                    'theme' => $theme,
-                    'ordering' => 8
+                'widget'  => [
+                    'title'    => 'اسلایدر لوگو همکاران',
+                    'key'      => 'coworker-sliders',
+                    'theme'    => $theme,
+                    'ordering' => 8,
                 ],
                 'options' => [
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '10',
                     ],
-                ]
+                ],
             ],
             [
-                'widget' => [
-                    'title' => 'اسلایدر خدمات',
-                    'key' => 'sevices-sliders',
-                    'theme' => $theme,
-                    'ordering' => 9
+                'widget'  => [
+                    'title'    => 'اسلایدر خدمات',
+                    'key'      => 'sevices-sliders',
+                    'theme'    => $theme,
+                    'ordering' => 9,
                 ],
                 'options' => [
                     [
-                        'key' => 'number',
+                        'key'   => 'number',
                         'value' => '4',
                     ],
-                ]
+                ],
             ],
         ];
 
-        foreach ($widgets as $widget) {
+        foreach ( $widgets as $widget ) {
             $w = Widget::create($widget['widget']);
 
-            foreach ($widget['options'] as $option) {
+            foreach ( $widget['options'] as $option ) {
+                switch ( $option['type'] ?? '' ) {
+                    case 'product_categories':
+                    {
+                        $w_option = $w->options()
+                            ->create([
+                                'key'   => $option['key'],
+                                'value' => $option['value'],
+                            ]);
 
-                switch ($option['type'] ?? '') {
-                    case 'product_categories': {
-
-                        $w_option = $w->options()->create([
-                            'key' => $option['key'],
-                            'value' => $option['value']
-                        ]);
-
-                        $w_option->categories()->sync($option['categories']);
+                        $w_option->categories()
+                            ->sync($option['categories']);
 
                         break;
                     }
 
-                    default: {
-                        $w->options()->create($option);
+                    default:
+                    {
+                        $w->options()
+                            ->create($option);
                     }
                 }
             }
@@ -582,11 +675,10 @@ function widget_seeder()
     }
 }
 
-function theme_first_config()
-{
+function theme_first_config() {
     widget_seeder();
 
-    if (!option('info_footer_text')) {
+    if ( !option('info_footer_text') ) {
         option_update('info_footer_text', 'کلیه حقوق این فروشگاه محفوظ است');
     }
 }

@@ -22,6 +22,10 @@
             </div>
 
             <div id="main-card" class="content-body">
+                {{-- ARIYA_BULK_DISCOUNT_PRODUCT_PANEL_V1 --}}
+                @include('back.bulk-discounts.product-panel', ['bulkProduct' => $product])
+                {{-- ARIYA_DIRECT_DISCOUNT_EDIT_V1: separate from product-edit-form --}}
+                @include('back.products.partials.direct-discount-editor', ['directDiscountProduct' => $product])
                 <form class="form" id="product-edit-form" action="{{ route('admin.products.update', ['product' => $product->id]) }}" data-redirect="{{ route('admin.products.index') }}" method="post">
                     @csrf
                     @method('put')
@@ -52,7 +56,7 @@
 @push('scripts')
     <script>
         var mockImages = [];
-        @foreach ($product->gallery()->orderBy('ordering')->get() as $image)
+        @foreach ($product->gallery()->orderBy('ordering')->orderBy('id')->get() as $image)
             mockImages.push({
                 name: @json($image->image),
                 galleryImage: true,
@@ -61,7 +65,7 @@
                 upload: { filename: @json($image->image) },
                 prevFile: true,
                 accepted: true,
-                image: @json($image->image),
+                image: @json(media_url($image->image, '/no-image-product.png')),
                 color_id: @json($image->color_id),
             });
         @endforeach

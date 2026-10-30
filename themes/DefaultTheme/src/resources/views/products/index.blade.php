@@ -1,7 +1,12 @@
 @extends('front::layouts.master', ['title' => trans('front::messages.products.products')])
 
+{{-- ARIYA_DESKTOP_SORT_TABS_V1 --}}
+@push('styles')
+    @include('front::products.partials.ariya-desktop-sort-styles')
+@endpush
+
 @section('content')
-    <main class="main-content dt-sl mt-4 mb-3 ariya-products-page">
+    <main class="main-content dt-sl mt-4 mb-3 ariya-products-page ariya-product-listing-page">
         <div class="container main-container">
             <div class="title-breadcrumb-special dt-sl mb-3">
                 <div class="breadcrumb dt-sl">
@@ -35,8 +40,10 @@
                         <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>جدیدترین</option>
                         <option value="most_viewed" {{ request('sort') === 'most_viewed' ? 'selected' : '' }}>پربازدیدترین</option>
                         <option value="best_selling" {{ request('sort') === 'best_selling' ? 'selected' : '' }}>پرفروش‌ترین</option>
-                        <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>ارزان‌ترین</option>
-                        <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>گران‌ترین</option>
+                        @auth
+                            <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>ارزان‌ترین</option>
+                            <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>گران‌ترین</option>
+                        @endauth
                     </select>
                 </label>
             </div>
@@ -51,21 +58,13 @@
                             <p>{{ number_format($products->total()) }} کالا پیدا شد</p>
                         </div>
 
-                        <label class="ariya-catalog-sort">
-                            <span>مرتب‌سازی:</span>
-                            <select data-catalog-sort-select>
-                                <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>جدیدترین</option>
-                                <option value="most_viewed" {{ request('sort') === 'most_viewed' ? 'selected' : '' }}>پربازدیدترین</option>
-                                <option value="best_selling" {{ request('sort') === 'best_selling' ? 'selected' : '' }}>پرفروش‌ترین</option>
-                                <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>ارزان‌ترین</option>
-                                <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>گران‌ترین</option>
-                            </select>
-                        </label>
+                        {{-- ARIYA_DESKTOP_SORT_TABS_V1 --}}
+                        @include('front::products.partials.ariya-desktop-sort', ['ariyaAllowPriceSorting' => auth()->check()])
                     </div>
 
                     @if($products->count())
                         <div class="dt-sl dt-sn px-0 search-amazing-tab ariya-catalog-products-box">
-                            <div class="row mb-3 mx-0 ariya-products-grid">
+                            <div class="row mb-3 mx-0 ariya-products-grid ariya-product-list-grid">
                                 @foreach($products as $product)
                                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6 px-10 mb-2 category-product-div">
                                         @include('front::products.partials.product-card', ['product' => $product])
@@ -93,4 +92,9 @@
 
 @push('scripts')
     <script src="{{ theme_asset('js/pages/products/index.js') }}?v=20260728-1"></script>
+@endpush
+
+{{-- ARIYA_FIVE_CARDS_GRID_V1 --}}
+@push('styles')
+    @include('front::products.partials.ariya-five-cards-style')
 @endpush

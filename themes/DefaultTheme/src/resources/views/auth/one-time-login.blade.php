@@ -1,9 +1,11 @@
 @extends('front::auth.layouts.master', ['title' => trans('front::messages.auth.login-with-confirmation-code') ])
 
 @php
-    $redirect_url = Redirect::intended()->getTargetUrl();
     $type = request()->type;
-    $back_url = $type == 'login' ? route('login-with-code.request') : route('password.request');
+    $redirect_url = $type == 'login'
+        ? (Route::has('front.index') ? route('front.index') : url('/'))
+        : Redirect::intended()->getTargetUrl();
+    $back_url = $type == 'login' ? route('login', ['mobile' => $user->username ?? request('mobile')]) : route('password.request');
     $action = $type == 'login' ? route('login-with-code.confirm') : route('one-time-login');
 @endphp
 
@@ -56,10 +58,10 @@
 
 @push('scripts')
     <script>
-        var redirect_url = '{{ $redirect_url }}';
+        var redirect_url = @json($redirect_url);
         var resend_time = {{ $resend_time }};
     </script>
 
     <script src="{{ theme_asset('js/vendor/countdown.min.js') }}"></script>
-    <script src="{{ theme_asset('js/pages/one-time-login.js?v=3') }}"></script>
+    <script src="{{ theme_asset('js/pages/one-time-login.js?v=4') }}"></script>
 @endpush

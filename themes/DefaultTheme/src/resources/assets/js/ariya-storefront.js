@@ -108,7 +108,6 @@
 
         function changeSlide(direction) {
             if (window.jQuery && $.fn && typeof $.fn.carousel === 'function') {
-                $(element).carousel('pause');
                 $(element).carousel(direction);
                 return;
             }

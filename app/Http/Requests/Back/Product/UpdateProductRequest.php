@@ -51,13 +51,13 @@ class UpdateProductRequest extends FormRequest
 
         if ($this->input('type') == 'physical') {
             $rules = array_merge($rules, [
-                'weight'                      => 'required|integer',
-                'unit'                        => 'required|string',
-                'prices'                      => 'required_if:type,physical|array',
-                'prices.*.price'              => 'required|numeric|min:0',
+                'weight'                      => 'nullable|numeric|min:0',
+                'unit'                        => 'nullable|string|max:191',
+                'prices'                      => 'nullable|array',
+                'prices.*.price'              => 'nullable|numeric|min:0',
                 'prices.*.purchase_price'     => 'nullable|numeric|min:0',
                 'prices.*.barcode'            => 'nullable|string|max:191',
-                'prices.*.stock'              => 'required|integer',
+                'prices.*.stock'              => 'nullable|integer',
                 'prices.*.attributes'         => "nullable|array",
                 'prices.*.attributes.*'       => "nullable|exists:attributes,id",
                 'prices.*.cart_max'           => 'nullable|integer',
@@ -87,9 +87,13 @@ class UpdateProductRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $unit = trim((string) $this->input('unit', ''));
+
         $this->merge([
             'special' => $this->has('special'),
             'is_rechargeable' => $this->has('is_rechargeable'),
+            'unit' => $unit !== '' ? $unit : null,
+            'weight' => $this->filled('weight') ? $this->input('weight') : null,
         ]);
     }
 }

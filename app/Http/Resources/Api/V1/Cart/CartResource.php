@@ -45,6 +45,8 @@ class CartResource extends JsonResource
                 'special'            => $product->isSpecial(),
                 'short_description'  => $product->short_description,
                 'quantity'           => $product->pivot->quantity,
+                'is_bundle'          => (bool) ($product->is_bundle ?? false),
+                'bundle_contents'    => is_array($product->bundle_contents ?? null) ? $product->bundle_contents : (json_decode((string) ($product->bundle_contents ?? ''), true) ?: []),
                 'price'              => new PriceResource(Price::find($product->pivot->price_id))
             ];
         });

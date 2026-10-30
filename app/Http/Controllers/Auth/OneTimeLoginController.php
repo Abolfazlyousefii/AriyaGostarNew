@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OneTimeLoginController extends Controller
 {
@@ -26,10 +27,26 @@ class OneTimeLoginController extends Controller
         }
 
         $user = User::where('username', $request->mobile)->first();
+
+        if ($user->level === 'user' && $user->is_active === false) {
+            OneTimeCode::where('user_id', $user->id)->delete();
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'status',
+                    User::INACTIVE_CUSTOMER_MESSAGE
+                );
+        }
+
         $verify_code = OneTimeCode::where('user_id', $user->id)->latest()->first();
 
         if (!$verify_code) {
-            return redirect()->route('password.request');
+            return redirect()
+                ->route('login', ['mobile' => $request->mobile])
+                ->withErrors([
+                    'mobile' => 'کد ورود یافت نشد. لطفاً دوباره درخواست کد کنید.'
+                ]);
         }
 
         $resend_time = $verify_code->created_at->addSeconds(120)->timestamp;
@@ -44,6 +61,8 @@ class OneTimeLoginController extends Controller
         ]);
 
         $user = User::where('username', $request->mobile)->first();
+        $this->ensureCustomerIsActive($user);
+
         $time = Carbon::now()->subMinutes(15);
 
         $request->validate([
@@ -61,9 +80,25 @@ class OneTimeLoginController extends Controller
             'force_to_password_change' => true,
         ]);
 
+        $user->refresh();
+        $this->ensureCustomerIsActive($user);
+
         Auth::loginUsingId($user->id, true);
         OneTimeCode::where('user_id', $user->id)->delete();
 
         return response('success');
+    }
+
+    private function ensureCustomerIsActive(User $user): void
+    {
+        if ($user->level !== 'user' || $user->is_active !== false) {
+            return;
+        }
+
+        OneTimeCode::where('user_id', $user->id)->delete();
+
+        throw ValidationException::withMessages([
+            'mobile' => User::INACTIVE_CUSTOMER_MESSAGE,
+        ]);
     }
 }

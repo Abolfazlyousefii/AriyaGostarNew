@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use App\Models\Viewer as ViewerModel;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Jenssegers\Agent\Agent;
 
 class Viewer
@@ -22,7 +23,9 @@ class Viewer
             return $next($request);
         }
 
-        if ($request->method() == 'GET' && !$request->is('admin*')) {
+        if ($request->method() == 'GET'
+            && !$request->is('admin*')
+            && Schema::hasTable('viewers')) {
 
             $options = [];
             $agent   = new Agent();

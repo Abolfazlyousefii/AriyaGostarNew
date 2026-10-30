@@ -21,7 +21,7 @@
     @section('content')
 
         <!-- Start main-content -->
-        <main class="main-content dt-sl mt-4 mb-3">
+        <main class="main-content dt-sl mt-4 mb-3 ariya-category-listing-page">
             <div class="container main-container">
 
                 <div class="row">
@@ -58,7 +58,7 @@
 
                         @if($category->getCategoriesCount())
                             <div class="dt-sl dt-sn px-0 search-amazing-tab">
-                                <div class="row mb-3 mx-0 px-res-0">
+                                <div class="row mb-3 mx-0 px-res-0 ariya-category-list-grid">
 
 
                                     <div class="col-lg-3 col-md-4 col-sm-6 col-12 px-10 mb-1 px-res-0">

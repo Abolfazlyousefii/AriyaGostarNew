@@ -1,4 +1,16 @@
 @php
+    $attributeFields = collect($attributeGroups ?? [])->map(function ($group) {
+        return [
+            'id' => $group->id,
+            'name' => $group->name,
+            'type' => $group->type,
+        ];
+    })->values();
+@endphp
+
+<script type="application/json" id="price-attribute-groups-data">{!! $attributeFields->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+
+@php
     $formProduct = $formProduct ?? null;
     $isEdit = $isEdit ?? false;
     $isPhysical = !$formProduct || $formProduct->isPhysical();
@@ -239,14 +251,14 @@
                     </div>
                     <div class="col-md-4 physical-item">
                         <div class="form-group">
-                            <label>واحد <b class="text-danger">*</b></label>
-                            <input type="text" class="form-control" name="unit" value="{{ $formProduct ? $formProduct->unit : 'تعداد' }}" placeholder="مثلاً عدد، بسته یا کارتن">
+                            <label>واحد</label>
+                            <input type="text" class="form-control" name="unit" value="{{ $formProduct ? $formProduct->unit : '' }}" placeholder="مثلاً عدد، بسته یا کارتن">
                         </div>
                     </div>
                     <div class="col-md-4 physical-item">
                         <div class="form-group">
-                            <label>وزن (گرم) <b class="text-danger">*</b></label>
-                            <input type="number" class="form-control" name="weight" value="{{ $formProduct ? $formProduct->weight : 0 }}" min="0">
+                            <label>وزن (گرم)</label>
+                            <input type="number" class="form-control" name="weight" value="{{ $formProduct ? $formProduct->weight : '' }}" min="0">
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -283,21 +295,9 @@
                         <div class="dropzone dropzone-area mb-2" id="product-images">
                             <div class="dz-message">
                                 <i class="feather icon-image"></i>
-                                تصاویر را بکشید و اینجا رها کنید یا برای انتخاب کلیک کنید
+                                تصاویر را بکشید و اینجا رها کنید یا برای انتخاب کلیک کنید؛ اولین تصویر در ترتیب گالری، تصویر اصلی سایت و انبارداری خواهد بود
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <fieldset class="form-group">
-                            <label>تصویر شاخص</label>
-                            @if ($isEdit && $formProduct->image)
-                                <div class="apf-current-image mb-1"><img src="{{ asset($formProduct->image) }}" alt="{{ $formProduct->title }}"></div>
-                            @endif
-                            <div class="custom-file">
-                                <input id="image" type="file" accept="image/*" name="image" class="custom-file-input">
-                                <label class="custom-file-label" for="image">انتخاب تصویر</label>
-                            </div>
-                        </fieldset>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
@@ -318,7 +318,7 @@
                         <div class="form-group">
                             <label>کاور ویدیو</label>
                             @if ($formProduct && data_get($formProduct, 'video_cover'))
-                                <div class="apf-current-image mb-1"><img src="{{ asset(data_get($formProduct, 'video_cover')) }}" alt="کاور ویدیو"></div>
+                                <div class="apf-current-image mb-1"><img src="{{ media_url(data_get($formProduct, 'video_cover')) }}" alt="کاور ویدیو"></div>
                             @endif
                             <div class="custom-file">
                                 <input id="video_cover" type="file" accept="image/*" name="video_cover" class="custom-file-input">
@@ -335,34 +335,34 @@
                 </div>
             </section>
 
-            <section class="apf-card physical-item" id="product-prices-section">
-                <div class="apf-card-title apf-title-with-help">
-                    <span></span>
-                    <div>
-                        <h4>تنوع‌ها و قیمت‌ها</h4>
-                        <p>قیمت، تخفیف، موجودی، محدودیت سفارش، مدل‌ها و کدهای خودکار انبار را مدیریت کنید.</p>
-                    </div>
-                </div>
+{{--             <section class="apf-card physical-item" id="product-prices-section"> --}}
+{{--                 <div class="apf-card-title apf-title-with-help"> --}}
+{{--                     <span></span> --}}
+{{--                     <div> --}}
+{{--                         <h4>تنوع‌ها و قیمت‌ها</h4> --}}
+{{--                         <p>قیمت، تخفیف، موجودی، محدودیت سفارش، مدل‌ها و کدهای خودکار انبار را مدیریت کنید.</p> --}}
+{{--                     </div> --}}
+{{--                 </div> --}}
 
-                <div class="product-prices-tab">
-                    @if (view()->exists('back.products.partials.bulk-prices-builder'))
-                        @include('back.products.partials.bulk-prices-builder')
-                    @endif
+{{--                 <div class="product-prices-tab"> --}}
+{{--                     @if (view()->exists('back.products.partials.bulk-prices-builder')) --}}
+{{--                         @include('back.products.partials.bulk-prices-builder') --}}
+{{--                     @endif --}}
 
-                    <div id="product-prices-div" class="product-prices-div">
-                        @if ($formProduct && $formProduct->isPhysical())
-                            @foreach ($formProduct->prices as $price)
-                                @include('back.products.partials.prices-include', ['price' => $price])
-                            @endforeach
-                        @endif
-                    </div>
+{{--                     <div id="product-prices-div" class="product-prices-div"> --}}
+{{--                         @if ($formProduct && $formProduct->isPhysical()) --}}
+{{--                             @foreach ($formProduct->prices as $price) --}}
+{{--                                 @include('back.products.partials.prices-include', ['price' => $price]) --}}
+{{--                             @endforeach --}}
+{{--                         @endif --}}
+{{--                     </div> --}}
 
-                    <div class="apf-inline-actions">
-                        <button id="add-product-prices" type="button" class="btn btn-primary"><i class="feather icon-plus"></i> افزودن قیمت</button>
-                        <button id="copy-product-prices" type="button" class="btn btn-outline-primary"><i class="feather icon-copy"></i> کپی آخرین قیمت</button>
-                    </div>
-                </div>
-            </section>
+{{--                     <div class="apf-inline-actions"> --}}
+{{--                         <button id="add-product-prices" type="button" class="btn btn-primary"><i class="feather icon-plus"></i> افزودن قیمت</button> --}}
+{{--                         <button id="copy-product-prices" type="button" class="btn btn-outline-primary"><i class="feather icon-copy"></i> کپی آخرین قیمت</button> --}}
+{{--                     </div> --}}
+{{--                 </div> --}}
+{{--             </section> --}}
 
             <section class="apf-card download-item" id="product-download-files">
                 <div class="apf-card-title">

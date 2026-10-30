@@ -12,6 +12,8 @@
     <main class="main-content dt-sl mt-4 mb-3">
         <div class="container main-container">
 
+            @include('front::partials.cart-stock-review')
+
             <form id="checkout-form" data-price-action="{{ route('front.checkout.prices') }}" action="{{ route('front.orders.store') }}" class="setting_form" method="POST">
                 @csrf
                 <div class="row">
@@ -361,6 +363,6 @@
     <script src="{{ theme_asset('js/plugins/jquery-validation/jquery.validate.min.js') }}"></script>
     <script src="{{ theme_asset('js/plugins/jquery-validation/localization/messages_fa.min.js') }}?v=2"></script>
 
-    <script src="{{ theme_asset('js/pages/cart.js') }}?v=3"></script>
+    <script src="{{ theme_asset('js/pages/cart.js') }}?v=4"></script>
     <script src="{{ theme_asset('js/pages/checkout.js') }}?v=16"></script>
 @endpush

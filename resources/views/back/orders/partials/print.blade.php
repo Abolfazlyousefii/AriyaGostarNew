@@ -212,7 +212,7 @@
                     <tr>
                         <th class="" scope="row">{{ $loop->iteration }}</th>
                         <td>{{ $item->product_id }}</td>
-                        <td class="text-center">{{ $item->title }} @if ($item->get_price)<p>{{ $item->get_price->getAttributesName() }}</p> @endif</td>
+                        <td class="text-center">{{ $item->title }} @include('partials.bundle-contents', ['bundleProduct' => $item->product, 'bundleQuantity' => $item->quantity]) @if ($item->get_price)<p>{{ $item->get_price->getAttributesName() }}</p> @endif</td>
                         <td>{{ $item->quantity }}</td>
                         <td>{{ number_format($item->realPrice()) }}</td>
                         <td>{{ number_format($item->quantity * $item->realPrice()) }}</td>

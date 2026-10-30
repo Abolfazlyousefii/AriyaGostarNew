@@ -60,12 +60,26 @@ trait ProductScopes
 
     public function scopeDiscount($query)
     {
-        $query->where(function ($query2) {
-            $query2->where('price_type', 'multiple-price')->whereHas('prices', function ($q) {
-                $q->where('stock', '>', 0)->where('discount', '>', 0)->where(function ($q2) {
-                    $q2->whereNull('discount_expire_at')->orWhere('discount_expire_at', '>', now());
+        // ARIYA_BULK_SCOPE_V3_scopeDiscount
+        $query->where(function ($ariyaBulkGroup) {
+            // Retain every pre-existing condition in this scope.
+            $ariyaBulkGroup->where(function ($query) {
+                $query->where(function ($query2) {
+                    $query2->where('price_type', 'multiple-price')->whereHas('prices', function ($q) {
+                        $q->where('stock', '>', 0)->where('discount', '>', 0)->where(function ($q2) {
+                            $q2->whereNull('discount_expire_at')->orWhere('discount_expire_at', '>', now());
+                        });
+                    });
                 });
+        
+                return $query;
+        
             });
+            if (\Illuminate\Support\Facades\Schema::hasTable('bulk_discount_items')) {
+                $ariyaBulkGroup->orWhereExists(function ($exists) {
+                    \App\Services\Sales\BulkDiscountService::activeProductExists($exists);
+                });
+            }
         });
 
         return $query;
@@ -73,12 +87,26 @@ trait ProductScopes
 
     public function scopeWithoutDiscount($query)
     {
-        $query->where(function ($query2) {
-            $query2->where('price_type', 'multiple-price')->whereDoesntHave('prices', function ($q) {
-                $q->where('stock', '>', 0)->where('discount', '>', 0)->where(function ($q2) {
-                    $q2->whereNull('discount_expire_at')->orWhere('discount_expire_at', '>', now());
+        // ARIYA_BULK_SCOPE_V3_scopeWithoutDiscount
+        $query->where(function ($ariyaBulkGroup) {
+            // Retain every pre-existing condition in this scope.
+            $ariyaBulkGroup->where(function ($query) {
+                $query->where(function ($query2) {
+                    $query2->where('price_type', 'multiple-price')->whereDoesntHave('prices', function ($q) {
+                        $q->where('stock', '>', 0)->where('discount', '>', 0)->where(function ($q2) {
+                            $q2->whereNull('discount_expire_at')->orWhere('discount_expire_at', '>', now());
+                        });
+                    });
                 });
+        
+                return $query;
+        
             });
+            if (\Illuminate\Support\Facades\Schema::hasTable('bulk_discount_items')) {
+                $ariyaBulkGroup->whereNotExists(function ($exists) {
+                    \App\Services\Sales\BulkDiscountService::activeProductExists($exists);
+                });
+            }
         });
 
         return $query;
@@ -207,7 +235,6 @@ trait ProductScopes
         if ($title = $request->input('query.title')) {
             $query->search($title);
         }
-
         if ($special = $request->input('query.special')) {
             switch ($special) {
                 case "yes": {
@@ -595,27 +622,49 @@ trait ProductScopes
             ->orderBy('min_price', $type);
     }
 
+
     public function scopeSearch($query, $search)
     {
-        $searchWords = explode(' ', $search);
+        $search = trim((string) $search);
 
-        return $query->where(function ($query) use ($searchWords) {
-            $query->where(function ($q1) use ($searchWords) {
-                foreach ($searchWords as $word) {
-                    $q1->where(function ($q2) use ($word) {
-                        $q2->where('title', 'like', '%' . $word . '%');
+        if ($search === "") {
+            return $query;
+        }
 
-                        if (strpos($word, 'ا') !== false) {
-                            $replacement = "آ";
-                            $q2->orWhere('title', 'like', '%' . str_replace_first('ا', $replacement, $word) . '%');
-                        }
-                    });
-                }
-            })->orWhere(function ($q2) use ($searchWords) {
-                foreach ($searchWords as $word) {
-                    $q2->where('title_en', 'like', '%' . $word . '%');
-                }
-            });
-        });
+        return $query
+            ->where(function ($q) use ($search) {
+
+                $q->where("products.title", "like", "%".$search."%")
+                  ->orWhere("products.title_en", "like", "%".$search."%")
+                  ->orWhere("products.description", "like", "%".$search."%")
+                  ->orWhere("products.product_code", "like", "%".$search."%")
+                  ->orWhereHas("prices.get_attributes", function ($a) use ($search) {
+                      $a->where("name", "like", "%".$search."%");
+                  });
+
+            })
+            ->orderByRaw("
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM prices
+                        INNER JOIN attribute_price 
+                            ON attribute_price.price_id = prices.id
+                        INNER JOIN attributes 
+                            ON attributes.id = attribute_price.attribute_id
+                        WHERE prices.product_id = products.id
+                        AND attributes.name LIKE ?
+                    )
+                    THEN 100
+
+                    WHEN products.title LIKE ?
+                    THEN 80
+
+                    ELSE 20
+                END DESC
+            ", [
+                "%".$search."%",
+                "%".$search."%"
+            ]);
     }
 }

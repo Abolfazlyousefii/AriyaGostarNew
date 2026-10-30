@@ -25,7 +25,7 @@ class ProductCollection extends ResourceCollection
                 'regular_price'    => $product->getLowestDiscount(true),
                 'sale_price'       => $product->getLowestPrice(true),
                 'slug'             => $product->slug,
-                'image'            => $product->image ? asset($product->image) : null,
+                'image'            => $product->imageUrl('/no-image-product.png'),
                 'special'          => $product->isSpecial(),
                 'category'         => $product->category ? $product->category->title : null,
                 'published_date'   => $product->published_at ?: $product->created_at,

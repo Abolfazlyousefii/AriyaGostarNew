@@ -7,14 +7,7 @@
 
             @if($cart && $cart->products()->count())
 
-                @if(!check_cart_quantity())
-                    <div class="alert alert-danger" role="alert">
-                        {{ trans('front::messages.cart.product-inventory') }}<br> {{ trans('front::messages.cart.edit-shopping-cart') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span class="icon-close" aria-hidden="true"></span>
-                        </button>
-                    </div>
-                @endif
+                @include('front::partials.cart-stock-review')
 
                 <div id="cart-errors" class="alert alert-danger" role="alert" style="display: none;">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -55,18 +48,28 @@
 
                                                                 @php
                                                                     $price_to_stock = $product->prices()->find($product->pivot->price_id);
-                                                                    $has_stock = $price_to_stock->hasStock($product->pivot->quantity);
+                                                                @endphp
+                                                                @if (!$price_to_stock)
+                                                                    <div class="alert alert-warning">
+                                                                        مدل انتخاب‌شده برای «{{ $product->title }}» دیگر قابل سفارش نیست.
+                                                                        <button type="button" class="btn btn-outline-danger cart-remove-unavailable" data-action="{{ route('front.cart.destroy', ['id' => $product->pivot->id]) }}">حذف این مدل از سبد</button>
+                                                                    </div>
+                                                                    @continue
+                                                                @endif
+                                                                @php
+                                                                    $has_stock = $stockReview['lines'][$product->pivot->price_id] ?? ['status' => false, 'message' => 'این مدل اکنون قابل سفارش نیست.', 'available' => 0];
                                                                 @endphp
 
                                                                 <div class="row list-row">
                                                                     <div class="col-4 col-sm-3 col-md-2">
                                                                         <a href="{{ route('front.products.show', ['product' => $product]) }}">
-                                                                            <img class="img-fluid p-2" src="{{ $product->image ? asset($product->image) : asset('empty.jpg') }}" alt="{{ $product->title }}">
+                                                                            <img class="img-fluid p-2" src="{{ $product->imageUrl('/no-image-product.png') }}" alt="{{ $product->title }}">
                                                                         </a>
                                                                     </div>
                                                                     <div class="col-8 col-sm-9 col-md-5 card-product-name">
                                                                         <a href="{{ route('front.products.show', ['product' => $product]) }}">
                                                                             <h3 class="title">{{ $product->title }}</h3>
+                                                                            @include('front::partials.bundle-contents', ['bundleProduct' => $product, 'bundleQuantity' => $product->pivot->quantity])
                                                                         </a>
 
                                                                         @if ($product->isPhysical())
@@ -85,7 +88,7 @@
 
                                                                         <div class="counter-box">
                                                                             <button type="button" class="inc"><i class="mdi mdi-plus"></i></button>
-                                                                            <input class="quantity cart_quantity count" min="{{ cart_min($price_to_stock) }}" name="product-{{ $product->pivot->id }}" max="{{ cart_max($price_to_stock) }}" value="{{ $product->pivot->quantity }}" type="number" data-minus-class="mdi mdi-minus" data-remove-class="mdi mdi-delete-outline" required>
+                                                                            <input class="quantity cart_quantity count" min="{{ max(1, (int) $price_to_stock->cart_min) }}" name="product-{{ $product->pivot->id }}" max="{{ $price_to_stock->cart_max !== null ? min((int) $price_to_stock->cart_max, $has_stock['available']) : $has_stock['available'] }}" value="{{ $product->pivot->quantity }}" type="number" data-minus-class="mdi mdi-minus" data-remove-class="mdi mdi-delete-outline" required>
                                                                             <button type="button" data-action="{{ route('front.cart.destroy', ['id' => $product->pivot->id]) }}" class="dec">
                                                                                 <i class="mdi mdi-minus"></i>
                                                                             </button>
@@ -178,5 +181,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ theme_asset('js/pages/cart.js') }}?v=3"></script>
+    <script src="{{ theme_asset('js/pages/cart.js') }}?v=4"></script>
 @endpush

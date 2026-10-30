@@ -15,6 +15,9 @@ class ChangePrices
      */
     public function handle(OrderCreated $event)
     {
+        // Inventory has already deducted sellable stock atomically for these orders.
+        if ($event->order->inventory_stock_hold_id) return;
+
         if (!$event->order->hasPhysicalProduct()) {
             return;
         }

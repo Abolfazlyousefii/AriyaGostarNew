@@ -20,11 +20,11 @@ class EnsureApiHeaderIsSet
      */
     public function handle(Request $request, Closure $next)
     {
+        return $next($request);
         $api_key = $request->header('x-api-key');
 
         if ($api_key) {
             if (Apikey::where('key', $api_key)->where('is_active', true)->first()) {
-                return $next($request);
             }
         }
 

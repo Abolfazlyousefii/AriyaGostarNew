@@ -22,13 +22,17 @@ class Transaction extends Model
     {
         switch ($this->transactionable_type) {
             case Order::class: {
-                    $type = 'خرید محصول';
-                    break;
-                }
+                $type = 'خرید محصول';
+                break;
+            }
             case WalletHistory::class: {
-                    $type = 'شارژ کیف پول';
-                    break;
-                }
+                $type = 'شارژ کیف پول';
+                break;
+            }
+            case User::class: {
+                $type = 'پرداخت حساب مشتری';
+                break;
+            }
         }
 
         return $type ?? '--';
@@ -39,13 +43,13 @@ class Transaction extends Model
         switch ($this->transactionable_type) {
 
             case Order::class: {
-                    $link = route('admin.orders.show', ['order' => $this->transactionable]);
-                    break;
-                }
+                $link = route('admin.orders.show', ['order' => $this->transactionable]);
+                break;
+            }
             case WalletHistory::class: {
-                    $link = route('admin.wallets.show', ['wallet' => $this->transactionable->wallet]);
-                    break;
-                }
+                $link = route('admin.wallets.show', ['wallet' => $this->transactionable->wallet]);
+                break;
+            }
         }
 
         return $link ?? '--';

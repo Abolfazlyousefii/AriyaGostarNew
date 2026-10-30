@@ -32,6 +32,7 @@
 
             </div>
             <div class="content-body">
+                <div class="mb-2"><a class="btn btn-primary" href="{{ route('admin.customer-journey.index', ['user' => $user->id]) }}">مشاهده لاگ فعالیت و خطاهای مشتری</a></div>
                 <div class="row">
                     <div class="col-lg-3 col-sm-6 col-12">
                         <div class="card user-statistics-card">
@@ -195,6 +196,16 @@
                                                                 <td>{{ $user->username }}</td>
                                                             </tr>
                                                             <tr>
+                                                                <td class="font-weight-bold">وضعیت حساب</td>
+                                                                <td>
+                                                                    @if($user->is_active)
+                                                                        <span class="badge badge-success">فعال</span>
+                                                                    @else
+                                                                        <span class="badge badge-danger">غیرفعال</span>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
                                                             <tr>
                                                                 <td class="font-weight-bold">تاریخ ثبت نام</td>
                                                                 <td>
@@ -236,6 +247,22 @@
                                                         <a href="{{ route('admin.users.login', ['user' => $user]) }}" class="btn btn-primary mr-1">وارد شدن به عنوان کاربر</a>
                                                         @can('users.update')
                                                             <a href="{{ route('admin.users.edit', ['user' => $user]) }}" class="btn btn-warning mr-1"><i class="feather icon-edit-1"></i> ویرایش</a>
+                                                        @endcan
+
+                                                        @can('updateStatus', $user)
+                                                            <form
+                                                                method="POST"
+                                                                action="{{ route('admin.users.status.update', $user) }}"
+                                                                class="d-inline-block"
+                                                                onsubmit="return confirm('وضعیت حساب این مشتری تغییر کند؟')"
+                                                            >
+                                                                @csrf
+                                                                @method('patch')
+                                                                <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
+                                                                <button type="submit" class="btn {{ $user->is_active ? 'btn-outline-danger' : 'btn-success' }} mr-1">
+                                                                    {{ $user->is_active ? 'غیرفعال کردن حساب' : 'فعال کردن حساب' }}
+                                                                </button>
+                                                            </form>
                                                         @endcan
 
                                                         @can('users.delete')

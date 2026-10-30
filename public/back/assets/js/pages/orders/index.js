@@ -140,15 +140,23 @@ var order_datatable = (function () {
                 field: 'actions',
                 title: 'عملیات',
                 sortable: false,
-                width: 125,
+                width: 250,
                 overflow: 'visible',
                 autoHide: false,
                 template: function (row) {
-                    return (
+                    let html =
                         '<a href="' +
                         row.links.view +
-                        '" class="btn btn-info waves-effect waves-light">مشاهده</a>'
-                    );
+                        '" class="btn btn-info btn-sm waves-effect waves-light">مشاهده</a>';
+
+                    if (row.status === 'paid') {
+                        html +=
+                            ' <a href="' +
+                            row.links.view +
+                            '/edit" class="btn btn-warning btn-sm waves-effect waves-light">ویرایش فاکتور</a>';
+                    }
+
+                    return html;
                 }
             }
         ]

@@ -19,6 +19,7 @@ class User extends JsonResource
             'image'             => $this->imageUrl,
             'fullname'          => htmlspecialchars($this->fullname),
             'username'          => $this->username,
+            'is_active'         => $this->is_active,
             'created_at'        => jdate($this->created_at)->format('%d %B %Y'),
 
             'links' => [

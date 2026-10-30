@@ -59,6 +59,7 @@ class SEP extends Driver
      * @throws PurchaseFailedException
      * @throws \SoapFault
      */
+    
     public function purchase()
     {
         $data = array(
@@ -74,6 +75,13 @@ class SEP extends Driver
             'ResNum4' => $this->invoice->getDetail('ResNum4') ?? '',
         );
 
+
+        \Log::info('SEP DATA', [
+    'settings' => $this->settings,
+    'data' => $data
+]);
+
+\Log::info('SEP REQUEST', $data);
         $response = $this->client->post(
             $this->settings->apiGetToken,
             [
@@ -88,6 +96,9 @@ class SEP extends Driver
         }
 
         $jsonBody = $response->getBody()->getContents();
+        \Log::info('SEP RESPONSE', [
+    'body' => $jsonBody
+]);
         $responseData = json_decode($jsonBody, true);
 
         if ($responseData['status'] != 1) {
@@ -111,12 +122,12 @@ class SEP extends Driver
         $payUrl = $this->settings->apiPaymentUrl;
 
         return $this->redirectWithForm(
-            $payUrl,
-            [
-                'Token' => $this->invoice->getTransactionId(),
-                'GetMethod' => false,
-            ]
-        );
+    $payUrl,
+    [
+        'Token' => $this->invoice->getTransactionId(),
+        'GetMethod' => 'false',
+    ]
+);
     }
 
     /**
@@ -165,6 +176,8 @@ class SEP extends Driver
             'traceNo' => $transactionDetail['StraceNo'],
             'referenceNo' => $transactionDetail['RRN'],
             'transactionId' => $transactionDetail['RefNum'],
+            'resNum' => $transactionDetail['ResNum'] ?? null,
+            'verifiedAmount' => $transactionDetail['Amount'] ?? null,
             'cardNo' => $transactionDetail['MaskedPan'],
         ]);
 

@@ -24,7 +24,7 @@ class OrderStoreRequest extends FormRequest
             'products'               => 'required|array',
             'products.*.id'          => 'required|exists:products,id',
             'products.*.price_id'    => 'required|exists:prices,id',
-            'products.*.quantity'    => 'required|numeric',
+            'products.*.quantity'    => 'required|integer|min:1',
             'discount_amount'        => 'nullable|numeric',
             'carrier_id'             => 'nullable|exists:carriers,id',
             'shipping_cost'          => 'nullable|numeric',

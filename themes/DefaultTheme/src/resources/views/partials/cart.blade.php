@@ -50,9 +50,23 @@
                             <a href="{{ route('front.products.show', ['product' => $product]) }}" class="ariya-cart-item-title">
                                 {{ $product->title }}
                             </a>
+                            @if($product->is_bundle ?? false)
+                                <span class="badge" style="background:#e0f2fe;color:#075985">بسته ترکیبی</span>
+                                @include('front::partials.bundle-contents', ['bundleProduct' => $product, 'bundleQuantity' => $product->pivot->quantity])
+                                @if($cartProductPrice && $cartProductPrice->hasDiscount())
+                                <div class="small" dir="rtl" style="margin-top:4px">
+                                    <del>{{ number_format($cartProductPrice->regularPrice() * $product->pivot->quantity) }}</del>
+                                    <strong style="color:#15803d"> صرفه‌جویی: {{ number_format(($cartProductPrice->regularPrice()-$cartProductPrice->salePrice())*$product->pivot->quantity) }}</strong>
+                                </div>
+                                @endif
+                            @endif
                             <div class="ariya-cart-item-meta">
                                 <span>{{ $product->pivot->quantity }} عدد</span>
                                 @if($cartProductPrice)
+                                    {{-- ARIYA_FRONT_PRICE_STRIKE_V1: old line total in mini-cart --}}
+                                    @if ($cartProductPrice->salePrice() < $cartProductPrice->regularPrice())
+                                        <del style="display:block;color:#858b93;font-size:12px;text-decoration:line-through;">{{ number_format($cartProductPrice->regularPrice() * $product->pivot->quantity) }} {{ trans('front::messages.currency.suffix') }}</del>
+                                    @endif
                                     <strong>{{ number_format($cartProductPrice->salePrice() * $product->pivot->quantity) }} {{ trans('front::messages.currency.suffix') }}</strong>
                                 @endif
                             </div>

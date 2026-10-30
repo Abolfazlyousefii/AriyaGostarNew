@@ -13,7 +13,6 @@
     @endif
     <meta name="description" content="{{ option('info_short_description') }}">
     <meta name="keywords" content="{{ option('info_tags') }}">
-    <link rel="canonical" href="{{ route('front.products.index') }}" />
     @include('front::products.partials.product-meta')
 @endpush
 
@@ -67,8 +66,36 @@
                     </div>
 
                     @include('front::products.partials.product-info')
+                    {{-- ARIYA_BUNDLE_DETAIL_INCLUDE_V1 --}}
+                    @include('front::products.partials.ariya-bundle-details', ['product' => $product])
                 </div>
             </div>
+
+            {{-- Synced physical bundle contents (read-only, does not add separate cart lines). --}}
+            @php
+                $bundleContentsRaw = $product->bundle_contents ?? null;
+                $bundleContents = is_array($bundleContentsRaw) ? $bundleContentsRaw : (json_decode((string) $bundleContentsRaw, true) ?: []);
+                $isBundleProduct = (bool) ($product->is_bundle ?? false);
+            @endphp
+            @if($isBundleProduct && count($bundleContents) > 0)
+                <section class="dt-sn mb-3 dt-sl px-4 py-4" dir="rtl" aria-label="محتویات بسته" style="border:1px solid #dbeafe;border-radius:16px;background:linear-gradient(135deg,#fff,#f8fbff)">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:12px;margin-bottom:15px">
+                        <div>
+                            <span style="background:#e8f1ff;color:#1e40af;border-radius:999px;padding:5px 12px;font-weight:700;font-size:12px">بسته ترکیبی</span>
+                            <h2 style="margin:12px 0 4px;font-size:19px;font-weight:800">محتویات این بسته</h2>
+                            <p class="text-muted mb-0" style="font-size:13px">{{ ($product->bundle_stock_mode ?? 'physical') === 'automatic' ? 'موجودی بسته از قطعات موجود در انبار محاسبه می‌شود.' : 'این اقلام به‌صورت یک بسته آماده عرضه می‌شوند.' }}</p>
+                        </div>
+                        <div style="font-size:13px;color:#475569;background:#fff;border:1px solid #e2e8f0;padding:9px 12px;border-radius:10px">
+                            {{ count($bundleContents) }} نوع کالا در بسته
+                        </div>
+                    </div>
+                    @include('front::partials.bundle-contents', ['bundleProduct' => $product])
+                    <p class="mb-0 mt-3" style="font-size:12px;color:#64748b">قیمت و دکمه افزودن به سبد مربوط به کل بسته است، نه اقلام جداگانه.</p>
+                    @if(($product->bundle_stock_mode ?? 'physical') === 'automatic' && !config('services.inventory_stock.enabled', false))
+                        <div class="alert alert-warning mt-2 mb-0">سفارش اینترنتی این بسته تا فعال‌سازی رزرو امن موجودی انبار امکان‌پذیر نیست.</div>
+                    @endif
+                </section>
+            @endif
             <div class="dt-sn mb-3 px-0 dt-sl pt-0">
                 <!-- Start tabs -->
                 <section class="tabs-product-info mb-3 dt-sl">
@@ -247,7 +274,7 @@
         <!-- End Modal stocknotify -->
     @endif
 
-    @if ($show_prices_chart)
+    @if (auth()->check() && $show_prices_chart)
         <!-- Modal -->
         <div class="modal fade" id="price-changes-modal" tabindex="-1" aria-labelledby="price-changes-modal-label" aria-hidden="true">
             <div class="modal-dialog modal-lg">
@@ -346,6 +373,7 @@
     <script src="{{ theme_asset('js/vendor/jquery.fancybox.min.js') }}"></script>
     <script src="{{ theme_asset('js/plugins/apexcharts/apexcharts.js') }}"></script>
     <script src="{{ theme_asset('js/pages/products/show.js') }}?v=21"></script>
-    <script src="{{ theme_asset('js/pages/products/product-exact-layout.js') }}?v=4"></script>
+    <script src="{{ theme_asset('js/pages/products/product-exact-layout.js') }}?v=20261025{{-- ARIYA_FRONT_PRICE_STRIKE_V1 --}}"></script>
     <script src="{{ theme_asset('js/pages/comments.js') }}"></script>
+    <script src="{{ theme_asset('js/pages/products/stock-preflight.js') }}?v=1"></script>
 @endpush

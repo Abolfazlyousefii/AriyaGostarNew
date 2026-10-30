@@ -11,7 +11,9 @@ use App\Notifications\Sms\ProductChargedInformSms;
 use App\Services\Sms\SmsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class OrderPaid
 {
@@ -36,25 +38,52 @@ class OrderPaid
         }
 
         $admins = User::whereIn('level', ['admin', 'creator'])->get();
-        Notification::send($admins, new NotificationsOrderPaid($order));
+
+        try {
+            Notification::send($admins, new NotificationsOrderPaid($order));
+        } catch (Throwable $e) {
+            Log::warning('Order paid admin notification failed; order flow continues.', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         if (option('sms_on_order_paid', 'off') == 'on') {
             foreach (explode(',', option('admin_mobile_number')) as $mobile) {
-                $smsService = new SmsService(
-                    $mobile,
-                    [
-                        'order_id' => $order->id
-                    ],
-                    Sms::TYPES['ORDER_PAID'],
-                    null
-                );
+                $mobile = trim($mobile);
 
-                $smsService->sendSms();
+                if ($mobile === '') {
+                    continue;
+                }
+
+                try {
+                    $smsService = new SmsService(
+                        $mobile,
+                        [
+                            'order_id' => $order->id
+                        ],
+                        Sms::TYPES['ORDER_PAID'],
+                        null
+                    );
+
+                    $smsService->sendSms();
+                } catch (Throwable $e) {
+                    Log::warning('Order paid admin SMS failed; order flow continues.', [
+                        'order_id' => $order->id,
+                        'mobile' => $mobile,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
         if (option('detail_sms_on_order_paid', 'off') == 'on') {
             foreach (explode(',', option('admin_mobile_number')) as $mobile) {
+                $mobile = trim($mobile);
+
+                if ($mobile === '') {
+                    continue;
+                }
 
                 $items_string = '';
                 $count = 1;
@@ -73,23 +102,39 @@ class OrderPaid
 
                 // $items_string = truncateText($items_string);
 
-                $smsService = new SmsService(
-                    $mobile,
-                    [
-                        'order_id'    => $order->id,
-                        'items'       => $items_string,
-                        'order_price' => number_format($order->price)
-                    ],
-                    Sms::TYPES['ORDER_DETAIL'],
-                    null
-                );
+                try {
+                    $smsService = new SmsService(
+                        $mobile,
+                        [
+                            'order_id'    => $order->id,
+                            'items'       => $items_string,
+                            'order_price' => number_format($order->price)
+                        ],
+                        Sms::TYPES['ORDER_DETAIL'],
+                        null
+                    );
 
-                $smsService->sendSms();
+                    $smsService->sendSms();
+                } catch (Throwable $e) {
+                    Log::warning('Order detail admin SMS failed; order flow continues.', [
+                        'order_id' => $order->id,
+                        'mobile' => $mobile,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
         if (option('user_sms_on_order_paid', 'off') == 'on') {
-            Notification::send($order->user, new OrderPaidSms($order));
+            try {
+                Notification::send($order->user, new OrderPaidSms($order));
+            } catch (Throwable $e) {
+                Log::warning('Order paid customer SMS failed; order flow continues.', [
+                    'order_id' => $order->id,
+                    'user_id' => $order->user_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 }

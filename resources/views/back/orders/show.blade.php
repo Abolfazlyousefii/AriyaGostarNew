@@ -52,13 +52,85 @@
 
                                         <div class="col-md-2">
                                             <fieldset class="form-group">
-                                                <select class="custom-select" id="shipping-status" data-action="{{ route('admin.orders.shipping-status', ['order' => $order]) }}" {{ !$order->hasPhysicalItem() || $order->status != 'paid' || $order->reserved() || $order->mainOrder ? 'disabled' : '' }}>
+                                                <select class="custom-select" id="shipping-status" data-action="{{ route('admin.orders.shipping-status', ['order' => $order]) }}" {{ !$order->hasPhysicalItem() || $order->reserved() || $order->mainOrder ? 'disabled' : '' }}>
                                                     <option {{ $order->shipping_status == 'pending' ? 'selected' : '' }} value="pending">در حال بررسی</option>
                                                     <option {{ $order->shipping_status == 'wating' ? 'selected' : '' }} value="wating">منتظر ارسال</option>
                                                     <option {{ $order->shipping_status == 'sent' ? 'selected' : '' }} value="sent">ارسال شد</option>
                                                     <option {{ $order->shipping_status == 'canceled' ? 'selected' : '' }} value="canceled">ارسال لغو شد</option>
                                                 </select>
                                             </fieldset>
+
+{{-- ARIYA_ERP_CREDIT_ACTION_V1 --}}
+<div class="mt-2 mb-2">
+    @if($order->status === 'unpaid' && $order->inventory_sync_status === 'synced' && $order->inventory_document_id)
+        <div class="alert alert-info p-1">فاکتور در ERP ثبت شده؛ تسویه مشتری هنوز انجام نشده است. شماره فاکتور: {{ $order->inventory_document_id }}</div>
+    @elseif($order->status === 'unpaid' && $order->inventory_sync_status === 'credit_processing')
+        <div class="alert alert-warning p-1">ارسال اعتباری به ERP در حال پردازش است.</div>
+    @elseif($order->status === 'unpaid' && ! $order->inventory_document_id && in_array($order->inventory_sync_status, [null, 'credit_failed', 'failed'], true))
+        @can('orders.update')
+            @if(auth()->user() && auth()->user()->level === 'creator')
+                <form action="{{ route('admin.orders.approve-erp-credit', ['order' => $order]) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-primary btn-sm btn-block">
+                        ارسال به ERP و صف جمع‌آوری (تسویه بعداً)
+                    </button>
+                    <small class="d-block mt-1">این اقدام فاکتور و بدهی مشتری را ثبت و موجودی را کسر می‌کند؛ پرداختی ثبت نمی‌شود.</small>
+                </form>
+            @endif
+        @endcan
+    @endif
+</div>
+{{-- ARIYA_PAYMENT_SELECTOR_V1 --}}
+<div class="mt-2">
+    <label for="ariya-payment-selector">ثبت دریافت واقعی وجه</label>
+
+    @if($order->status === 'unpaid' && ! $order->inventory_document_id)
+        @can('orders.update')
+            <form method="POST"
+                  action="{{ route('admin.orders.manual-payment.confirm', ['order' => $order]) }}"
+                  id="ariya-payment-confirm-form">
+                @csrf
+                <input type="hidden" name="amount_confirm" value="{{ (int) $order->price }}">
+                <input type="hidden" name="receipt_reference" value="">
+                <input type="hidden" name="funds_received" value="1">
+
+                <select class="custom-select"
+                        id="ariya-payment-selector"
+                        data-order-id="{{ $order->id }}"
+                        data-amount="{{ number_format((int) $order->price) }}">
+                    <option value="unpaid" selected>پرداخت نشده</option>
+                    <option value="paid">پرداخت شده</option>
+                </select>
+            </form>
+        @else
+            <div>پرداخت نشده — بدون مجوز ویرایش</div>
+        @endcan
+    @elseif($order->status === 'paid')
+        <select class="custom-select" disabled>
+            <option selected>پرداخت شده</option>
+        </select>
+        <small class="d-block mt-1">
+            وضعیت انبار: {{ $order->inventory_sync_status ?? 'نامشخص' }}
+            @if($order->inventory_document_id)
+                — فاکتور شماره {{ $order->inventory_document_id }}
+            @endif
+        </small>
+    @else
+        <div>{{ $order->statusText() }}</div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger mt-1">
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="alert alert-success mt-1">{{ session('success') }}</div>
+    @endif
+</div>
                                             <span>{{ !$order->hasPhysicalItem() ? 'سفارش محصول فیزیکی ندارد' : '' }}</span>
                                             <span>{{ $order->status != 'paid' ? 'سفارش پرداخت نشده است' : '' }}</span>
                                             @if ($order->reserved())
@@ -144,6 +216,8 @@
                         @endif
                         <!-- account end -->
 
+                        @include('back.orders.partials.ariya-order-payment-summary')
+
                         @if ($order->reservedOrders()->count())
                             <div class="col-12">
                                 <div class="card">
@@ -225,7 +299,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="font-weight-bold">نحوه پرداخت :</td>
-                                                    <td>پرداخت آنلاین</td>
+                                                    <td>{{ $order->in_person ? 'حضوری' : 'آنلاین' }}</td>
                                                 </tr>
 
                                                 @if ($order->hasPhysicalProduct())
@@ -254,6 +328,9 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-12 mt-3">
+                                    @if($inventoryRevision)
+                                        @include('front::user.orders.partials.inventory-invoice', ['inventoryInvoice' => $inventoryRevision])
+                                    @else
                                     <div class="table-responsive">
                                         <table class="table withdraw__table">
                                             <thead>
@@ -282,6 +359,7 @@
                                                         </td>
                                                         <td class="order-product-name">
                                                             {{ $item->title }}
+                                                            @include('front::partials.bundle-contents', ['bundleProduct' => $item->product, 'bundleQuantity' => $item->quantity])
 
                                                             @if ($item->get_price)
                                                                 @foreach ($item->get_price->get_attributes as $attribute)
@@ -306,6 +384,7 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -346,5 +425,27 @@
 @endsection
 
 @push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var select = document.getElementById('ariya-payment-selector');
+    if (!select) return;
+
+    select.addEventListener('change', function () {
+        if (select.value !== 'paid') return;
+
+        select.value = 'unpaid';
+
+        // Internal admin override reference, not a bank receipt.
+        var reference = 'ADMIN-OVERRIDE-'
+            + select.dataset.orderId
+            + '-'
+            + Date.now();
+        var form = document.getElementById('ariya-payment-confirm-form');
+        form.elements['receipt_reference'].value = reference;
+        select.disabled = true;
+        form.submit();
+    });
+});
+</script>
     <script src="{{ asset('back/assets/js/pages/orders/show.js') }}"></script>
 @endpush

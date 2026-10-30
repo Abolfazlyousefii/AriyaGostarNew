@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Providers\RouteServiceProvider;
+use App\Support\AuthRedirect;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +23,22 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                $user = Auth::guard($guard)->user();
+
+                if (AuthRedirect::isAdminRequest($request)) {
+                    if ($user && $user->isAdmin()) {
+                        return redirect()->to(AuthRedirect::pullAdminDestination($request));
+                    }
+
+                    $request->session()->forget([
+                        AuthRedirect::ADMIN_INTENDED,
+                        'url.intended',
+                    ]);
+
+                    return redirect()->to(AuthRedirect::storefrontHome($request));
+                }
+
+                return redirect()->to(AuthRedirect::pullStorefrontDestination($request));
             }
         }
 

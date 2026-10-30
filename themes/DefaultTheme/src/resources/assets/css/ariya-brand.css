@@ -1,0 +1,905 @@
+/*
+ * Ariya brand layer
+ * Isolated visual overrides based on the current Ariya logo.
+ * No API, cart, inventory, database or media behavior is changed here.
+ */
+
+:root {
+    --primary-color: #094798 !important;
+    --ariya-primary: #094798;
+    --ariya-primary-dark: #06376f;
+    --ariya-accent: #019ee4;
+    --ariya-accent-dark: #0187c2;
+    --ariya-accent-soft: #eaf7fd;
+    --ariya-brand-border: #d9edf7;
+    --ariya-brand-ring: rgba(1, 158, 228, .16);
+}
+
+/* Accessibility / keyboard focus */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline-color: var(--ariya-accent) !important;
+}
+
+/* Desktop header */
+.ariya-site-header .ariya-header-search form.search input:focus {
+    border-color: var(--ariya-accent) !important;
+    box-shadow: 0 0 0 3px var(--ariya-brand-ring) !important;
+}
+
+.ariya-site-header .ariya-header-search form.search button[type="submit"],
+header.main-header .search-area form.search button,
+header.main-header .search-box form button,
+header.main-header .search-box form .btn,
+.mdi.search-icon::before {
+    background: linear-gradient(135deg, var(--ariya-primary), var(--ariya-accent)) !important;
+    border-color: var(--ariya-primary) !important;
+    color: #fff !important;
+}
+
+.ariya-site-header .ariya-header-actions .nav-item.account:hover,
+.ariya-site-header .ariya-cart-trigger:hover {
+    border-color: var(--ariya-brand-border) !important;
+    background: var(--ariya-accent-soft) !important;
+}
+
+.ariya-site-header .ariya-header-actions .nav-link:hover,
+.ariya-site-header .ariya-cart-trigger:hover,
+header.main-header .main-menu .list > .list-item:hover > a,
+header.main-header .dropdown-menu .dropdown-item:hover,
+header.main-header .dropdown-menu .dropdown-item:focus,
+header.main-header .dropdown-menu .dropdown-item:active {
+    color: var(--ariya-primary) !important;
+}
+
+.ariya-site-header .ariya-cart-trigger .count,
+header.main-header .nav-link span.count {
+    background: var(--ariya-primary) !important;
+}
+
+header.main-header .main-menu .list > .list-item > a::before {
+    background: linear-gradient(90deg, var(--ariya-primary), var(--ariya-accent)) !important;
+}
+
+/* Primary actions */
+.btn-primary-cm,
+.product-card-body .cart,
+.widget-search button.btn-search-widget,
+.ariya-catalog-filter__apply,
+.ariya-catalog-empty a,
+.mobile-search-panel__submit,
+.mobile-cart-panel__view-cart,
+.ariya-cart-checkout-btn,
+.ariya-cart-empty a {
+    background: linear-gradient(135deg, var(--ariya-primary), var(--ariya-accent)) !important;
+    border-color: var(--ariya-primary) !important;
+    color: #fff !important;
+}
+
+.btn-primary-cm:hover,
+.product-card-body .cart:hover,
+.widget-search button.btn-search-widget:hover,
+.ariya-catalog-filter__apply:hover,
+.ariya-catalog-empty a:hover,
+.mobile-search-panel__submit:hover,
+.mobile-cart-panel__view-cart:hover,
+.ariya-cart-checkout-btn:hover,
+.ariya-cart-empty a:hover {
+    background: linear-gradient(135deg, var(--ariya-primary-dark), var(--ariya-accent-dark)) !important;
+    color: #fff !important;
+}
+
+/* Product cards / promotions / sliders */
+.discount span,
+.discount-timer,
+.product-timeout .product-special,
+.product-gallery .badge,
+.search-amazing-tab .ah-tab > .ah-tab-item[data-ah-tab-active="true"],
+.product-carousel .owl-dot.active span,
+.product-carousel .owl-dot:hover span,
+.widget-suggestion .owl-dot.active span,
+.widget-suggestion .owl-dot:hover span {
+    background: var(--ariya-primary) !important;
+}
+
+.product-carousel .owl-dot.active span,
+.widget-suggestion .owl-dot.active span {
+    box-shadow: 0 0 0 3px var(--ariya-brand-ring);
+}
+
+.promotion-badge,
+.title-wide a,
+.product-gallery .product-thumbnails > li > a > i {
+    color: var(--ariya-primary) !important;
+}
+
+/* Filters / inputs */
+.ariya-catalog-search-field:focus-within,
+.ariya-price-range-fields input:focus,
+.mobile-search-panel__field:focus-within {
+    border-color: var(--ariya-accent) !important;
+    box-shadow: 0 0 0 3px var(--ariya-brand-ring) !important;
+}
+
+.parent-switcher input[type="checkbox"]:checked + .ui-statusswitcher-slider,
+.ariya-catalog-switch input:checked + i,
+.noUi-horizontal .noUi-handle.noUi-handle-lower,
+.noUi-horizontal .noUi-handle.noUi-handle-upper,
+.noUi-connect {
+    background: var(--ariya-primary) !important;
+    border-color: var(--ariya-primary) !important;
+}
+
+input[type="radio"]:checked + .ui-variant--check,
+.product-gallery .product-thumbnails > li.active > a::after {
+    border-color: var(--ariya-primary) !important;
+}
+
+/* Pagination / tabs / checkout brand states */
+.pagination a.active-page,
+.tab-cart-page a span.count-cart,
+.checkout-address-box.is-selected .checkout-address-btn-submit {
+    background: var(--ariya-primary) !important;
+    border-color: var(--ariya-primary) !important;
+}
+
+.tab-cart-page a.active,
+.checkout-header--express {
+    border-bottom-color: var(--ariya-primary) !important;
+}
+
+.checkout-header--express,
+.checkout-summary-price-value,
+.shopping-page header.header-shopping .checkout-steps li a.active,
+.shopping-page .checkout-contact-btn-edit,
+.shopping-page .checkout-contact-badge,
+a.border-bottom-dt,
+.profile-section .list-favorites li button {
+    color: var(--ariya-primary) !important;
+}
+
+.shopping-page header.header-shopping .checkout-steps li.active::before,
+.shopping-page header.header-shopping .checkout-steps li a.active::after,
+.shopping-page .checkout-contact-content::before {
+    background: var(--ariya-primary) !important;
+}
+
+.shopping-page .checkout-contact-badge {
+    border-color: var(--ariya-primary) !important;
+}
+
+/* Cart drawer: brand actions, keep destructive remove action red */
+.ariya-cart-view-btn {
+    background: var(--ariya-accent-soft) !important;
+    color: var(--ariya-primary) !important;
+    border: 1px solid var(--ariya-brand-border) !important;
+}
+
+.ariya-cart-view-btn:hover {
+    background: #dff3fc !important;
+    color: var(--ariya-primary-dark) !important;
+}
+
+/* Mobile top header */
+@media (max-width: 991.98px) {
+    .mobile-site-header {
+        border-bottom-color: var(--ariya-brand-border) !important;
+        box-shadow: 0 4px 18px rgba(9, 71, 152, .06) !important;
+    }
+
+    /* Bottom navigation */
+    .mobile-bottom-nav {
+        border-top-color: var(--ariya-brand-border) !important;
+        box-shadow: 0 -5px 20px rgba(9, 71, 152, .07) !important;
+    }
+
+    .mobile-bottom-nav__item.is-active,
+    .mobile-bottom-nav__item.is-active:focus,
+    .mobile-bottom-nav__item.is-active:hover {
+        color: var(--ariya-primary) !important;
+    }
+
+    .mobile-bottom-nav__item.is-active::before {
+        background: linear-gradient(90deg, var(--ariya-primary), var(--ariya-accent)) !important;
+    }
+
+    .mobile-bottom-nav__badge {
+        background: var(--ariya-primary) !important;
+    }
+
+    /* Category bottom sheet from phase 2 */
+    .mobile-category-sheet__all-icon {
+        background: linear-gradient(135deg, var(--ariya-accent), var(--ariya-primary)) !important;
+    }
+
+    .mobile-category-sheet__item:hover .mobile-category-sheet__image,
+    .mobile-category-sheet__item:focus .mobile-category-sheet__image {
+        border-color: var(--ariya-brand-border) !important;
+        background: var(--ariya-accent-soft) !important;
+    }
+
+    .mobile-category-sheet__close:focus-visible,
+    .mobile-bottom-nav__item:focus-visible {
+        outline-color: var(--ariya-accent) !important;
+    }
+
+    /* Search and cart sheets */
+    .mobile-search-panel__field:focus-within {
+        background: #fff !important;
+    }
+
+    .mobile-search-panel__close:focus-visible,
+    .mobile-search-panel__input:focus-visible,
+    .mobile-search-panel__submit:focus-visible,
+    .mobile-cart-panel__close:focus-visible,
+    .mobile-cart-panel__view-cart:focus-visible {
+        outline-color: var(--ariya-accent) !important;
+    }
+}
+
+/* Preserve semantic danger/error colors intentionally.
+ * Validation, failed checkout states and delete/remove actions are not recolored.
+ */
+
+/* Auto-derived legacy primary-color replacements across the current storefront CSS. */
+.btn-primary-cm {
+  background-color: var(--ariya-primary);
+}
+
+header.main-header .search-area form.search button {
+  background: var(--ariya-primary);
+}
+
+header.main-header .nav-link span.count {
+  background-color: var(--ariya-primary);
+}
+
+header.main-header .dropdown-menu .dropdown-item:hover,
+header.main-header .dropdown-menu .dropdown-item:focus,
+header.main-header .dropdown-menu .dropdown-item:active {
+  color: var(--ariya-primary);
+}
+
+header.main-header .main-menu .list > .list-item > a::before {
+  background-color: var(--ariya-primary);
+}
+
+header.main-header .main-menu .list > .list-item:hover > a {
+  color: var(--ariya-primary);
+}
+
+header.main-header .main-menu .list .list-item-has-children .sub-menu a:hover {
+  color: var(--ariya-primary);
+}
+
+header.main-header .main-menu .list .list-item-has-children:hover::before {
+  color: var(--ariya-primary);
+}
+
+header.main-header
+    .main-menu
+    .list
+    .list-item.mega-menu
+    > .sub-menu
+    > li
+    > a:hover {
+  color: var(--ariya-primary);
+}
+
+header.main-header
+    .main-menu
+    .list
+    .list-item.mega-menu
+    .sub-menu
+    .sub-menu
+    li
+    a:hover {
+  color: var(--ariya-primary);
+}
+
+.title-wide a {
+  color: var(--ariya-primary);
+}
+
+.product-carousel .owl-dot.active span,
+.product-carousel .owl-dot:hover span {
+  background: var(--ariya-primary);
+}
+
+.discount span {
+  background: var(--ariya-primary);
+}
+
+.promotion-badge {
+  color: var(--ariya-primary);
+}
+
+.widget-suggestion .slide-progress {
+  border-color: var(--ariya-primary);
+}
+
+.widget-suggestion .owl-dot.active span,
+.widget-suggestion .owl-dot:hover span {
+  background: var(--ariya-primary);
+}
+
+.widget-search button.btn-search-widget {
+  background-color: var(--ariya-primary);
+}
+
+.filter-product .card .card-header button i {
+  color: var(--ariya-primary);
+}
+
+.parent-switcher input[type="checkbox"]:checked + .ui-statusswitcher-slider {
+  background-color: var(--ariya-primary);
+  border-color: var(--ariya-primary);
+}
+
+.noUi-horizontal .noUi-handle.noUi-handle-lower {
+  background-color: var(--ariya-primary);
+}
+
+.noUi-horizontal .noUi-handle.noUi-handle-upper {
+  background-color: var(--ariya-primary);
+}
+
+.noUi-connect {
+  background: var(--ariya-primary) !important;
+}
+
+.header-cover {
+  background-color: var(--ariya-primary);
+}
+
+.search-amazing-tab .ah-tab > .ah-tab-item[data-ah-tab-active="true"] {
+  background-color: var(--ariya-primary);
+}
+
+.pagination a.active-page {
+  background-color: var(--ariya-primary);
+  border-color: var(--ariya-primary);
+}
+
+.product-gallery .badge {
+  background-color: var(--ariya-primary);
+}
+
+.product-gallery .product-thumbnails > li > a > i {
+  color: var(--ariya-primary);
+}
+
+input[type="radio"]:checked + .ui-variant--check {
+  border-color: var(--ariya-primary);
+}
+
+.accordion-product h5 button::before {
+  background-color: var(--ariya-primary);
+}
+
+.params .params-title:before {
+  border-color: transparent transparent transparent var(--ariya-accent);
+}
+
+.rating--general .rating-rate {
+  background-color: var(--ariya-primary);
+}
+
+.content-expert-evaluation-positive span {
+  color: var(--ariya-accent);
+}
+
+.content-expert-evaluation-positive ul li:before {
+  background-color: var(--ariya-accent);
+}
+
+.comments-add-col--content .cl-circle-title.cl-primary {
+  background: var(--ariya-accent);
+}
+
+.form-comment-title--positive:before {
+  background: var(--ariya-accent);
+}
+
+.form-ui .form-footer a {
+  color: var(--ariya-primary);
+  border-bottom: 1px dashed var(--ariya-primary);
+}
+
+#countdown-verify-end a.btn-link-border {
+  color: var(--ariya-primary);
+}
+
+#countdown-verify-end a.btn-link-border:after {
+  border-color: var(--ariya-primary);
+}
+
+.profile-sidebar-header .profile-point .label-profile-point {
+  color: var(--ariya-accent);
+}
+
+.profile-sidebar-header .profile-link a:hover {
+  color: var(--ariya-accent);
+}
+
+.profile-sidebar .profile-menu-section .profile-menu ul li a.active,
+.profile-sidebar .profile-menu-section .profile-menu ul li a:hover {
+  color: var(--ariya-accent);
+}
+
+.profile-section .list-favorites li a span:hover {
+  color: var(--ariya-accent);
+}
+
+.profile-section .list-favorites li button {
+  color: var(--ariya-primary);
+}
+
+a.border-bottom-dt {
+  color: var(--ariya-primary);
+  border-bottom: 1px dashed var(--ariya-primary);
+}
+
+.table-order thead {
+  background-color: var(--ariya-accent);
+}
+
+.table-draught div span.title {
+  color: var(--ariya-accent);
+}
+
+.tab-cart-page a.active {
+  border-bottom-color: var(--ariya-primary) !important;
+}
+
+.tab-cart-page a span.count-cart {
+  background-color: var(--ariya-primary);
+}
+
+.checkout-header--express {
+  color: var(--ariya-primary);
+  border-bottom-color: var(--ariya-primary);
+}
+
+.checkout-summary-price-value {
+  color: var(--ariya-primary);
+}
+
+.shopping-page header.header-shopping .checkout-steps li.active::before {
+  background-color: var(--ariya-primary);
+}
+
+.shopping-page header.header-shopping .checkout-steps li a.active {
+  color: var(--ariya-primary);
+}
+
+.shopping-page header.header-shopping .checkout-steps li a.active::after {
+  background-color: var(--ariya-primary);
+}
+
+.shopping-page .checkout-contact-content:before {
+  background-color: var(--ariya-primary);
+}
+
+.shopping-page .checkout-contact-btn-edit {
+  color: var(--ariya-primary) !important;
+  border-bottom: 1px dashed var(--ariya-primary);
+}
+
+.shopping-page .checkout-contact-badge {
+  border: 1px solid var(--ariya-primary);
+  color: var(--ariya-primary);
+}
+
+.checkout-address-box.is-selected .checkout-address-btn-submit {
+  background-color: var(--ariya-primary);
+}
+
+.shopping-page .checkout-additional-options-checkbox-image {
+  color: var(--ariya-primary);
+}
+
+.checkout-alert-highlighted-success {
+  color: var(--ariya-accent);
+}
+
+.card-horizontal-address:before {
+  background: linear-gradient(90deg, var(--ariya-accent) 48px, #ff7e7e 0) repeat-x;
+}
+
+footer.main-footer .back-to-top .icon {
+  color: var(--ariya-primary);
+}
+
+footer.main-footer .newsletter form .btn {
+  background-color: var(--ariya-primary);
+}
+
+footer.main-footer .newsletter form .btn:focus,
+footer.main-footer .newsletter form .btn:active {
+  background-color: var(--ariya-primary);
+}
+
+footer.main-footer .newsletter form .btn:hover {
+  background-color: var(--ariya-primary) !important;
+}
+
+footer.main-footer .socials .footer-social ul li a:hover {
+  background-color: var(--ariya-primary);
+}
+
+@media (max-width: 1444px) {
+  .shopping-page .checkout-contact-content:before {
+    background-color: var(--ariya-primary);
+  }
+  .shopping-page .checkout-contact-badge {
+    border: 1px solid var(--ariya-primary);
+    color: var(--ariya-primary);
+  }
+}
+
+.f-menu ul li a:hover {
+  color: var(--ariya-primary) !important;
+}
+
+.megadrop.row .h6:hover {
+  color: var(--ariya-primary) !important;
+}
+
+.sent_msg p {
+  background: var(--ariya-accent) none repeat scroll 100% 0;
+}
+
+.message_div .message-files a {
+  background-color: var(--ariya-primary);
+}
+
+.aex-final-price {
+  color: var(--ariya-primary);
+}
+
+.aex-buy-card.aex-buy-card--price-only {
+  border: 1px solid var(--ariya-brand-border);
+  background: var(--ariya-accent-soft);
+}
+
+.aex-buy-card--price-only .aex-final-price {
+  color: var(--ariya-primary);
+}
+
+.aex-buy-card--price-only .aex-add-to-cart,
+.aex-buy-card--price-only .aex-login-price-button {
+  border: 2px solid var(--ariya-primary);
+  background: var(--ariya-primary);
+}
+
+.aex-buy-card--price-only .aex-add-to-cart:hover,
+.aex-buy-card--price-only .aex-login-price-button:hover {
+  background: var(--ariya-primary-dark);
+  border-color: var(--ariya-primary-dark);
+}
+
+.aex-buy-card--price-only .aex-add-to-cart:disabled {
+  border-color: #9ec9ea;
+  background: #9ec9ea;
+}
+
+.aex-model-card:hover:not(.is-unavailable),
+.aex-model-card.is-selected {
+  border-color: var(--ariya-accent);
+  background: var(--ariya-accent-soft);
+}
+
+.aex-model-card.is-selected .aex-model-check {
+  border-color: var(--ariya-primary);
+  background: var(--ariya-primary);
+}
+
+.aex-model-price {
+  color: var(--ariya-primary);
+}
+
+.aex-model-quantity {
+  border-top: 1px solid var(--ariya-brand-border);
+  background: #f3f9fe;
+}
+
+.aex-model-stepper {
+  border: 1px solid var(--ariya-brand-border);
+}
+
+.aex-model-stepper button:hover {
+  color: var(--ariya-primary);
+  background: var(--ariya-accent-soft);
+}
+
+.aex-model-stepper input {
+  border-right: 1px solid var(--ariya-brand-border);
+  border-left: 1px solid var(--ariya-brand-border);
+}
+
+.aex-modal-selection-summary strong {
+  color: var(--ariya-primary);
+}
+
+/* ==========================================================================\n   GLOBAL BRAND COVERAGE V2\n   This file MUST load after @stack('styles') so page-specific CSS cannot win.\n   ========================================================================== */
+
+html,
+body {
+    accent-color: var(--ariya-primary);
+}
+
+::selection {
+    background: rgba(1, 158, 228, .22);
+    color: #082f66;
+}
+
+/* Bootstrap / shared primary states used across storefront, cart, checkout and profile */
+.btn-primary,
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active,
+.show > .btn-primary.dropdown-toggle,
+.badge-primary,
+.bg-primary,
+.dropdown-item.active,
+.dropdown-item:active,
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link,
+.page-item.active .page-link,
+.list-group-item.active,
+.custom-control-input:checked ~ .custom-control-label::before,
+.custom-checkbox .custom-control-input:indeterminate ~ .custom-control-label::before,
+.custom-range::-webkit-slider-thumb,
+.custom-range::-moz-range-thumb {
+    background-color: var(--ariya-primary) !important;
+    border-color: var(--ariya-primary) !important;
+}
+
+.text-primary,
+a.text-primary:hover,
+a.text-primary:focus,
+.btn-link,
+.page-link,
+.custom-control-input:checked ~ .custom-control-label::after {
+    color: var(--ariya-primary) !important;
+}
+
+.border-primary,
+.form-control:focus,
+.custom-select:focus,
+.page-item.active .page-link {
+    border-color: var(--ariya-accent) !important;
+}
+
+.form-control:focus,
+.custom-select:focus {
+    box-shadow: 0 0 0 .2rem var(--ariya-brand-ring) !important;
+}
+
+/* Header and exact mega-menu loaded by static-menus.blade.php */
+.ariya-site-header .axm-root > .axm-trigger,
+.ariya-site-header .axm-trigger:focus,
+.ariya-site-header .axm-trigger:hover {
+    color: var(--ariya-primary) !important;
+    border-color: var(--ariya-accent) !important;
+}
+
+.ariya-site-header .axm-trigger-grid i,
+.axm-category.is-active .axm-category-icon,
+.axm-category:hover .axm-category-icon,
+.axm-category:focus .axm-category-icon {
+    background-color: var(--ariya-accent) !important;
+    border-color: var(--ariya-accent) !important;
+}
+
+.axm-category.is-active,
+.axm-category:hover,
+.axm-category:focus,
+.axm-current-category,
+.axm-view-all,
+.axm-group-title:hover,
+.axm-child-link:hover {
+    color: var(--ariya-primary) !important;
+}
+
+.axm-category.is-active {
+    background: var(--ariya-accent-soft) !important;
+    border-color: var(--ariya-brand-border) !important;
+}
+
+/* Product detail: exact-layout.css is page-specific and used to override the brand. */
+.aex-final-price,
+.aex-buy-card--price-only .aex-final-price,
+.aex-model-price,
+.aex-modal-selection-summary strong {
+    color: var(--ariya-primary) !important;
+}
+
+.aex-buy-card.aex-buy-card--price-only {
+    border-color: var(--ariya-brand-border) !important;
+    background: linear-gradient(145deg, #ffffff 0%, var(--ariya-accent-soft) 100%) !important;
+    box-shadow: 0 13px 35px rgba(9, 71, 152, .08) !important;
+}
+
+.aex-add-to-cart,
+.aex-login-price-button,
+.aex-stock-notify-button,
+.aex-buy-card--price-only .aex-add-to-cart,
+.aex-buy-card--price-only .aex-login-price-button,
+.aex-apply-model-selection {
+    background: linear-gradient(135deg, var(--ariya-primary), var(--ariya-accent)) !important;
+    border-color: var(--ariya-primary) !important;
+    color: #fff !important;
+}
+
+.aex-add-to-cart:hover,
+.aex-login-price-button:hover,
+.aex-stock-notify-button:hover,
+.aex-buy-card--price-only .aex-add-to-cart:hover,
+.aex-buy-card--price-only .aex-login-price-button:hover,
+.aex-apply-model-selection:hover {
+    background: linear-gradient(135deg, var(--ariya-primary-dark), var(--ariya-accent-dark)) !important;
+    border-color: var(--ariya-primary-dark) !important;
+}
+
+.aex-buy-card--price-only .aex-add-to-cart:disabled,
+.aex-buy-card--price-only .aex-login-price-button:disabled,
+.aex-apply-model-selection:disabled {
+    background: #9db8d4 !important;
+    border-color: #9db8d4 !important;
+}
+
+.aex-model-card:hover:not(.is-unavailable),
+.aex-model-card.is-selected {
+    border-color: var(--ariya-accent) !important;
+    background: var(--ariya-accent-soft) !important;
+    box-shadow: 0 7px 24px rgba(9, 71, 152, .10) !important;
+}
+
+.aex-model-card.is-selected .aex-model-check {
+    border-color: var(--ariya-primary) !important;
+    background: var(--ariya-primary) !important;
+}
+
+.aex-model-quantity {
+    border-top-color: var(--ariya-brand-border) !important;
+    background: #f4faff !important;
+}
+
+.aex-model-stepper {
+    border-color: var(--ariya-brand-border) !important;
+}
+
+.aex-model-stepper button:hover {
+    color: var(--ariya-primary) !important;
+    background: var(--ariya-accent-soft) !important;
+}
+
+.aex-model-stepper input {
+    border-right-color: var(--ariya-brand-border) !important;
+    border-left-color: var(--ariya-brand-border) !important;
+}
+
+.aex-variant-search:focus {
+    border-color: var(--ariya-accent) !important;
+    box-shadow: 0 0 0 3px var(--ariya-brand-ring) !important;
+}
+
+/* Keep discount/out-of-stock/destructive states semantic red. */
+.aex-discount-badge,
+.text-danger,
+.alert-danger,
+.btn-danger,
+.invalid-feedback,
+.is-invalid,
+.has-error,
+.swal2-error {
+    --ariya-semantic-danger: #dc3545;
+}
+
+/* Auth pages */
+.form-account .btn-primary-cm,
+.account-box .btn-primary-cm,
+.account-box .btn-login,
+.account-box .btn-register,
+.account-box .form-account-title::before,
+.mini-header + main .btn-primary,
+.mini-header + main button[type="submit"] {
+    background: linear-gradient(135deg, var(--ariya-primary), var(--ariya-accent)) !important;
+    border-color: var(--ariya-primary) !important;
+    color: #fff !important;
+}
+
+.form-account .form-row-with-icon i,
+.account-box a:hover,
+.account-box .link-border,
+.mini-header a:hover {
+    color: var(--ariya-primary) !important;
+}
+
+/* Profile / orders / wallet */
+.profile-sidebar .profile-menu-section .profile-menu ul li a.active,
+.profile-sidebar .profile-menu-section .profile-menu ul li a:hover,
+.profile-sidebar-header .profile-link a:hover,
+.profile-sidebar-header .profile-point .label-profile-point,
+.profile-section a:hover,
+.table-order a:hover {
+    color: var(--ariya-primary) !important;
+}
+
+.profile-sidebar .profile-menu-section .profile-menu ul li a.active {
+    border-color: var(--ariya-accent) !important;
+    background: var(--ariya-accent-soft) !important;
+}
+
+/* Cart / checkout */
+.cart-page .btn-primary-cm,
+.checkout-page .btn-primary-cm,
+.shopping-page .btn-primary-cm,
+.checkout-address-btn-submit,
+.checkout-summary-content .btn-primary,
+.checkout-order-summary .btn-primary {
+    background: linear-gradient(135deg, var(--ariya-primary), var(--ariya-accent)) !important;
+    border-color: var(--ariya-primary) !important;
+    color: #fff !important;
+}
+
+/* Common interactive icons, tabs and links */
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link,
+.product-info .nav-tabs .nav-link.active,
+.product-tabs .nav-link.active,
+.accordion-product h5 button:not(.collapsed),
+.filter-product .card .card-header button:not(.collapsed) {
+    color: var(--ariya-primary) !important;
+    border-color: var(--ariya-accent) !important;
+}
+
+/* Mobile surfaces */
+@media (max-width: 991.98px) {
+    .mobile-bottom-nav__item.is-active,
+    .mobile-bottom-nav__item.is-active:focus,
+    .mobile-bottom-nav__item.is-active:hover,
+    .mobile-category-sheet__item:hover,
+    .mobile-category-sheet__item:focus {
+        color: var(--ariya-primary) !important;
+    }
+
+    .mobile-bottom-nav__item.is-active::before,
+    .mobile-bottom-nav__badge,
+    .mobile-search-panel__submit,
+    .mobile-cart-panel__view-cart,
+    .mobile-category-sheet__all-icon {
+        background: linear-gradient(135deg, var(--ariya-primary), var(--ariya-accent)) !important;
+        border-color: var(--ariya-primary) !important;
+    }
+}
+
+/* =========================================================
+   Mobile-only UI visibility guard
+   ========================================================= */
+
+/* Desktop: never render mobile-only interface */
+@media (min-width: 992px) {
+    .mobile-site-header,
+    .mobile-bottom-nav,
+    .mobile-category-sheet,
+    .mobile-search-panel,
+    .mobile-cart-panel {
+        display: none !important;
+    }
+
+    body.has-mobile-bottom-navigation {
+        padding-bottom: 0 !important;
+    }
+
+    body.mobile-search-open,
+    body.mobile-cart-open,
+    body.mobile-categories-open {
+        overflow: auto !important;
+        touch-action: auto !important;
+    }
+}

@@ -1,21 +1,23 @@
 @php
     $inventoryCode = $price->inventoryApiCode();
-    $usesVariantCode = $price->product->usesVariantInventoryCodes();
+    $selectedAttributes = $price->get_attributes->keyBy('attribute_group_id');
+    $usesVariantCode = !empty($price->variant_code);
 @endphp
 
 <div class="row single-price">
 
     <div class="col-12">
         <div class="row">
-            @foreach ($attributeGroups as $attributeGroup)
+            @foreach ($attributeFields as $attributeGroup)
+                @php($selectedAttribute = $selectedAttributes->get($attributeGroup['id']))
                 <div class="col-md-3 col-12">
                     <div class="form-group">
-                        <label>{{ $attributeGroup->name }}</label>
-                        <select class="form-control price-attribute-select select2" data-group-id="{{ $attributeGroup->id }}" data-type="{{ $attributeGroup->type }}" data-number="{{ $loop->parent->iteration }}" name="prices[{{ $loop->parent->iteration }}][attributes][]">
+                        <label>{{ $attributeGroup['name'] }}</label>
+                        <select class="form-control price-attribute-select select2" data-group-id="{{ $attributeGroup['id'] }}" data-type="{{ $attributeGroup['type'] }}" data-number="{{ $loop->parent->iteration }}" data-options-loaded="0" data-selected-id="{{ $selectedAttribute->id ?? '' }}" name="prices[{{ $loop->parent->iteration }}][attributes][]">
                             <option value="">انتخاب کنید</option>
-                            @foreach ($attributeGroup->get_attributes->sortBy('name')->sortBy('ordering') as $attribute)
-                                <option value="{{ $attribute->id }}" {{ $price->get_attributes->find($attribute->id) ? 'selected' : '' }}>{{ $attribute->name }}</option>
-                            @endforeach
+                            @if ($selectedAttribute)
+                                <option value="{{ $selectedAttribute->id }}" selected>{{ $selectedAttribute->name }}</option>
+                            @endif
                         </select>
                     </div>
                 </div>

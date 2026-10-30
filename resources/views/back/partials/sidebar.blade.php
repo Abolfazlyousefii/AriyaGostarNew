@@ -34,6 +34,15 @@
                             </li>
                         @endcan
 
+                        @can('users.index')
+                            <li class="{{ active_class('admin.membership-requests.*') }}">
+                                <a href="{{ route('admin.membership-requests.index') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item">درخواست‌های عضویت</span>
+                                </a>
+                            </li>
+                        @endcan
+
                         @can('users.create')
                             <li class="{{ active_class('admin.users.create') }}">
                                 <a href="{{ route('admin.users.create') }}"><i class="feather icon-circle"></i><span class="menu-item">ایجاد کاربر</span></a>
@@ -44,6 +53,15 @@
                 </li>
             @endcan
 
+            {{-- ARIYA_SALES_CONTROL_V1 --}}
+            @can('products')
+                <li class="{{ active_class('admin.sales-control.*') }} nav-item">
+                    <a href="{{ route('admin.sales-control.index') }}">
+                        <i class="feather icon-sliders"></i>
+                        <span class="menu-title">کنترل فروش و ویترین</span>
+                    </a>
+                </li>
+            @endcan
             @can('posts')
                 <li class="nav-item has-sub {{ open_class(['admin.posts.*']) }}"><a href="#"><i class="feather icon-file-text"></i><span class="menu-title" > وبلاگ</span></a>
                     <ul class="menu-content">
@@ -69,19 +87,25 @@
             @endcan
 
             @can('products')
-                <li class="nav-item has-sub {{ open_class(['admin.products.*', 'admin.brands.*', 'admin.sizetypes.*']) }}"><a href="#"><i class="feather icon-shopping-cart"></i><span class="menu-title" > محصولات</span></a>
+                <li class="nav-item has-sub {{ open_class(['admin.products.*', 'admin.brands.*', 'admin.sizetypes.*', 'admin.bulk-discounts.*']) }}"><a href="#"><i class="feather icon-shopping-cart"></i><span class="menu-title" > محصولات</span></a>
                     <ul class="menu-content">
+                        {{-- ARIYA_BULK_DISCOUNT_MENU_V1 --}}
+                        @can('products.update')
+                        <li class="{{ active_class('admin.bulk-discounts.index') }}">
+                            <a href="{{ route('admin.bulk-discounts.index') }}"><i class="feather icon-percent"></i><span class="menu-item">مدیریت تخفیف‌های گروهی</span></a>
+                        </li>
+                        @endcan
                         @can('products.index')
                             <li class="{{ active_class('admin.products.index') }}">
                                 <a href="{{ route('admin.products.index') }}"><i class="feather icon-circle"></i><span class="menu-item">لیست محصولات</span></a>
                             </li>
                         @endcan
 
-                        @can('products.create')
-                            <li class="{{ active_class('admin.products.create') }}">
-                                <a href="{{ route('admin.products.create') }}"><i class="feather icon-circle"></i><span class="menu-item">ایجاد محصول</span></a>
-                            </li>
-                        @endcan
+{{--                        @can('products.create')--}}
+{{--                            <li class="{{ active_class('admin.products.create') }}">--}}
+{{--                                <a href="{{ route('admin.products.create') }}"><i class="feather icon-circle"></i><span class="menu-item">ایجاد محصول</span></a>--}}
+{{--                            </li>--}}
+{{--                        @endcan--}}
 
                         @can('products.create')
     <li class="{{ active_class('admin.products.sqlImport.create') }}">
@@ -516,14 +540,14 @@
             @can(['payments'])
                 <li class="nav-item has-sub {{ open_class(['admin.transactions.*', 'admin.currencies.*']) }}"><a href="#"><i class="feather icon-credit-card"></i><span class="menu-title" > پرداخت</span></a>
                     <ul class="menu-content">
-                        @can('payments.transactions.index')
-                            <li class="{{ active_class('admin.transactions.index') }} nav-item">
-                                <a href="{{ route('admin.transactions.index') }}">
-                                    <i class="feather feather icon-circle"></i>
-                                    <span class="menu-title"> لیست تراکنش ها</span>
-                                </a>
-                            </li>
-                        @endcan
+{{--                        @can('payments.transactions.index')--}}
+{{--                            <li class="{{ active_class('admin.transactions.index') }} nav-item">--}}
+{{--                                <a href="{{ route('admin.transactions.index') }}">--}}
+{{--                                    <i class="feather feather icon-circle"></i>--}}
+{{--                                    <span class="menu-title"> لیست تراکنش ها</span>--}}
+{{--                                </a>--}}
+{{--                            </li>--}}
+{{--                        @endcan--}}
 
                         @can('payments.wallet-histories.index')
                             <li class="{{ active_class('admin.wallet-histories.index') }} nav-item">

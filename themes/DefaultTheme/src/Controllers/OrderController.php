@@ -10,20 +10,23 @@ use App\Models\Carrier;
 use App\Models\Cart;
 use App\Models\City;
 use App\Models\Gateway;
+use App\Models\Inventory\Customer;
+use App\Models\Inventory\CustomerLedger;
 use App\Models\Order;
 use App\Models\Province;
 use App\Models\Transaction;
+use App\Services\Inventory\InventoryOrderRevisionService;
+use App\Services\Inventory\InventoryStockHoldClient;
 use App\Models\User;
-use App\Models\WalletHistory;
+use App\Notifications\Order\OrderPaid as NotificationsOrderPaid;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use Shetabit\Payment\Facade\Payment;
 use Shetabit\Multipay\Invoice;
+use Shetabit\Payment\Facade\Payment;
 use Themes\DefaultTheme\src\Requests\StoreOrderRequest;
-use App\Notifications\Order\OrderPaid as NotificationsOrderPaid;
 use Themes\DefaultTheme\src\Requests\UpdateOrderRequest;
 
 class OrderController extends Controller
@@ -41,13 +44,22 @@ class OrderController extends Controller
             abort(404);
         }
 
+        $order->loadMissing(['items.product', 'items.get_price.product', 'transactions']);
+
         $gateways = Gateway::active()->get();
-        $wallet   = auth()->user()->getWallet();
+        $customer = $this->getCustomer();
+        $balance  = $customer->wallet_balance; // مثبت=اعتبار، منفی=بدهی
+
+        // Inventory invoice is the source of truth for paid/synced orders.
+        // It includes current items plus the complete add/remove revision history.
+        $inventoryRevision = app(InventoryOrderRevisionService::class)->forOrder($order);
 
         return view('front::user.orders.show', compact(
             'order',
             'gateways',
-            'wallet'
+            'customer',
+            'balance',
+            'inventoryRevision'
         ));
     }
 
@@ -57,8 +69,35 @@ class OrderController extends Controller
 
         $cart = $user->cart;
 
-        if (!$cart || !$cart->products->count() || !check_cart_quantity()) {
+        if (!$cart || !$cart->products->count()) {
             return redirect()->route('front.cart');
+        }
+
+        $stockReview = app(\App\Services\Inventory\CartStockAvailability::class)->forCart($cart);
+        if (!$stockReview['status']) return redirect()->route('front.cart')->withErrors($stockReview['errors']);
+
+        // An automatic kit must never use legacy Site-only stock decrement; it has no finished SKU warehouse stock.
+        if (!config('services.inventory_stock.enabled', false) && $cart->products->contains(fn ($product) =>
+            (bool) ($product->is_bundle ?? false) && ($product->bundle_stock_mode ?? 'physical') === 'automatic')) {
+            return redirect()->route('front.checkout')->withErrors([
+                'stock' => 'خرید بسته خودکار موقتاً غیرفعال است؛ اتصال رزرو موجودی انبار باید فعال شود.',
+            ]);
+        }
+
+        // Legacy availability check is retained when the new atomic stock-hold flow is disabled.
+        // With the hold flow enabled, Inventory validates/locks ALL physical lines atomically.
+        if (!config('services.inventory_stock.enabled', false)) {
+            $inventoryError = $this->inventoryStockError($cart->products
+                ->filter(fn ($product) => $product->isPhysical())
+                ->map(fn ($product) => [
+                    'product_id' => $product->id,
+                    'variant_id' => $product->pivot->price_id,
+                    'quantity' => $product->pivot->quantity,
+                    'title' => $product->title,
+                ])->all());
+            if ($inventoryError !== null) {
+                return redirect()->route('front.checkout')->withErrors(['stock' => $inventoryError]);
+            }
         }
 
         if ($request->reserve != 'reserve' && !$cart->carrier_id && $cart->hasPhysicalProduct()) {
@@ -118,6 +157,36 @@ class OrderController extends Controller
             }
         }
 
+        // Keep ordinary Site order items/payment. Reserve physical stock before any payment starts.
+        if (config('services.inventory_stock.enabled', false) && $cart->products->contains(fn ($product) => $product->isPhysical())) {
+            try {
+                $reservation = app(InventoryStockHoldClient::class)->reserve(
+                    $order, (int) option('orders_cancel_time', 60)
+                );
+                if (empty($reservation['hold_id']) || ($reservation['status'] ?? '') !== 'held') {
+                    throw new \RuntimeException('Inventory did not confirm a stock reservation.');
+                }
+                $order->update([
+                    'inventory_stock_hold_id' => (int) $reservation['hold_id'],
+                    'inventory_stock_hold_status' => 'held',
+                ]);
+            } catch (\Throwable $exception) {
+                // Cart remains intact and no gateway or Site stock mutation has started.
+                $order->update(['status' => 'canceled']);
+                \Illuminate\Support\Facades\Log::warning('Inventory stock hold failed; checkout blocked.', [
+                    'site_order_id' => $order->id, 'error' => $exception->getMessage(),
+                ]);
+                // Keep the existing checkout error display; give customers an
+                // actionable Persian reason without exposing SQL, hosts, or keys.
+                $message = 'ارتباط با انبار موقتاً برقرار نیست. سبد خرید شما محفوظ است؛ لطفاً دوباره تلاش کنید.';
+                if ($exception instanceof \Illuminate\Validation\ValidationException) {
+                    $messages = app(\App\Services\Inventory\CartStockAvailability::class)->reservationErrors($exception, $cart);
+                    return redirect()->route('front.cart')->withErrors($messages);
+                }
+                return redirect()->route('front.checkout')->withErrors(['stock' => $message]);
+            }
+        }
+
         if ($cart->send_reserved_orders) {
             $orders_id = $user->orders()->reserved()->paid()->pluck('id')->toArray();
 
@@ -129,15 +198,19 @@ class OrderController extends Controller
             ]);
         }
 
-        $cart->delete();
+        // For SEP, keep the cart until the gateway page is successfully rendered.
+        // This prevents losing the cart when token/payment initialization fails.
+        if (! in_array((string) $request->gateway, ['sep', 'local'], true)) {
+            $cart->delete();
 
-        // cancel order after $minutes
-        $minutes = option('orders_cancel_time', 60);
-        CancelOrder::dispatch($order)->delay(now()->addMinutes($minutes));
+            // cancel order after $minutes
+            $minutes = option('orders_cancel_time', 60);
+            CancelOrder::dispatch($order)->delay(now()->addMinutes($minutes));
+        }
 
         event(new OrderCreated($order));
 
-        return $this->pay($order, $request);
+        return $this->pay($order, $request, in_array((string) $request->gateway, ['sep', 'local'], true) ? $cart : null);
     }
 
     public function edit(Order $order)
@@ -149,8 +222,8 @@ class OrderController extends Controller
         $gateways  = Gateway::active()->orderBy('ordering')->get();
         $provinces = Province::detectLang()->active()->orderBy('ordering')->get();
         $carriers  = Carrier::detectLang()->active()->latest()->get();
-        $wallet    = auth()->user()->getWallet();
-
+        $customer = $this->getCustomer();
+        $balance  = $customer->wallet_balance; // مثبت=اعتبار، منفی=بدهی
         return view('front::user.orders.edit', compact(
             'order',
             'gateways',
@@ -193,193 +266,399 @@ class OrderController extends Controller
 
     public function payShippingCost(Order $order, Request $request)
     {
-        if ($order->shippingCostAmount() == 0) {
-            return $this->shippingCostPaid($order);
-        }
-
         $gateways = Gateway::active()->pluck('key')->toArray();
 
         $request->validate([
-            'gateway' => 'required|in:wallet,' . implode(',', $gateways)
+            'gateway' => 'required|in:wallet,' . implode(',', $gateways),
         ]);
 
-        $gateway = $request->gateway;
+        $customer = Customer::query()
+            ->where('site_customer_id', (int) $order->user_id)
+            ->firstOrFail();
 
-        if ($gateway == 'wallet') {
-            return $this->payShippingCostUsingWallet($order);
+        $shippingAmount = (int) $order->shippingCostAmount();
+        $requiredAmount = $this->requiredPaymentAmount($customer, $shippingAmount);
+
+        if ($requiredAmount <= 0) {
+            $this->consumeShippingCostFromCustomerAccount($customer, $order, $shippingAmount);
+            return $this->shippingCostPaid($order);
         }
 
-        $gateway = $request->gateway;
-        $amount  = $order->shippingCostAmount();
+        $gateway = (string) $request->gateway;
+
+        if ($gateway === 'wallet') {
+            $fallbackGateway = Gateway::active()->orderBy('ordering')->first();
+
+            if (! $fallbackGateway) {
+                return redirect()->route('front.orders.show', ['order' => $order])
+                    ->with('error', trans('front::messages.controller.active-port'))
+                    ->with('order_id', $order->id);
+            }
+
+            $gateway = (string) $fallbackGateway->key;
+        }
 
         try {
-            $gateway_configs = get_gateway_configs($gateway);
+            $gatewayConfigs = get_gateway_configs($gateway);
 
-            return Payment::via($gateway)->config($gateway_configs)->callbackUrl(route('front.orders.shipping-cost.verify', ['gateway' => $gateway]))->purchase(
-                (new Invoice)->amount(intval($amount)),
-                function ($driver, $transactionId) use ($order, $gateway, $amount) {
-                    DB::table('transactions')->insert([
-                        'status'               => false,
-                        'amount'               => $amount,
-                        'factorNumber'         => $order->id,
-                        'mobile'               => auth()->user()->username,
-                        'message'              => trans('front::messages.controller.port-transaction') . $gateway,
-                        'transID'              => (string) $transactionId,
-                        'token'                => (string) $transactionId,
-                        'user_id'              => auth()->user()->id,
-                        'transactionable_type' => Order::class,
-                        'transactionable_id'   => $order->id,
-                        'gateway_id'           => Gateway::where('key', $gateway)->first()->id,
-                        "created_at"           => Carbon::now(),
-                        "updated_at"           => Carbon::now(),
-                    ]);
+            $invoice = (new Invoice)->amount($requiredAmount);
+            $callbackToken = $invoice->getUuid();
 
-                    session()->put('transactionId', (string) $transactionId);
-                    session()->put('amount', $amount);
-                }
-            )->pay()->render();
+            return Payment::via($gateway)
+                ->config($gatewayConfigs)
+                ->callbackUrl(route('front.orders.shipping-cost.verify', [
+                    'gateway' => $gateway,
+                    'tx' => $callbackToken,
+                ]))
+                ->purchase(
+                    $invoice,
+                    function ($driver, $transactionId) use ($order, $gateway, $requiredAmount, $callbackToken) {
+                        DB::table('transactions')->insert([
+                            'status' => false,
+                            'amount' => $requiredAmount,
+                            'factorNumber' => $order->id,
+                            'mobile' => auth()->user()->username,
+                            'message' => '[SHIPPING] ' . trans('front::messages.controller.port-transaction') . $gateway,
+                            'transID' => (string) $transactionId,
+                            'token' => 'shipping:' . $callbackToken,
+                            'user_id' => auth()->id(),
+                            'transactionable_type' => Order::class,
+                            'transactionable_id' => $order->id,
+                            'gateway_id' => Gateway::where('key', $gateway)->value('id'),
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ]);
+
+                        session()->put('transactionId', (string) $transactionId);
+                        session()->put('amount', $requiredAmount);
+                    }
+                )
+                ->pay()
+                ->render();
         } catch (Exception $e) {
-            return redirect()
-                ->route('front.orders.show', ['order' => $order])
+            return redirect()->route('front.orders.show', ['order' => $order])
                 ->with('error', $e->getMessage())
                 ->with('order_id', $order->id);
         }
     }
 
-    public function verifyShippingCost($gateway)
+    public function verifyShippingCost($gateway, Request $request)
     {
-        $transactionId = session()->get('transactionId');
-        $amount = session()->get('amount');
+        // ARIYA_CALLBACK_CORRELATION_V1
+        $gatewayId = Gateway::query()->where('key', (string) $gateway)->value('id');
+        $requestToken = (string) ($request->query('tx') ?: $request->input('ResNum', ''));
+        $transaction = null;
 
-        $transaction = Transaction::where('status', false)->where('transID', $transactionId)->firstOrFail();
+        if ($gatewayId && $requestToken !== '') {
+            $transaction = Transaction::query()
+                ->where('token', 'shipping:' . $requestToken)
+                ->where('gateway_id', $gatewayId)
+                ->first();
+        }
+
+        // Compatibility only for payments that were started before this patch.
+        if (! $transaction) {
+            $legacyTransactionId = (string) session()->get('transactionId', '');
+            if ($legacyTransactionId !== '') {
+                $candidate = Transaction::query()
+                    ->where('transID', $legacyTransactionId)
+                    ->where('gateway_id', $gatewayId)
+                    ->first();
+
+                if ($candidate && str_starts_with((string) $candidate->message, '[SHIPPING]')) {
+                    $transaction = $candidate;
+                }
+            }
+        }
+
+        if (! $transaction) {
+            return redirect()->route('front.index')
+                ->with('error', 'اطلاعات بازگشت هزینه ارسال با تراکنش ثبت‌شده در سایت مطابقت ندارد.');
+        }
+
+        $storedToken = (string) $transaction->token;
+        $isHardened = str_starts_with($storedToken, 'shipping:');
+        if ($isHardened) {
+            $requestToken = substr($storedToken, strlen('shipping:'));
+        }
+
+        Gateway::assertLocalCallbackAllowed((string) $gateway, $transaction);
 
         $order = $transaction->transactionable;
+        abort_unless($order instanceof Order, 404);
 
-        $gateway_configs = get_gateway_configs($gateway);
+        if ((bool) $transaction->status) {
+            session()->forget(['transactionId', 'amount']);
+            return redirect()->route('front.orders.show', ['order' => $order])->with('message', 'ok');
+        }
+
+        $transactionId = (string) $transaction->getAttribute('transId');
+        $amount = (int) $transaction->amount;
+        $gatewayConfigs = get_gateway_configs($gateway);
 
         try {
-            $receipt = Payment::via($gateway)->config($gateway_configs);
+            $receipt = Payment::via($gateway)->config($gatewayConfigs);
 
-            if ($amount) {
-                $receipt = $receipt->amount(intval($amount));
+            if ($amount > 0) {
+                $receipt = $receipt->amount($amount);
             }
 
             $receipt = $receipt->transactionId($transactionId)->verify();
 
-            DB::table('transactions')->where('transID', (string) $transactionId)->update([
-                'status'               => 1,
-                'amount'               => $order->shippingCostAmount(),
-                'factorNumber'         => $order->id,
-                'mobile'               => $order->mobile,
-                'traceNumber'          => $receipt->getReferenceId(),
-                'message'              => $transaction->message . '<br>' . trans('front::messages.controller.successful-payment') . $gateway,
-                'updated_at'           => Carbon::now(),
+            if ($isHardened && (string) $gateway === 'sep') {
+                $verifiedResNum = (string) $request->input('ResNum', '');
+                if ($verifiedResNum === '' || ! hash_equals($requestToken, $verifiedResNum)) {
+                    throw new \RuntimeException('شناسه هزینه ارسال تأییدشده توسط درگاه با تراکنش سایت مطابقت ندارد.');
+                }
+            }
+
+            $customer = Customer::query()
+                ->where('site_customer_id', (int) $order->user_id)
+                ->firstOrFail();
+
+            CustomerLedger::query()->updateOrCreate(
+                [
+                    'customer_id' => (int) $customer->id,
+                    'reference_type' => Transaction::class,
+                    'reference_id' => (int) $transaction->id,
+                    'type' => 'credit',
+                ],
+                [
+                    'amount' => $amount,
+                    'note' => 'پرداخت آنلاین تسویه حساب و هزینه ارسال سفارش #' . $order->id,
+                ]
+            );
+
+            $shippingAmount = (int) $order->shippingCostAmount();
+            $this->consumeShippingCostFromCustomerAccount($customer->fresh(), $order, $shippingAmount);
+
+            DB::table('transactions')->where('id', $transaction->id)->update([
+                'status' => 1,
+                'amount' => $amount,
+                'factorNumber' => $order->id,
+                'mobile' => $order->mobile,
+                'traceNumber' => $receipt->getReferenceId(),
+                'message' => $transaction->message . '<br>' . trans('front::messages.controller.successful-payment') . $gateway,
+                'updated_at' => Carbon::now(),
             ]);
+
+            session()->forget(['transactionId', 'amount']);
 
             return $this->shippingCostPaid($order);
         } catch (\Exception $exception) {
-
-            DB::table('transactions')->where('transID', (string) $transactionId)->update([
-                'message'              => $transaction->message . '<br>' . $exception->getMessage(),
-                "updated_at"           => Carbon::now(),
+            DB::table('transactions')->where('id', $transaction->id)->update([
+                'message' => $transaction->message . '<br>' . $exception->getMessage(),
+                'updated_at' => Carbon::now(),
             ]);
 
-            return redirect()->route('front.orders.show', ['order' => $order])->with('error', $exception->getMessage());
+            return redirect()->route('front.orders.show', ['order' => $order])
+                ->with('error', $exception->getMessage());
         }
     }
 
-    public function pay(Order $order, Request $request)
+    public function pay(Order $order, Request $request, ?Cart $cart = null)
     {
-        if ($order->price == 0) {
-            return $this->orderPaid($order);
-        }
-
         $gateways = Gateway::active()->pluck('key')->toArray();
 
         $request->validate([
-            'gateway' => 'required|in:wallet,' . implode(',', $gateways)
+            'gateway' => 'required|in:wallet,' . implode(',', $gateways),
         ]);
 
-        $gateway = $request->gateway;
-
-        if ($gateway == 'wallet') {
-            return $this->payUsingWallet($order);
-        }
-
-        try {
-
-            $gateway_configs = get_gateway_configs($gateway);
-
-            return Payment::via($gateway)->config($gateway_configs)->callbackUrl(route('front.orders.verify', ['gateway' => $gateway]))->purchase(
-                (new Invoice)->amount(intval($order->price)),
-                function ($driver, $transactionId) use ($order, $gateway) {
-                    DB::table('transactions')->insert([
-                        'status'               => false,
-                        'amount'               => $order->price,
-                        'factorNumber'         => $order->id,
-                        'mobile'               => auth()->user()->username,
-                        'message'              => trans('front::messages.controller.port-transaction') . $gateway,
-                        'transID'              => (string) $transactionId,
-                        'token'                => (string) $transactionId,
-                        'user_id'              => auth()->user()->id,
-                        'transactionable_type' => Order::class,
-                        'transactionable_id'   => $order->id,
-                        'gateway_id'           => Gateway::where('key', $gateway)->first()->id,
-                        "created_at"           => Carbon::now(),
-                        "updated_at"           => Carbon::now(),
-                    ]);
-
-                    session()->put('transactionId', (string) $transactionId);
-                    session()->put('amount', $order->price);
+        // Never debit an already-paid order again, including one whose Inventory sync failed.
+        if ($order->status !== 'unpaid') {
+            return redirect()->route('front.orders.show', ['order' => $order])
+                ->with('transaction-error', 'این سفارش قبلاً پرداخت یا بسته شده است.');}
+        if ($order->inventory_stock_hold_id) {
+            try {
+                $status = app(InventoryStockHoldClient::class)->status($order);
+                if (!in_array($status['status'] ?? '', ['held', 'payment_confirmed'], true)
+                    || (isset($status['expires_at']) && ($status['status'] ?? '') === 'held'
+                        && \Carbon\Carbon::parse($status['expires_at'])->isPast())) {
+                    return redirect()->route('front.orders.show', ['order' => $order])
+                        ->with('transaction-error', 'رزرو موجودی این سفارش منقضی شده است.');
                 }
-            )->pay()->render();
-        } catch (Exception $e) {
-            return redirect()
-                ->route('front.orders.show', ['order' => $order])
-                ->with('transaction-error', $e->getMessage())
-                ->with('order_id', $order->id);
+            } catch (\Throwable $exception) {
+                return redirect()->route('front.orders.show', ['order' => $order])
+                    ->with('transaction-error', 'امکان بررسی رزرو انبار در این لحظه وجود ندارد.');
+            }
         }
+        if (!$order->inventory_stock_hold_id) {
+        $inventoryError = $this->inventoryStockError($order->items()
+        ->with('product')->get()
+        ->filter(fn ($item) => !$item->product || $item->product->isPhysical())
+        ->map(fn ($item) => [
+            'product_id' => $item->product_id,
+            'variant_id' => $item->price_id,
+            'quantity' => $item->quantity,
+            'title' => $item->title,
+        ])->all());if ($inventoryError !== null) {
+            return redirect()->route('front.orders.show', ['order' => $order])
+                ->with('transaction-error', $inventoryError);}
+        }
+
+        $customer = $this->getCustomer();
+        $requiredAmount = $this->requiredPaymentAmount($customer, (int) $order->price);
+
+        // Existing customer credit is consumed first. Existing debt is added to
+        // the amount that must be settled before this order can be paid.
+        if ($requiredAmount <= 0) {
+            $this->consumeOrderAmountFromCustomerAccount($customer, $order);
+            return $this->orderPaid($order);
+        }
+
+        $gateway = (string) $request->gateway;
+
+        if ($gateway === 'wallet') {
+            $fallbackGateway = Gateway::active()->orderBy('ordering')->first();
+
+            if (! $fallbackGateway) {
+                return redirect()->route('front.orders.show', ['order' => $order])
+                    ->with('transaction-error', trans('front::messages.controller.active-port'))
+                    ->with('order_id', $order->id);
+            }
+
+            $gateway = (string) $fallbackGateway->key;
+        }
+
+        return $this->startOrderGatewayPayment($order, $gateway, $requiredAmount, $cart);
     }
 
-    public function verify($gateway)
+    public function verify($gateway, Request $request)
     {
-        $transactionId = session()->get('transactionId');
-        $amount = session()->get('amount');
+        // ARIYA_CALLBACK_CORRELATION_V1
+        $gatewayId = Gateway::query()->where('key', (string) $gateway)->value('id');
+        $requestToken = (string) ($request->query('tx') ?: $request->input('ResNum', ''));
+        $transaction = null;
 
-        $transaction = Transaction::where('status', false)->where('transID', $transactionId)->firstOrFail();
+        if ($gatewayId && $requestToken !== '') {
+            $transaction = Transaction::query()
+                ->where('token', 'order:' . $requestToken)
+                ->where('gateway_id', $gatewayId)
+                ->first();
+        }
+
+        // Compatibility only for payments that were started before this patch.
+        if (! $transaction) {
+            $legacyTransactionId = (string) session()->get('transactionId', '');
+            if ($legacyTransactionId !== '') {
+                $transaction = Transaction::query()
+                    ->where('transID', $legacyTransactionId)
+                    ->where('gateway_id', $gatewayId)
+                    ->first();
+            }
+        }
+
+        if (! $transaction) {
+            return redirect()->route('front.index')
+                ->with('error', 'اطلاعات بازگشت از درگاه با تراکنش ثبت‌شده در سایت مطابقت ندارد.');
+        }
+
+        $storedToken = (string) $transaction->token;
+        $isHardened = str_starts_with($storedToken, 'order:');
+        if ($isHardened) {
+            $requestToken = substr($storedToken, strlen('order:'));
+        } elseif (str_starts_with((string) $transaction->message, '[SHIPPING]')) {
+            return redirect()->route('front.index')
+                ->with('error', 'نوع تراکنش بازگشتی با مسیر پرداخت مطابقت ندارد.');
+        }
+
+        Gateway::assertLocalCallbackAllowed((string) $gateway, $transaction);
 
         $order = $transaction->transactionable;
+        abort_unless($order instanceof Order, 404);
 
-        $gateway_configs = get_gateway_configs($gateway);
+        if ((bool) $transaction->status) {
+            session()->forget(['transactionId', 'amount']);
+            return redirect()->route('front.orders.show', ['order' => $order])->with('message', 'ok');
+        }
+
+        $transactionId = (string) $transaction->getAttribute('transId');
+        $amount = (int) $transaction->amount;
+        $gatewayConfigs = get_gateway_configs($gateway);
 
         try {
-            $receipt = Payment::via($gateway)->config($gateway_configs);
+            $receipt = Payment::via($gateway)->config($gatewayConfigs);
 
-            if ($amount) {
-                $receipt = $receipt->amount(intval($amount));
+            if ($amount > 0) {
+                $receipt = $receipt->amount($amount);
             }
 
             $receipt = $receipt->transactionId($transactionId)->verify();
 
-            DB::table('transactions')->where('transID', (string) $transactionId)->update([
-                'status'               => 1,
-                'amount'               => $order->price,
-                'factorNumber'         => $order->id,
-                'mobile'               => $order->mobile,
-                'traceNumber'          => $receipt->getReferenceId(),
-                'message'              => $transaction->message . '<br>' . trans('front::messages.controller.successful-payment') . $gateway,
-                'updated_at'           => Carbon::now(),
+            if ($isHardened && (string) $gateway === 'sep') {
+                $verifiedResNum = (string) $request->input('ResNum', '');
+                if ($verifiedResNum === '' || ! hash_equals($requestToken, $verifiedResNum)) {
+                    throw new \RuntimeException('شناسه سفارش تأییدشده توسط درگاه با تراکنش سایت مطابقت ندارد.');
+                }
+            }
+
+            $customer = Customer::query()
+                ->where('site_customer_id', (int) $order->user_id)
+                ->firstOrFail();
+
+            // The gateway payment settles the account first. This can cover an
+            // old debt, the current order, or both. It is recorded only after
+            // the bank confirms payment, so failed transactions never change
+            // the customer's Inventory balance.
+            CustomerLedger::query()->updateOrCreate(
+                [
+                    'customer_id' => (int) $customer->id,
+                    'reference_type' => Transaction::class,
+                    'reference_id' => (int) $transaction->id,
+                    'type' => 'credit',
+                ],
+                [
+                    'amount' => $amount,
+                    'note' => 'پرداخت آنلاین تسویه حساب و سفارش #' . $order->id,
+                ]
+            );
+
+            $this->consumeOrderAmountFromCustomerAccount($customer->fresh(), $order);
+
+            DB::table('transactions')->where('id', $transaction->id)->update([
+                'status' => 1,
+                'amount' => $amount,
+                'factorNumber' => $order->id,
+                'mobile' => $order->mobile,
+                'traceNumber' => $receipt->getReferenceId(),
+                'message' => $transaction->message . '<br>' . trans('front::messages.controller.successful-payment') . $gateway,
+                'updated_at' => Carbon::now(),
             ]);
+
+            session()->forget(['transactionId', 'amount']);
 
             return $this->orderPaid($order);
         } catch (\Exception $exception) {
-
-            DB::table('transactions')->where('transID', (string) $transactionId)->update([
-                'message'              => $transaction->message . '<br>' . $exception->getMessage(),
-                "updated_at"           => Carbon::now(),
+            DB::table('transactions')->where('id', $transaction->id)->update([
+                'message' => $transaction->message . '<br>' . $exception->getMessage(),
+                'updated_at' => Carbon::now(),
             ]);
 
-            return redirect()->route('front.orders.show', ['order' => $order])->with('transaction-error', $exception->getMessage());
+            // A deliberate cancel on the local simulator is a definitive unpaid
+            // outcome. Release only this test order's Inventory hold; never touch
+            // a real payment gateway or a paid order.
+            if ($gateway === 'local' && request()->boolean('cancel') && $order->status === 'unpaid') {
+                try {
+                    if ($order->inventory_stock_hold_id) {
+                        $release = app(InventoryStockHoldClient::class)->release($order);
+                        if (($release['status'] ?? '') !== 'released') {
+                            throw new \RuntimeException('Inventory did not confirm local test hold release.');
+                        }
+                    }
+                    $order->update([
+                        'status' => 'canceled',
+                        'inventory_stock_hold_status' => $order->inventory_stock_hold_id ? 'released' : null,
+                    ]);
+                } catch (\Throwable $releaseException) {
+                    \Illuminate\Support\Facades\Log::error('Local test payment canceled but Inventory hold release failed.', [
+                        'site_order_id' => $order->id,
+                        'error' => $releaseException->getMessage(),
+                    ]);
+                }
+            }
+
+            return redirect()->route('front.orders.show', ['order' => $order])
+                ->with('transaction-error', $exception->getMessage());
         }
     }
 
@@ -421,135 +700,59 @@ class OrderController extends Controller
         ];
     }
 
+    /** Check the same central-warehouse availability used by the paid-order invoice listener. */private function inventoryStockError(array $lines): ?string {if (!$lines) {         return null;     }     $inv = DB::connection('inv');$warehouseId = $inv->table('warehouses')->where('type', 'central')->orderBy('id')->value('id');if (!$warehouseId) {
+        return 'انبار مرکزی در دسترس نیست.';     }
+    foreach (collect($lines)->groupBy(fn ($line) => $line['product_id'] . ':' . $line['variant_id']) as $group) {
+        $line = $group->first();
+        $quantity = $group->sum('quantity');
+        $available = $inv->table('warehouse_stocks')
+            ->where('warehouse_id', $warehouseId)
+            ->where('product_id', $line['product_id'])
+            ->where('product_variant_id', $line['variant_id'])
+            ->value('quantity');         if ($available === null || (int) $available < $quantity) {
+                return 'موجودی انبار مرکزی برای محصول «' . $line['title'] . '» کافی نیست.';}     }     return null;}
+
     private function payUsingWallet(Order $order)
     {
-        $wallet  = $order->user->getWallet();
-        $amount  = intval($wallet->balance() - $order->price);
+        $customer = $this->getCustomer();
+        $requiredAmount = $this->requiredPaymentAmount($customer, (int) $order->price);
 
-        if ($amount >= 0) {
-            $result = $order->payUsingWallet();
-
-            if ($result) {
-                return $this->orderPaid($order);
-            }
+        if ($requiredAmount <= 0) {
+            $this->consumeOrderAmountFromCustomerAccount($customer, $order);
+            return $this->orderPaid($order);
         }
 
         $gateway = Gateway::active()->orderBy('ordering')->first();
-        $amount  = abs($amount);
 
-        if (!$gateway) {
+        if (! $gateway) {
             return redirect()->route('front.orders.show', ['order' => $order])
                 ->with('transaction-error', trans('front::messages.controller.active-port'))
                 ->with('order_id', $order->id);
         }
 
-        $history = $wallet->histories()->create([
-            'type'        => 'deposit',
-            'amount'      => $amount,
-            'description' => trans('front::messages.controller.online-wallet-recharge'),
-            'source'      => 'user',
-            'status'      => 'fail',
-            'order_id'    => $order->id
-        ]);
-
-        try {
-            $gateway         = $gateway->key;
-            $gateway_configs = get_gateway_configs($gateway);
-
-            return Payment::via($gateway)->config($gateway_configs)->callbackUrl(route('front.wallet.verify', ['gateway' => $gateway]))->purchase(
-                (new Invoice)->amount($amount),
-                function ($driver, $transactionId) use ($history, $gateway, $amount) {
-                    DB::table('transactions')->insert([
-                        'status'               => false,
-                        'amount'               => $amount,
-                        'factorNumber'         => $history->id,
-                        'mobile'               => auth()->user()->username,
-                        'message'              => trans('front::messages.controller.port-transaction') . $gateway,
-                        'transID'              => $transactionId,
-                        'token'                => $transactionId,
-                        'user_id'              => auth()->user()->id,
-                        'transactionable_type' => WalletHistory::class,
-                        'transactionable_id'   => $history->id,
-                        'gateway_id'           => Gateway::where('key', $gateway)->first()->id,
-                        "created_at"           => Carbon::now(),
-                        "updated_at"           => Carbon::now(),
-                    ]);
-
-                    session()->put('transactionId', $transactionId);
-                    session()->put('amount', $amount);
-                }
-            )->pay()->render();
-        } catch (Exception $e) {
-            return redirect()->route('front.orders.show', ['order' => $order])
-                ->with('transaction-error', $e->getMessage())
-                ->with('order_id', $order->id);
-        }
+        return $this->startOrderGatewayPayment(
+            $order,
+            (string) $gateway->key,
+            $requiredAmount
+        );
     }
 
     private function payShippingCostUsingWallet(Order $order)
     {
-        $wallet  = $order->user->getWallet();
-        $amount  = intval($wallet->balance() - $order->shippingCostAmount());
+        $customer = Customer::query()
+            ->where('site_customer_id', (int) $order->user_id)
+            ->firstOrFail();
 
-        if ($amount >= 0) {
-            $result = $order->payShippingCostUsingWallet();
+        $shippingAmount = (int) $order->shippingCostAmount();
+        $requiredAmount = $this->requiredPaymentAmount($customer, $shippingAmount);
 
-            if ($result) {
-                return $this->shippingCostPaid($order);
-            }
+        if ($requiredAmount <= 0) {
+            $this->consumeShippingCostFromCustomerAccount($customer, $order, $shippingAmount);
+            return $this->shippingCostPaid($order);
         }
 
-        $gateway = Gateway::active()->orderBy('ordering')->first();
-        $amount  = abs($amount);
-
-        if (!$gateway) {
-            return redirect()->route('front.orders.show', ['order' => $order])
-                ->with('error', trans('front::messages.controller.active-port'))
-                ->with('order_id', $order->id);
-        }
-
-        $history = $wallet->histories()->create([
-            'type'          => 'deposit',
-            'amount'        => $amount,
-            'description'   => trans('front::messages.controller.online-wallet-recharge'),
-            'source'        => 'user',
-            'status'        => 'fail',
-            'order_id'      => $order->id,
-            'shipping_cost' => true,
-        ]);
-
-        try {
-            $gateway         = $gateway->key;
-            $gateway_configs = get_gateway_configs($gateway);
-
-            return Payment::via($gateway)->config($gateway_configs)->callbackUrl(route('front.wallet.verify', ['gateway' => $gateway]))->purchase(
-                (new Invoice)->amount($amount),
-                function ($driver, $transactionId) use ($history, $gateway, $amount) {
-                    DB::table('transactions')->insert([
-                        'status'               => false,
-                        'amount'               => $amount,
-                        'factorNumber'         => $history->id,
-                        'mobile'               => auth()->user()->username,
-                        'message'              => trans('front::messages.controller.port-transaction') . $gateway,
-                        'transID'              => $transactionId,
-                        'token'                => $transactionId,
-                        'user_id'              => auth()->user()->id,
-                        'transactionable_type' => WalletHistory::class,
-                        'transactionable_id'   => $history->id,
-                        'gateway_id'           => Gateway::where('key', $gateway)->first()->id,
-                        "created_at"           => Carbon::now(),
-                        "updated_at"           => Carbon::now(),
-                    ]);
-
-                    session()->put('transactionId', $transactionId);
-                    session()->put('amount', $amount);
-                }
-            )->pay()->render();
-        } catch (Exception $e) {
-            return redirect()->route('front.orders.show', ['order' => $order])
-                ->with('error', $e->getMessage())
-                ->with('order_id', $order->id);
-        }
+        return redirect()->route('front.orders.show', ['order' => $order])
+            ->with('error', 'برای تسویه بدهی/هزینه ارسال، یکی از درگاه‌های بانکی را انتخاب کنید.');
     }
 
     private function orderPaid(Order $order)
@@ -558,11 +761,188 @@ class OrderController extends Controller
             'status' => 'paid',
         ]);
 
+        // The payment is authoritative even if Inventory is temporarily unreachable.
+        // The paid-order pull can consume the still-held stock; expiry checks Site status first.
+        if ($order->inventory_stock_hold_id) {
+            try {
+                app(InventoryStockHoldClient::class)->confirm($order);
+                $order->update(['inventory_stock_hold_status' => 'payment_confirmed']);
+            } catch (\Throwable $exception) {
+                $order->update(['inventory_stock_hold_status' => 'confirmation_pending']);
+                try {
+                    $remote = app(InventoryStockHoldClient::class)->status($order);
+                    if (in_array($remote['status'] ?? '', ['released', 'expired'], true)) {
+                        $order->update([
+                            'inventory_stock_hold_status' => 'fulfillment_exception',
+                            'inventory_sync_status' => 'failed',
+                            'inventory_last_error' => 'Paid after the Inventory stock hold was released; manual recovery/refund required.',
+                        ]);
+                    }
+                } catch (\Throwable $lookupException) {
+                    // Leave for the Inventory paid-order importer and operations reconciliation.
+                }
+                \Illuminate\Support\Facades\Log::critical('Paid Site order needs Inventory stock confirmation.', [
+                    'site_order_id' => $order->id, 'hold_id' => $order->inventory_stock_hold_id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
         event(new OrderPaid($order));
 
         return redirect()->route('front.orders.show', ['order' => $order])->with('message', 'ok');
     }
+    /**
+     * Site wallet convention: positive = usable credit, negative = debt.
+     * Inventory account convention is the opposite, therefore wallet_balance
+     * is exposed by the Inventory Customer model as -balance.
+     */
+    private function requiredPaymentAmount(Customer $customer, int $purchaseAmount): int
+    {
+        $walletBalance = (int) $customer->wallet_balance;
 
+        return max($purchaseAmount - $walletBalance, 0);
+    }
+
+    private function consumeOrderAmountFromCustomerAccount(Customer $customer, Order $order): void
+    {
+        $amount = (int) $order->price;
+
+        if ($amount <= 0) {
+            return;
+        }
+
+        CustomerLedger::query()->updateOrCreate(
+            [
+                'customer_id' => (int) $customer->id,
+                'reference_type' => Order::class,
+                'reference_id' => (int) $order->id,
+                'type' => 'debit',
+            ],
+            [
+                'amount' => $amount,
+                'note' => 'مصرف اعتبار/پرداخت از حساب برای سفارش #' . $order->id,
+            ]
+        );
+    }
+
+    private function consumeShippingCostFromCustomerAccount(
+        Customer $customer,
+        Order $order,
+        int $amount
+    ): void {
+        if ($amount <= 0) {
+            return;
+        }
+
+        CustomerLedger::query()->updateOrCreate(
+            [
+                'customer_id' => (int) $customer->id,
+                'reference_type' => 'site_order_shipping_cost',
+                'reference_id' => (int) $order->id,
+                'type' => 'debit',
+            ],
+            [
+                'amount' => $amount,
+                'note' => 'مصرف اعتبار/پرداخت هزینه ارسال سفارش #' . $order->id,
+            ]
+        );
+    }
+
+    private function startOrderGatewayPayment(
+        Order $order,
+        string $gateway,
+        int $amount,
+        ?Cart $cart = null
+    ) {
+        try {
+            $gatewayConfigs = get_gateway_configs($gateway);
+
+            $invoice = (new Invoice)->amount($amount);
+            $callbackToken = $invoice->getUuid();
+
+            $payment = Payment::via($gateway)
+                ->config($gatewayConfigs)
+                ->callbackUrl(route('front.orders.verify', [
+                    'gateway' => $gateway,
+                    'tx' => $callbackToken,
+                ]))
+                ->purchase(
+                    $invoice,
+                    function ($driver, $transactionId) use ($order, $gateway, $amount, $callbackToken) {
+                        DB::table('transactions')->insert([
+                            'status' => false,
+                            'amount' => $amount,
+                            'factorNumber' => $order->id,
+                            'mobile' => auth()->user()->username,
+                            'message' => trans('front::messages.controller.port-transaction') . $gateway,
+                            'transID' => (string) $transactionId,
+                            'token' => 'order:' . $callbackToken,
+                            'user_id' => auth()->id(),
+                            'transactionable_type' => Order::class,
+                            'transactionable_id' => $order->id,
+                            'gateway_id' => Gateway::where('key', $gateway)->value('id'),
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ]);
+
+                        session()->put('transactionId', (string) $transactionId);
+                        session()->put('amount', $amount);
+                    }
+                );
+
+            $response = $payment->pay()->render();
+
+            if (in_array($gateway, ['sep', 'local'], true) && $cart) {
+                $cart->delete();
+
+                if (config('queue.default') !== 'sync') {
+                    $minutes = option('orders_cancel_time', 60);
+                    CancelOrder::dispatch($order)->delay(now()->addMinutes($minutes));
+                }
+            }
+
+            return $response;
+        } catch (\Shetabit\Multipay\Exceptions\PurchaseFailedException $e) {
+            // SEP definitively rejected payment initialization before creating a
+            // transaction. The customer still has their cart, so immediately
+            // return the held stock instead of waiting for hold expiration.
+            // Never release if a gateway transaction may have been initiated.
+            if ($gateway === 'sep' && $cart !== null && $order->inventory_stock_hold_id
+                && !$order->transactions()->exists()) {
+                try {
+                    $release = app(InventoryStockHoldClient::class)->release($order);
+                    if (($release['status'] ?? '') !== 'released') {
+                        throw new \RuntimeException('Inventory did not confirm release of rejected SEP checkout.');
+                    }
+                    $order->update([
+                        'status' => 'canceled',
+                        'inventory_stock_hold_status' => 'released',
+                    ]);
+                } catch (\Throwable $releaseException) {
+                    // Keep the reservation/order for reconciliation when Inventory
+                    // cannot confirm release; do not manipulate stock locally.
+                    \Illuminate\Support\Facades\Log::error('Failed to release SEP stock hold after gateway initiation rejection.', [
+                        'site_order_id' => $order->id,
+                        'hold_id' => $order->inventory_stock_hold_id,
+                        'error' => $releaseException->getMessage(),
+                    ]);
+                }
+            }
+            return redirect()->route('front.orders.show', ['order' => $order])
+                ->with('transaction-error', $e->getMessage())
+                ->with('order_id', $order->id);
+        } catch (Exception $e) {
+            return redirect()->route('front.orders.show', ['order' => $order])
+                ->with('transaction-error', $e->getMessage())
+                ->with('order_id', $order->id);
+        }
+    }
+
+    private function getCustomer() {
+        return Customer::where('site_customer_id', auth()->id())
+            ->firstOrFail();
+    }
     private function shippingCostPaid(Order $order)
     {
         $order->update([

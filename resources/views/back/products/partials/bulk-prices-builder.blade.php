@@ -1,23 +1,3 @@
-@php
-    $bulkPriceGroups = $attributeGroups->map(function ($group) {
-        return [
-            'id' => (string) $group->id,
-            'name' => $group->name,
-            'attributes' => $group->get_attributes()
-                ->orderBy('ordering')
-                ->orderBy('name')
-                ->get(['id', 'name'])
-                ->map(function ($attribute) {
-                    return [
-                        'id' => (string) $attribute->id,
-                        'name' => $attribute->name,
-                    ];
-                })
-                ->values(),
-        ];
-    })->values();
-@endphp
-
 <div id="bulk-prices-builder" class="card border border-primary mb-2">
     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
         <div>
@@ -38,7 +18,7 @@
                     <label for="bulk-price-group">گروه مدل <span class="text-danger">*</span></label>
                     <select id="bulk-price-group" class="form-control">
                         <option value="">انتخاب کنید</option>
-                        @foreach ($bulkPriceGroups as $group)
+                        @foreach ($attributeGroups as $group)
                             <option value="{{ $group['id'] }}">{{ $group['name'] }}</option>
                         @endforeach
                     </select>
@@ -134,5 +114,3 @@
         </div>
     </div>
 </div>
-
-<script id="bulk-price-groups-data" type="application/json">{!! json_encode($bulkPriceGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>

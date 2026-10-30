@@ -55,8 +55,8 @@
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>
-                                                    <span class="d-inline-block">{{ $history->wallet->user->fullname }}</span>
-                                                    <a href="{{ route('admin.users.show', ['user' => $history->wallet->user]) }}" target="_blank">
+                                                    <span class="d-inline-block">{{ $history->customer->display_name }}</span>
+                                                    <a href="{{ route('admin.users.show', ['user' => $history->customer]) }}" target="_blank">
                                                         <i class="feather icon-external-link"></i>
                                                     </a>
                                                 </td>

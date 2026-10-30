@@ -30,6 +30,39 @@ return [
 
     'disks' => [
 
+        'image_reports' => [
+            'driver' => 'local',
+            'root' => storage_path('app/image-optimization/reports'),
+            'visibility' => 'private',
+            'throw' => true,
+        ],
+
+        'uploads' => [
+            'driver' => 'local',
+            'root' => public_path('uploads'),
+            'url' => rtrim(env('APP_URL', ''), '/') . '/uploads',
+            'visibility' => 'public',
+            'throw' => true,
+            'permissions' => [
+                'file' => [
+                    'public' => 0644,
+                    'private' => 0600,
+                ],
+                'dir' => [
+                    'public' => 0755,
+                    'private' => 0700,
+                ],
+            ],
+        ],
+
+        'post_uploads' => [
+            'driver' => 'local',
+            'root' => env('POST_UPLOADS_ROOT', public_path('uploads')),
+            'url' => rtrim(env('APP_URL', ''), '/') . '/uploads',
+            'visibility' => 'public',
+            'throw' => true,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => public_path('uploads'),
@@ -71,7 +104,7 @@ return [
             'visibility' => 'public',
         ],
 
-        's3' => [
+        'arvan' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -79,6 +112,9 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'visibility' => 'public',
         ],
 
         'themes' => [
@@ -102,5 +138,6 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
     ],
+
 
 ];

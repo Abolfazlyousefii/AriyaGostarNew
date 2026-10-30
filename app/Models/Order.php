@@ -14,6 +14,7 @@ class Order extends Model
 
     protected $casts = [
         'inventory_synced_at' => 'datetime',
+        'inventory_stock_hold_id' => 'integer',
     ];
 
     public function items()
@@ -294,7 +295,15 @@ class Order extends Model
                 $wallet->refereshBalance();
             });
 
-            event(new WalletAmountDecreased($wallet));
+            try {
+                event(new WalletAmountDecreased($wallet));
+            } catch (\Throwable $e) {
+                \Log::error('Wallet decreased notification failed.', [
+                    'order_id' => $order->id,
+                    'wallet_id' => $wallet->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return true;
         }
@@ -328,7 +337,15 @@ class Order extends Model
                 $wallet->refereshBalance();
             });
 
-            event(new WalletAmountDecreased($wallet));
+            try {
+                event(new WalletAmountDecreased($wallet));
+            } catch (\Throwable $e) {
+                \Log::error('Wallet decreased notification failed.', [
+                    'order_id' => $order->id,
+                    'wallet_id' => $wallet->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return true;
         }
@@ -437,5 +454,12 @@ class Order extends Model
         }
 
         return 0;
+    }
+    // در App\Models\Order
+    public function customerLedger()
+    {
+        return $this->hasOne(\App\Models\Inventory\CustomerLedger::class, 'reference_id')
+            ->where('reference_type', self::class)
+            ->where('type', 'debit');
     }
 }

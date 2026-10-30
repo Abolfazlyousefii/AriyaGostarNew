@@ -1,0 +1,1790 @@
+/* Exact product layout based on the supplied reference */
+.aex-product-stage {
+    position: relative;
+    overflow: visible;
+    padding: 18px 18px 12px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 2px 14px rgba(30, 45, 70, 0.05);
+}
+
+.aex-gallery-column,
+.aex-product-info-block {
+    min-height: 420px;
+}
+
+.aex-gallery-column {
+    position: relative;
+    padding: 0 14px 0 8px;
+}
+
+.aex-product-badge {
+    position: absolute;
+    top: 0;
+    right: 12px;
+    z-index: 5;
+    padding: 6px 11px;
+    color: #fff;
+    background: #149cf1;
+    font-size: 12px;
+}
+
+.aex-product-badge--unavailable {
+    background: #8b929a;
+}
+
+.aex-product-gallery {
+    width: 100%;
+    padding-top: 5px;
+}
+
+.aex-gallery-shell {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 20px;
+    direction: rtl;
+    align-items: stretch;
+    min-height: 375px;
+}
+
+.aex-gallery-thumbs {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 368px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px 3px 2px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #149cf1 #edf1f5;
+}
+
+.aex-gallery-thumbs::-webkit-scrollbar {
+    width: 5px;
+}
+
+.aex-gallery-thumbs::-webkit-scrollbar-track {
+    background: #edf1f5;
+    border-radius: 20px;
+}
+
+.aex-gallery-thumbs::-webkit-scrollbar-thumb {
+    background: #149cf1;
+    border-radius: 20px;
+}
+
+.aex-gallery-thumb {
+    flex: 0 0 72px;
+    width: 68px;
+    height: 72px;
+    padding: 3px;
+    border: 1px solid #edf0f3;
+    border-radius: 5px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.aex-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.aex-gallery-thumb:hover,
+.aex-gallery-thumb.is-active {
+    border-color: #149cf1;
+    box-shadow: 0 0 0 1px #149cf1;
+}
+
+.aex-gallery-main {
+    grid-column: 2;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.aex-gallery-main-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 338px;
+    padding: 12px;
+    background: #fff;
+}
+
+.aex-gallery-main-link img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.aex-gallery-dots {
+    display: flex;
+    direction: rtl;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 24px;
+    margin-top: 4px;
+}
+
+.aex-gallery-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #c8c8c8;
+    cursor: pointer;
+}
+
+.aex-gallery-dot.is-active {
+    background: #149cf1;
+}
+
+.aex-product-gallery--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 350px;
+}
+
+.aex-product-gallery--empty img {
+    width: 75%;
+    max-height: 330px;
+    object-fit: contain;
+}
+
+.aex-product-info-block {
+    padding: 0;
+}
+
+.aex-product-info,
+.aex-product-info-row {
+    height: 100%;
+}
+
+.aex-product-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 30px 12px;
+    border-left: 0;
+}
+
+.aex-product-header {
+    width: 100%;
+    text-align: center;
+}
+
+.aex-product-header h1 {
+    margin: 0;
+    color: #2d2d31;
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.8;
+    white-space: normal;
+}
+
+.aex-product-header h1::before {
+    display: none !important;
+}
+
+.aex-product-subtitle {
+    min-height: 25px;
+    margin-top: 1px;
+    color: #a2a2a2;
+    font-size: 14px;
+}
+
+.aex-product-subtitle a {
+    color: inherit;
+}
+
+.aex-subtitle-separator {
+    display: inline-block;
+    margin: 0 2px;
+}
+
+.aex-product-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 14px;
+}
+
+.aex-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 31px;
+    height: 31px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #4a4a4a;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.aex-action-button:hover,
+.aex-action-button.favorites {
+    color: #149cf1;
+}
+
+.aex-variants-area {
+    width: 100%;
+    margin-top: 17px;
+}
+
+.aex-product-variant {
+    width: 100%;
+    margin: 0 0 12px;
+    color: #333;
+    text-align: center;
+}
+
+.aex-product-variant::after {
+    display: none !important;
+}
+
+.aex-variant-title {
+    margin-bottom: 10px;
+    color: #202029;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.aex-product-variants {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    float: none !important;
+    margin: 0 !important;
+    padding: 0;
+}
+
+.aex-product-variants li {
+    margin: 0 !important;
+}
+
+.aex-variant-label {
+    display: block;
+    cursor: pointer;
+}
+
+.aex-variant-check {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 86px;
+    min-height: 38px;
+    padding: 7px 13px;
+    border: 1px solid #303841;
+    border-radius: 0;
+    background: #fff;
+    color: #303841;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: none;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.aex-variant-item input[type='radio']:checked + .aex-variant-check {
+    color: #fff;
+    background: #26343c;
+    border-color: #26343c;
+}
+
+.aex-variant-item input[type='radio']:checked + .aex-variant-check::after {
+    display: none;
+}
+
+.aex-variant-item.unavailable {
+    opacity: 1;
+}
+
+.aex-variant-item.unavailable .aex-variant-check {
+    color: #aaa;
+    border-color: #aeb4ba;
+    cursor: not-allowed;
+    overflow: hidden;
+}
+
+.aex-variant-item.unavailable .aex-variant-check::before,
+.aex-variant-item.unavailable .aex-variant-check::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -8%;
+    width: 116%;
+    height: 1px;
+    background: #f14f5f;
+    z-index: 2;
+}
+
+.aex-variant-item.unavailable .aex-variant-check::before {
+    transform: rotate(12deg);
+}
+
+.aex-variant-item.unavailable .aex-variant-check::after {
+    transform: rotate(-12deg);
+}
+
+.aex-color-variant .aex-variant-check {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.aex-color-shape {
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 !important;
+    border: 2px solid #fff !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 1px #c6cbd0;
+}
+
+.aex-color-variant input[type='radio']:checked ~ .aex-variant-check,
+.aex-color-variant input[type='radio']:checked + .aex-variant-check {
+    background: transparent;
+}
+
+.aex-stock-status {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 7px;
+    color: #27ad49;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.aex-stock-status strong {
+    color: #1671d9;
+    font-weight: 800;
+}
+
+.aex-stock-status--empty {
+    color: #df3447;
+}
+
+.aex-buy-column {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px 16px 0 4px;
+}
+
+.aex-buy-card {
+    width: 100%;
+    min-height: 278px;
+    padding: 18px 20px 17px;
+    border: 1px solid #cfd3d7;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.aex-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 13px;
+}
+
+.aex-labels span {
+    padding: 3px 8px;
+    color: #1671d9;
+    background: #edf6ff;
+    font-size: 11px;
+}
+
+.aex-selected-variant {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid #eceff2;
+    color: #656a70;
+    font-size: 12px;
+}
+
+.aex-selected-variant strong {
+    color: #20262c;
+    text-align: left;
+    font-size: 13px;
+}
+
+.aex-buy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 18px;
+}
+
+.aex-buy-row-label,
+.aex-price-label {
+    color: #292d32;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.aex-number-input {
+    display: flex;
+    width: 134px;
+    height: 42px;
+    border: 5px solid #f0f0f0;
+    border-radius: 7px;
+    overflow: hidden;
+}
+
+.aex-number-input button,
+.aex-number-input input {
+    height: 32px !important;
+}
+
+.aex-number-input button {
+    width: 36px;
+    background: #fff;
+}
+
+.aex-number-input input {
+    width: 62px;
+    border: 0;
+    text-align: center;
+}
+
+.aex-price-area {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 23px;
+}
+
+.aex-price-values {
+    text-align: left;
+}
+
+.aex-price-discount-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    margin-bottom: 4px;
+    color: #999;
+    font-size: 12px;
+}
+
+.aex-discount-badge {
+    padding: 2px 7px;
+    border-radius: 12px;
+    color: #fff;
+    background: #ef4056;
+}
+
+.aex-final-price {
+    color: #ef304d;
+    white-space: nowrap;
+}
+
+.aex-final-price .price {
+    color: inherit;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.aex-final-price .currency {
+    margin-right: 3px;
+    color: #666;
+    font-size: 12px;
+}
+
+.aex-add-to-cart,
+.aex-login-price-button,
+.aex-stock-notify-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 45px;
+    margin-top: 18px;
+    border: 0;
+    color: #fff !important;
+    background: #149cf1;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+}
+
+.aex-add-to-cart:hover,
+.aex-login-price-button:hover,
+.aex-stock-notify-button:hover {
+    color: #fff !important;
+    background: #078ce0;
+}
+
+.aex-login-price-note {
+    margin-bottom: 8px;
+    color: #5e6268;
+    font-size: 13px;
+    line-height: 2;
+    text-align: center;
+}
+
+.aex-unavailable-box {
+    color: #686d73;
+    text-align: center;
+}
+
+.aex-unavailable-box strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #34393e;
+    font-size: 16px;
+}
+
+.aex-unavailable-box p {
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+@media (max-width: 1199.98px) {
+    .aex-gallery-shell {
+        grid-template-columns: 66px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .aex-gallery-thumb {
+        width: 60px;
+        height: 64px;
+    }
+
+    .aex-product-center {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .aex-variant-check {
+        min-width: 75px;
+        padding-right: 9px;
+        padding-left: 9px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .aex-product-stage {
+        padding: 16px;
+    }
+
+    .aex-gallery-column,
+    .aex-product-info-block {
+        min-height: auto;
+    }
+
+    .aex-gallery-column {
+        padding: 0 0 20px;
+    }
+
+    .aex-gallery-shell {
+        min-height: 400px;
+    }
+
+    .aex-gallery-main-link {
+        height: 350px;
+    }
+
+    .aex-product-center {
+        border-left: 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .aex-buy-column {
+        padding: 22px 0 0;
+    }
+
+    .aex-buy-card {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .aex-product-stage {
+        padding: 12px;
+    }
+
+    .aex-gallery-shell {
+        display: flex;
+        flex-direction: column-reverse;
+        min-height: auto;
+    }
+
+    .aex-gallery-main-link {
+        height: 310px;
+        padding: 4px;
+    }
+
+    .aex-gallery-thumbs {
+        flex-direction: row;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 4px 1px 8px;
+    }
+
+    .aex-gallery-thumb {
+        flex: 0 0 61px;
+        width: 61px;
+        height: 62px;
+    }
+
+    .aex-product-center {
+        padding: 16px 4px 22px;
+    }
+
+    .aex-product-header h1 {
+        font-size: 19px;
+    }
+
+    .aex-product-variants {
+        gap: 6px;
+    }
+
+    .aex-variant-check {
+        min-width: 69px;
+        min-height: 36px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .aex-buy-card {
+        min-height: auto;
+        padding: 16px;
+    }
+}
+
+/* Variant picker popup */
+.aex-variants-modal-content {
+    width: 100%;
+}
+
+.aex-variant-picker-summary {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 520px;
+    margin-top: 18px;
+    padding: 15px;
+    border: 1px solid #e4e8ec;
+    background: #fafbfc;
+    text-align: right;
+}
+
+.aex-variant-picker-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: #149cf1;
+    background: #eaf6fe;
+    font-size: 25px;
+}
+
+.aex-variant-picker-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.aex-variant-picker-copy span {
+    margin-bottom: 4px;
+    color: #8a929a;
+    font-size: 11px;
+}
+
+.aex-variant-picker-copy strong {
+    overflow: hidden;
+    color: #252a2f;
+    font-size: 14px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aex-open-variants-modal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 9px 14px;
+    border: 0;
+    background: #149cf1;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+}
+
+.aex-open-variants-modal:hover,
+.aex-open-variants-modal:focus {
+    background: #0b89d8;
+    color: #fff;
+}
+
+.aex-open-variants-modal span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 23px;
+    height: 23px;
+    padding: 0 5px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 10px;
+}
+
+.aex-variants-modal {
+    z-index: 1060;
+}
+
+.aex-variants-modal .modal-dialog {
+    width: calc(100% - 30px);
+    max-width: 920px;
+    margin: 25px auto;
+}
+
+.aex-variants-modal .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: 7px;
+    box-shadow: 0 18px 55px rgba(20, 32, 45, 0.2);
+}
+
+.aex-variants-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 22px 17px;
+    border-bottom: 1px solid #edf0f2;
+    text-align: right;
+}
+
+.aex-variants-modal-header .modal-title {
+    margin: 0;
+    color: #25292e;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.aex-variants-modal-header p {
+    margin: 6px 0 0;
+    color: #8b9299;
+    font-size: 12px;
+}
+
+.aex-variants-modal-header .close {
+    flex: 0 0 auto;
+    margin: -5px 0 0 -5px;
+    padding: 5px;
+    color: #4f565c;
+    font-size: 28px;
+    opacity: 1;
+}
+
+.aex-variants-modal-body {
+    max-height: calc(100vh - 150px);
+    padding: 18px 22px 22px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.aex-variant-search-wrap {
+    position: sticky;
+    top: -18px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    margin: -2px 0 19px;
+    padding: 8px 0 11px;
+    background: #fff;
+}
+
+.aex-variant-search-wrap i {
+    position: absolute;
+    right: 14px;
+    z-index: 2;
+    color: #8c949c;
+    font-size: 21px;
+}
+
+.aex-variant-search {
+    width: 100%;
+    height: 46px;
+    padding: 9px 45px 9px 14px;
+    border: 1px solid #dfe4e8;
+    border-radius: 4px;
+    outline: 0;
+    background: #fafbfc;
+    color: #30353a;
+    font-size: 13px;
+    transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.aex-variant-search:focus {
+    border-color: #149cf1;
+    background: #fff;
+}
+
+.aex-modal-variant-group {
+    margin: 0 0 23px;
+    text-align: right;
+}
+
+.aex-modal-variant-group:last-child {
+    margin-bottom: 0;
+}
+
+.aex-modal-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 11px;
+}
+
+.aex-modal-group-heading > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.aex-modal-group-heading strong {
+    color: #252a2f;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.aex-modal-group-heading > div span {
+    color: #9aa0a6;
+    font-size: 11px;
+}
+
+.aex-modal-group-selected {
+    color: #149cf1;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.aex-modal-variant-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 10px !important;
+    width: 100%;
+}
+
+.aex-modal-variant-grid .aex-modal-variant-item {
+    width: 100%;
+    min-width: 0;
+}
+
+.aex-modal-variant-label {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.aex-modal-variant-label > input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.aex-modal-variant-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 60px;
+    padding: 11px 13px;
+    border: 1px solid #d9dee3;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.aex-modal-variant-item:not(.unavailable) .aex-modal-variant-card:hover {
+    border-color: #149cf1;
+    box-shadow: 0 0 0 1px rgba(20, 156, 241, 0.1);
+}
+
+.aex-modal-variant-label > input:checked + .aex-modal-variant-card {
+    border-color: #149cf1;
+    background: #eef8fe;
+    box-shadow: 0 0 0 1px #149cf1;
+}
+
+.aex-modal-variant-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    color: #292e33;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.aex-modal-variant-stock {
+    flex: 0 0 auto;
+    padding: 4px 7px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.aex-modal-variant-stock.is-available {
+    color: #16833b;
+    background: #eaf8ef;
+}
+
+.aex-modal-variant-stock.is-empty {
+    color: #d83c50;
+    background: #fff0f2;
+}
+
+.aex-modal-variant-item.unavailable .aex-modal-variant-card {
+    border-color: #e3e6e9;
+    background: #f6f7f8;
+    cursor: not-allowed;
+    opacity: 0.72;
+}
+
+.aex-modal-variant-item.unavailable .aex-modal-variant-name {
+    color: #9da3a8;
+    text-decoration: line-through;
+    text-decoration-color: #ed5264;
+}
+
+.aex-variant-search-empty {
+    padding: 28px 15px;
+    color: #92999f;
+    text-align: center;
+    font-size: 13px;
+}
+
+body.modal-open .modal-backdrop {
+    z-index: 1055;
+}
+
+@media (max-width: 991px) {
+    .aex-variant-picker-summary {
+        max-width: 100%;
+    }
+
+    .aex-modal-variant-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575px) {
+    .aex-variant-picker-summary {
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .aex-variant-picker-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .aex-open-variants-modal {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .aex-variants-modal .modal-dialog {
+        width: calc(100% - 16px);
+        margin: 8px auto;
+    }
+
+    .aex-variants-modal .modal-content {
+        max-height: calc(100vh - 16px);
+    }
+
+    .aex-variants-modal-header {
+        padding: 16px 15px 14px;
+    }
+
+    .aex-variants-modal-header .modal-title {
+        font-size: 16px;
+    }
+
+    .aex-variants-modal-header p {
+        max-width: 260px;
+        font-size: 10px;
+        line-height: 1.8;
+    }
+
+    .aex-variants-modal-body {
+        max-height: calc(100vh - 105px);
+        padding: 13px 13px 16px;
+    }
+
+    .aex-variant-search-wrap {
+        top: -13px;
+        margin-bottom: 13px;
+        padding-top: 5px;
+    }
+
+    .aex-modal-group-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .aex-modal-group-heading > div {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .aex-modal-variant-grid {
+        grid-template-columns: 1fr;
+        gap: 8px !important;
+    }
+
+    .aex-modal-variant-card {
+        min-height: 56px;
+        padding: 10px 11px;
+    }
+}
+
+/* Compact top alignment refinements */
+@media (min-width: 992px) {
+    .aex-product-info-row {
+        align-items: flex-start;
+        column-gap: 24px;
+    }
+
+    .aex-product-center {
+        flex: 0 0 calc(58.333333% - 12px);
+        max-width: calc(58.333333% - 12px);
+    }
+
+    .aex-buy-column {
+        flex: 0 0 calc(41.666667% - 12px);
+        max-width: calc(41.666667% - 12px);
+    }
+
+    .aex-buy-column {
+        align-self: flex-start;
+    }
+
+    .aex-buy-card.aex-buy-card--price-only {
+        margin-top: 0;
+    }
+}
+
+/* Multi-model selector and restored pink purchase card */
+.aex-selection-help {
+    width: 100%;
+    max-width: 520px;
+    margin-top: 8px;
+    color: #7b838c;
+    font-size: 12px;
+    line-height: 1.9;
+    text-align: center;
+}
+
+.aex-buy-card.aex-buy-card--price-only {
+    min-height: 218px;
+    padding: 22px 22px 18px;
+    border: 1px solid #f3ccd5;
+    border-radius: 9px;
+    background: #fffafb;
+    box-shadow: 0 13px 35px rgba(239, 48, 77, 0.06);
+    justify-content: center;
+}
+
+.aex-buy-card--price-only .aex-price-area--single {
+    width: 100%;
+    margin: 0;
+    padding: 0 2px 22px;
+    align-items: center;
+}
+
+.aex-buy-card--price-only .aex-price-label {
+    color: #3c3c42;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.aex-buy-card--price-only .aex-price-values {
+    text-align: left;
+}
+
+.aex-buy-card--price-only .aex-final-price {
+    color: #ef304d;
+}
+
+.aex-buy-card--price-only .aex-final-price .price {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+}
+
+.aex-buy-card--price-only .aex-final-price .currency {
+    margin-right: 5px;
+    color: #6e6e74;
+    font-size: 12px;
+}
+
+.aex-buy-card--price-only .aex-add-to-cart,
+.aex-buy-card--price-only .aex-login-price-button {
+    position: relative;
+    min-height: 54px;
+    margin-top: 0;
+    border: 2px solid #ff284f;
+    border-radius: 10px;
+    background: #ff284f;
+    box-shadow: inset 0 0 0 2px #fff;
+    color: #fff !important;
+    font-size: 15px;
+    font-weight: 700;
+    transition: opacity 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.aex-buy-card--price-only .aex-add-to-cart:hover,
+.aex-buy-card--price-only .aex-login-price-button:hover {
+    background: #ec1d43;
+    border-color: #ec1d43;
+    transform: translateY(-1px);
+}
+
+.aex-buy-card--price-only .aex-add-to-cart:disabled {
+    border-color: #f4b2bf;
+    background: #f4b2bf;
+    cursor: not-allowed;
+    opacity: 0.75;
+    transform: none;
+}
+
+.aex-buy-card--price-only .aex-add-to-cart.is-loading {
+    cursor: wait;
+    opacity: 0.8;
+}
+
+.aex-buy-card-hint {
+    min-height: 21px;
+    margin-top: 10px;
+    color: #8f747a;
+    font-size: 11px;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.aex-variant-picker-summary {
+    max-width: 560px;
+    margin-top: 18px;
+    border-color: #e0e9f0;
+    border-radius: 5px;
+    background: #fbfdff;
+}
+
+.aex-variant-picker-copy strong {
+    white-space: normal;
+    line-height: 1.7;
+}
+
+.aex-variants-modal .modal-dialog {
+    max-width: 900px;
+}
+
+.aex-variants-modal .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 24px 80px rgba(18, 28, 39, 0.2);
+}
+
+.aex-variants-modal-header {
+    align-items: flex-start;
+    padding: 19px 22px 17px;
+    border-bottom: 1px solid #edf0f3;
+    background: #fff;
+}
+
+.aex-variants-modal-header .modal-title {
+    margin: 0;
+    color: #272c32;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.aex-variants-modal-header p {
+    margin: 6px 0 0;
+    color: #858d95;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.aex-variants-modal-body {
+    max-height: min(66vh, 620px);
+    padding: 18px 22px 20px;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+.aex-variant-search-wrap {
+    position: sticky;
+    top: -18px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: -2px 0 16px;
+    padding: 12px 0 10px;
+    background: #f8fafc;
+}
+
+.aex-variant-search-wrap i {
+    position: absolute;
+    right: 14px;
+    color: #98a1aa;
+    font-size: 20px;
+}
+
+.aex-variant-search {
+    width: 100%;
+    height: 44px;
+    padding: 8px 43px 8px 14px;
+    border: 1px solid #dfe5ea;
+    border-radius: 7px;
+    background: #fff;
+    color: #303840;
+    outline: 0;
+}
+
+.aex-variant-search:focus {
+    border-color: #159cf0;
+    box-shadow: 0 0 0 3px rgba(21, 156, 240, 0.1);
+}
+
+.aex-variant-search-empty {
+    padding: 28px 15px;
+    color: #7d858d;
+    text-align: center;
+}
+
+.aex-multi-model-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+}
+
+.aex-model-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e0e5ea;
+    border-radius: 8px;
+    background: #fff;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.aex-model-card:hover:not(.is-unavailable),
+.aex-model-card.is-selected {
+    border-color: #ff3157;
+    background: #fffafb;
+    box-shadow: 0 7px 24px rgba(239, 48, 77, 0.09);
+}
+
+.aex-model-card-main {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    min-height: 82px;
+    padding: 13px 14px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: right;
+    cursor: pointer;
+}
+
+.aex-model-card-main:disabled {
+    cursor: not-allowed;
+}
+
+.aex-model-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid #cbd3da;
+    border-radius: 50%;
+    background: #fff;
+    color: transparent;
+    font-size: 17px;
+    transition: all 0.18s ease;
+}
+
+.aex-model-card.is-selected .aex-model-check {
+    border-color: #ff284f;
+    background: #ff284f;
+    color: #fff;
+}
+
+.aex-model-card-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.aex-model-card-copy strong {
+    overflow: hidden;
+    color: #252b31;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.7;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aex-model-stock {
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.aex-model-stock.is-available {
+    color: #28a84b;
+}
+
+.aex-model-stock.is-empty {
+    color: #d43a4d;
+}
+
+.aex-model-price {
+    color: #ef304d;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.aex-model-price small {
+    margin-right: 3px;
+    color: #777f86;
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.aex-model-card.is-unavailable {
+    opacity: 0.58;
+    background: #f3f5f7;
+}
+
+.aex-model-card.is-unavailable::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8%;
+    width: 84%;
+    height: 1px;
+    background: #e84a5c;
+    transform: rotate(-7deg);
+    pointer-events: none;
+}
+
+.aex-model-quantity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px 13px;
+    border-top: 1px solid #f1d9df;
+    background: #fff4f6;
+}
+
+.aex-model-quantity[hidden] {
+    display: none !important;
+}
+
+.aex-model-quantity > span {
+    color: #555d65;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.aex-model-stepper {
+    display: grid;
+    grid-template-columns: 34px 54px 34px;
+    height: 35px;
+    overflow: hidden;
+    border: 1px solid #e1c7cd;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.aex-model-stepper button,
+.aex-model-stepper input {
+    min-width: 0;
+    height: 33px;
+    border: 0;
+    background: #fff;
+    color: #454b51;
+}
+
+.aex-model-stepper button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.aex-model-stepper button:hover {
+    color: #ff284f;
+    background: #fff0f3;
+}
+
+.aex-model-stepper input {
+    border-right: 1px solid #eee0e3;
+    border-left: 1px solid #eee0e3;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.aex-model-stepper input::-webkit-outer-spin-button,
+.aex-model-stepper input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.aex-variants-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 22px;
+    border-top: 1px solid #e8ecef;
+    background: #fff;
+}
+
+.aex-modal-selection-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #6f7780;
+    font-size: 11px;
+}
+
+.aex-modal-selection-summary strong {
+    color: #ef304d;
+    font-size: 13px;
+}
+
+.aex-apply-model-selection {
+    min-width: 160px;
+    min-height: 43px;
+    padding: 9px 20px;
+    border: 0;
+    border-radius: 7px;
+    background: #159cf0;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.aex-apply-model-selection:disabled {
+    background: #b9c4cc;
+    cursor: not-allowed;
+}
+
+@media (max-width: 991.98px) {
+    .aex-buy-card.aex-buy-card--price-only {
+        max-width: 520px;
+        min-height: 218px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .aex-buy-card.aex-buy-card--price-only {
+        padding: 22px 16px 17px;
+        border-radius: 9px;
+    }
+
+    .aex-buy-card--price-only .aex-final-price .price {
+        font-size: 25px;
+    }
+
+    .aex-variant-picker-summary {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .aex-variant-picker-icon {
+        display: none;
+    }
+
+    .aex-open-variants-modal {
+        padding-right: 11px;
+        padding-left: 11px;
+    }
+
+    .aex-variants-modal .modal-dialog {
+        width: calc(100% - 18px);
+        max-width: none;
+        margin: 9px auto;
+    }
+
+    .aex-variants-modal .modal-content {
+        max-height: calc(100vh - 18px);
+        border-radius: 11px;
+    }
+
+    .aex-variants-modal-header {
+        padding: 15px 15px 13px;
+    }
+
+    .aex-variants-modal-header .modal-title {
+        font-size: 15px;
+    }
+
+    .aex-variants-modal-header p {
+        padding-left: 22px;
+        font-size: 10px;
+    }
+
+    .aex-variants-modal-body {
+        max-height: calc(100vh - 215px);
+        padding: 12px 13px 15px;
+    }
+
+    .aex-variant-search-wrap {
+        top: -12px;
+        padding-top: 8px;
+        background: #f8fafc;
+    }
+
+    .aex-multi-model-grid {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    .aex-model-card-main {
+        grid-template-columns: 28px minmax(0, 1fr);
+        min-height: 75px;
+        padding: 11px 12px;
+    }
+
+    .aex-model-price {
+        grid-column: 2;
+        margin-top: -4px;
+        text-align: right;
+    }
+
+    .aex-model-quantity {
+        padding: 10px 12px;
+    }
+
+    .aex-variants-modal-footer {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+        padding: 11px 13px 13px;
+    }
+
+    .aex-modal-selection-summary {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .aex-apply-model-selection {
+        width: 100%;
+    }
+}
+
+/* Product variants modal — final clean layout */
+.aex-variants-modal .modal-dialog {
+    width: calc(100% - 32px);
+    max-width: 920px;
+    margin: 24px auto;
+}
+
+.aex-variants-modal .modal-content {
+    max-height: calc(100vh - 48px);
+    border: 0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(20, 35, 50, 0.22);
+}
+
+.aex-variants-modal-header {
+    direction: rtl;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.aex-variants-modal-header > div {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.aex-variants-modal-header .close {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    margin: 0;
+    padding: 0;
+    border-radius: 9px;
+    background: #f3f6f8;
+    color: #4d5963;
+    opacity: 1;
+    line-height: 36px;
+}
+
+.aex-variants-modal-body {
+    min-height: 0;
+    max-height: calc(100vh - 230px);
+    overflow-y: auto;
+}
+
+.aex-multi-model-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+
+.aex-model-card {
+    min-width: 0;
+}
+
+.aex-model-card-main {
+    min-width: 0;
+}
+
+.aex-model-card-copy strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.aex-model-quantity {
+    direction: rtl;
+}
+
+@media (max-width: 767.98px) {
+    .aex-variants-modal .modal-dialog {
+        width: calc(100% - 16px);
+        margin: 8px auto;
+    }
+
+    .aex-variants-modal .modal-content {
+        max-height: calc(100vh - 16px);
+        border-radius: 12px;
+    }
+
+    .aex-variants-modal-body {
+        max-height: calc(100vh - 222px);
+    }
+
+    .aex-multi-model-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/*
+ * Product model selector modal layer fix
+ * Keep the modal above the storefront header and center it in the real viewport.
+ */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+body.modal-open .ariya-site-header,
+body.modal-open .main-header {
+    margin-top: 0 !important;
+    top: 0 !important;
+}
+
+.aex-variants-modal.modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 5000 !important;
+    padding-right: 0 !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body.modal-open .modal-backdrop,
+.modal-backdrop.show {
+    z-index: 4990 !important;
+}
+
+.aex-variants-modal .modal-dialog,
+.aex-variants-modal .modal-dialog.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 32px);
+    max-width: 920px;
+    min-height: 100%;
+    margin: 0 auto !important;
+    padding: 24px 0;
+    transform: none !important;
+}
+
+.aex-variants-modal .modal-content {
+    width: 100%;
+    max-height: calc(100vh - 48px);
+    margin: 0;
+}
+
+@media (max-width: 767.98px) {
+    .aex-variants-modal .modal-dialog,
+    .aex-variants-modal .modal-dialog.modal-dialog-centered {
+        width: calc(100% - 16px);
+        min-height: 100%;
+        margin: 0 auto !important;
+        padding: 8px 0;
+    }
+
+    .aex-variants-modal .modal-content {
+        max-height: calc(100vh - 16px);
+    }
+}

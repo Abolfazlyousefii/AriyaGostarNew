@@ -58,6 +58,8 @@
             items.push({
                 priceId: String($card.data('price-id')),
                 price: Number($card.data('price') || 0),
+                // ARIYA_FRONT_PRICE_STRIKE_V1: only totals displayed, never checkout prices.
+                regularPrice: Number($card.data('regular-price') || $card.data('price') || 0),
                 stock: Number($card.data('stock') || 0),
                 name: String($card.data('name') || ''),
                 quantity: quantity,
@@ -73,11 +75,13 @@
         var count = items.length;
         var totalQuantity = 0;
         var totalPrice = 0;
+        var totalRegularPrice = 0;
         var names = [];
 
         items.forEach(function (item) {
             totalQuantity += item.quantity;
             totalPrice += item.price * item.quantity;
+            totalRegularPrice += item.regularPrice * item.quantity;
             names.push(item.name);
         });
 
@@ -95,7 +99,15 @@
 
         var $buyCard = $('.aex-buy-card--price-only');
         var defaultPrice = Number($buyCard.data('default-price') || 0);
-        $('#aex-main-price-value').text(formatNumber(count > 0 ? totalPrice : defaultPrice));
+        var defaultRegularPrice = Number($buyCard.data('default-regular-price') || defaultPrice);
+        var shownSalePrice = count > 0 ? totalPrice : defaultPrice;
+        var shownRegularPrice = count > 0 ? totalRegularPrice : defaultRegularPrice;
+        $('#aex-main-price-value').text(formatNumber(shownSalePrice));
+        var $originalPrice = $('#aex-main-original-price');
+        if ($originalPrice.length) {
+            $originalPrice.text(formatNumber(shownRegularPrice) + ' ' + ($originalPrice.attr('data-currency') || ''));
+            $originalPrice.toggle(shownRegularPrice > shownSalePrice);
+        }
 
         $('.aex-add-selected-to-cart').prop('disabled', count === 0);
         $('.aex-apply-model-selection').prop('disabled', count === 0);

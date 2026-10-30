@@ -4,6 +4,7 @@ namespace Themes\DefaultTheme\src\Requests;
 
 use App\Models\Gateway;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -46,4 +47,22 @@ class StoreOrderRequest extends FormRequest
 
         return $rules;
     }
+
+    public function withValidator(Validator $validator)
+{
+    $validator->after(function (Validator $validator) {
+
+        $cart = get_cart();
+
+        $minimumOrderAmount = (int) option('minimum_order_amount', 3000000);
+
+        if ($cart && $cart->discountPrice() < $minimumOrderAmount) {
+            $validator->errors()->add(
+                'cart',
+                'حداقل مبلغ سفارش ' . number_format($minimumOrderAmount) . ' تومان می باشد.'
+            );
+        }
+
+    });
+}
 }

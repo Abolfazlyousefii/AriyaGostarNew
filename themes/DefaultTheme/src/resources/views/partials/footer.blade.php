@@ -32,7 +32,10 @@
         return $index === 0 || $group['links']->isNotEmpty();
     })->values();
 
-    $footerLogo = option('ariya_footer_logo') ?: option('info_logo', theme_asset('img/logo.png'));
+    $footerLogo = media_url(
+    option('ariya_footer_logo') ?: option('info_logo'),
+    theme_asset('img/logo.png')
+);
     $siteTitle = option('info_site_title') ?: 'آریا جانبی';
     $footerBrandline = option('ariya_footer_brandline')
         ?: 'آریا جانبی؛ انتخاب مطمئن برای خرید لوازم جانبی موبایل با کیفیت و قیمت مناسب.';
@@ -82,613 +85,1098 @@
 
 <footer id="bgFooter" class="ariya-vue-like-footer ariya-combined-footer mt-5 mb-5 mb-md-0" dir="rtl" aria-label="فوتر سایت">
     <style>
-        .ariya-combined-footer,
-        .ariya-combined-footer * {
-            box-sizing: border-box;
+    /* ARIYA_FOOTER_LIGHT_V2 */
+
+    .ariya-combined-footer,
+    .ariya-combined-footer * {
+        box-sizing: border-box;
+    }
+
+    .ariya-combined-footer {
+        --af-primary: #118fd2;
+        --af-primary-dark: #0872b6;
+        --af-dark: #18344d;
+        --af-text: #607589;
+        --af-muted: #8aa0b1;
+        --af-border: #dfeaf1;
+        --af-soft: #f4f9fc;
+
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+
+        width: 100%;
+        margin: 38px 0 0 !important;
+        padding: 42px 0 18px;
+        clear: both;
+        overflow: hidden;
+
+        color: var(--af-text);
+
+        background:
+            radial-gradient(
+                circle at 10% 12%,
+                rgba(17,143,210,.10),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at 90% 82%,
+                rgba(17,143,210,.07),
+                transparent 25%
+            ),
+            linear-gradient(
+                180deg,
+                #f7fbfe 0%,
+                #eef6fb 100%
+            ) !important;
+
+        border-top: 1px solid #e1edf4;
+    }
+
+    .ariya-combined-footer::before {
+        content: "";
+        position: absolute;
+        top: -170px;
+        left: 50%;
+
+        width: 760px;
+        height: 330px;
+
+        transform: translateX(-50%);
+
+        pointer-events: none;
+
+        background:
+            radial-gradient(
+                ellipse at center,
+                rgba(16,145,211,.08),
+                transparent 70%
+            );
+    }
+
+    .ariya-combined-footer a {
+        text-decoration: none !important;
+    }
+
+    .ariya-combined-footer .af-container {
+        position: relative;
+        z-index: 2;
+
+        width: calc(100% - 36px);
+        max-width: 1400px;
+
+        margin: 0 auto;
+    }
+
+    /* Features */
+
+    .ariya-combined-footer .af-features {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+
+        gap: 12px;
+
+        margin: 0 0 16px;
+        padding: 0;
+
+        border: 0;
+        background: transparent;
+        overflow: visible;
+    }
+
+    .ariya-combined-footer .af-feature {
+        min-width: 0;
+        min-height: 92px;
+
+        display: flex;
+        align-items: center;
+
+        gap: 13px;
+
+        padding: 16px 17px;
+
+        border: 1px solid #dce9f1;
+        border-radius: 16px;
+
+        background:
+            linear-gradient(
+                145deg,
+                #ffffff,
+                #f7fbfd
+            );
+
+        box-shadow:
+            0 8px 24px rgba(36,77,107,.07);
+
+        transition:
+            transform .22s ease,
+            border-color .22s ease,
+            box-shadow .22s ease;
+    }
+
+    .ariya-combined-footer .af-feature:hover {
+        transform: translateY(-4px);
+
+        border-color: #b9dff1;
+
+        box-shadow:
+            0 15px 34px rgba(17,111,166,.12);
+    }
+
+    .ariya-combined-footer .af-feature-icon {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 14px;
+
+        color: #fff;
+
+        background:
+            linear-gradient(
+                145deg,
+                #25a8eb,
+                #0a79c1
+            );
+
+        box-shadow:
+            0 8px 18px rgba(9,126,196,.22);
+    }
+
+    .ariya-combined-footer .af-feature-icon svg,
+    .ariya-combined-footer .af-icon svg,
+    .ariya-combined-footer .af-social svg,
+    .ariya-combined-footer .af-summary svg {
+        width: 21px;
+        height: 21px;
+
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .ariya-combined-footer .af-feature h3 {
+        margin: 0 0 4px;
+
+        color: #17344d;
+
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.7;
+    }
+
+    .ariya-combined-footer .af-feature p {
+        margin: 0;
+
+        color: #8498a8;
+
+        font-size: 10.5px;
+        line-height: 1.7;
+    }
+
+    /* Main panel */
+
+    .ariya-combined-footer .af-panel {
+        overflow: hidden;
+
+        border: 1px solid #dbe8ef;
+        border-radius: 22px;
+
+        color: var(--af-text) !important;
+
+        background: #fff !important;
+
+        box-shadow:
+            0 18px 55px rgba(46,86,113,.10);
+    }
+
+    .ariya-combined-footer .af-panel.text-dark {
+        color: var(--af-text) !important;
+    }
+
+    /* Brand */
+
+    .ariya-combined-footer .af-brandbar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 14px 22px;
+
+        padding: 22px 24px;
+
+        border-bottom: 1px solid #e4edf3;
+
+        background:
+            linear-gradient(
+                90deg,
+                #f3f9fc,
+                #ffffff
+            );
+    }
+
+    .ariya-combined-footer .af-logo {
+        flex: 0 0 auto;
+
+        display: inline-flex;
+        align-items: center;
+
+        padding: 9px 13px;
+
+        border: 1px solid #d8e5ed;
+        border-radius: 13px;
+
+        background: #fff;
+
+        box-shadow:
+            0 6px 18px rgba(56,91,117,.08);
+    }
+
+    .ariya-combined-footer .af-logo img {
+        display: block;
+
+        width: auto;
+        max-width: 125px;
+
+        height: auto;
+        max-height: 48px;
+
+        object-fit: contain;
+    }
+
+    .ariya-combined-footer .af-brandline {
+        flex: 1 1 360px;
+        min-width: 0;
+
+        margin: 0;
+
+        color: #607589;
+
+        font-size: 12px;
+        line-height: 1.95;
+    }
+
+    /* Social */
+
+    .ariya-combined-footer .af-socials {
+        flex: 0 1 auto;
+
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 7px;
+    }
+
+    .ariya-combined-footer .af-social {
+        height: 37px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 6px;
+
+        padding: 0 11px;
+
+        border: 1px solid #dce8ef;
+        border-radius: 10px;
+
+        color: #567287;
+
+        background: #fff;
+
+        font-size: 10.5px;
+
+        transition:
+            color .2s ease,
+            border-color .2s ease,
+            background .2s ease,
+            transform .2s ease;
+    }
+
+    .ariya-combined-footer .af-social svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .ariya-combined-footer .af-social:hover {
+        color: #fff;
+
+        border-color: var(--af-primary);
+
+        background:
+            linear-gradient(
+                135deg,
+                #1ba1e4,
+                #0878bd
+            );
+
+        transform: translateY(-2px);
+    }
+
+    /* Main */
+
+    .ariya-combined-footer .af-main {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+
+        gap: 28px 32px;
+
+        padding: 30px 25px 26px;
+    }
+
+    .ariya-combined-footer .af-about {
+        flex: 2.15 1 390px;
+        min-width: 280px;
+    }
+
+    .ariya-combined-footer .af-title {
+        position: relative;
+
+        display: inline-block;
+
+        margin: 0 0 4px;
+        padding-bottom: 8px;
+
+        color: #17344d;
+
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.8;
+    }
+
+    .ariya-combined-footer .af-title::after {
+        content: "";
+
+        position: absolute;
+        right: 0;
+        bottom: 0;
+
+        width: 30px;
+        height: 2px;
+
+        border-radius: 999px;
+
+        background:
+            linear-gradient(
+                90deg,
+                #149ee3,
+                #a9d8ee
+            );
+    }
+
+    .ariya-combined-footer .af-about-text {
+        margin-top: 8px;
+
+        color: #607589;
+
+        font-size: 11.5px;
+        line-height: 2.05;
+    }
+
+    .ariya-combined-footer .af-about-text p {
+        margin-bottom: 7px;
+    }
+
+    .ariya-combined-footer .af-about-text p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Tags */
+
+    .ariya-combined-footer .af-tags {
+        display: flex;
+        flex-wrap: wrap;
+
+        gap: 6px;
+
+        margin-top: 13px;
+    }
+
+    .ariya-combined-footer .af-tags span {
+        min-height: 28px;
+
+        display: inline-flex;
+        align-items: center;
+
+        padding: 0 9px;
+
+        border: 1px solid #dbe9f1;
+        border-radius: 8px;
+
+        color: #5d788c;
+
+        background: #f4f9fc;
+
+        font-size: 9.5px;
+    }
+
+    /* Address */
+
+    .ariya-combined-footer .af-address-simple {
+        position: relative;
+
+        display: block;
+
+        margin-top: 15px;
+        padding: 11px 13px 11px 38px;
+
+        border: 1px solid #dce9f1;
+        border-radius: 10px;
+
+        color: #38546b;
+
+        background: #f7fbfd;
+
+        font-size: 10px;
+        font-weight: 400;
+        line-height: 1.9;
+
+        overflow-wrap: anywhere;
+
+        transition:
+            background .2s ease,
+            border-color .2s ease;
+    }
+
+    .ariya-combined-footer .af-address-simple::before {
+        content: "⌖";
+
+        position: absolute;
+        left: 13px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        color: #159fe3;
+
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .ariya-combined-footer a.af-address-simple:hover {
+        color: #0874b9;
+
+        border-color: #b8deef;
+
+        background: #eef8fc;
+    }
+
+    /* Links */
+
+    .ariya-combined-footer .af-links {
+        display: contents;
+    }
+
+    .ariya-combined-footer .af-link-group {
+        flex: 1 1 130px;
+        min-width: 120px;
+    }
+
+    .ariya-combined-footer .af-link-group > :not(summary) {
+        display: block !important;
+    }
+
+    .ariya-combined-footer .af-summary {
+        width: 100%;
+        min-height: 31px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 7px;
+
+        list-style: none;
+
+        color: #17344d;
+
+        cursor: default;
+    }
+
+    .ariya-combined-footer .af-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .ariya-combined-footer .af-summary svg {
+        display: none;
+    }
+
+    .ariya-combined-footer .af-link-list {
+        margin: 9px 0 0;
+        padding: 0;
+
+        list-style: none;
+    }
+
+    .ariya-combined-footer .af-link-list li + li {
+        margin-top: 5px;
+    }
+
+    .ariya-combined-footer .af-link-list a {
+        position: relative;
+
+        display: inline-flex;
+        align-items: center;
+
+        padding-right: 12px;
+
+        color: #6b8193;
+
+        font-size: 10.5px;
+        line-height: 1.8;
+
+        transition:
+            color .18s ease,
+            transform .18s ease;
+    }
+
+    .ariya-combined-footer .af-link-list a::before {
+        content: "";
+
+        position: absolute;
+        right: 0;
+
+        width: 4px;
+        height: 4px;
+
+        border-radius: 50%;
+
+        background: #1a9fe1;
+    }
+
+    .ariya-combined-footer .af-link-list a:hover {
+        color: #0876ba;
+
+        transform: translateX(-3px);
+    }
+
+    .ariya-combined-footer .af-empty {
+        margin: 8px 0 0;
+
+        color: #9aacb9;
+
+        font-size: 9px;
+        line-height: 1.75;
+    }
+
+    /* Contact / license */
+
+    .ariya-combined-footer .af-license-wrap {
+        flex: 0 1 250px;
+        min-width: 215px;
+    }
+
+    .ariya-combined-footer .af-license {
+        width: 100%;
+
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+
+        gap: 10px;
+
+        padding: 13px;
+
+        border: 1px solid #dce9f1;
+        border-radius: 14px;
+
+        text-align: right;
+
+        background:
+            linear-gradient(
+                145deg,
+                #f9fcfe,
+                #f2f8fb
+            );
+    }
+
+    .ariya-combined-footer .af-license-contact {
+        width: 100%;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 5px;
+
+        margin: 0;
+        padding: 0 0 10px;
+
+        border-bottom: 1px solid #e1ebf1;
+    }
+
+    .ariya-combined-footer .af-license-contact-row {
+        min-width: 0;
+        min-height: 34px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 8px;
+
+        padding: 5px 8px;
+
+        border: 1px solid transparent;
+        border-radius: 8px;
+
+        color: #718798;
+
+        font-size: 9px;
+        line-height: 1.65;
+
+        background: #fff;
+
+        transition:
+            background .18s ease,
+            border-color .18s ease;
+    }
+
+    .ariya-combined-footer .af-license-contact-row:hover {
+        border-color: #cae4f1;
+
+        background: #f1f9fd;
+    }
+
+    .ariya-combined-footer .af-license-contact-row span {
+        flex: 0 0 auto;
+
+        color: #8ea0ae;
+
+        font-size: 8px;
+    }
+
+    .ariya-combined-footer .af-license-contact-row strong {
+        min-width: 0;
+
+        color: #314e65;
+
+        font-size: 9px;
+        font-weight: 500;
+        text-align: left;
+
+        overflow-wrap: anywhere;
+    }
+
+    .ariya-combined-footer a.af-license-contact-row:hover strong {
+        color: #0876ba;
+    }
+
+    /* License logos */
+
+    .ariya-combined-footer .af-license-items {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+
+        gap: 8px;
+    }
+
+    .ariya-combined-footer .af-license-item {
+        width: 76px;
+        min-height: 78px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 7px;
+
+        border: 1px solid #d8e6ee;
+        border-radius: 11px;
+
+        background: #fff;
+
+        box-shadow:
+            0 7px 18px rgba(48,83,108,.08);
+
+        transition:
+            transform .2s ease,
+            box-shadow .2s ease;
+    }
+
+    .ariya-combined-footer .af-license-item:hover {
+        transform: translateY(-3px);
+
+        box-shadow:
+            0 12px 24px rgba(35,89,126,.12);
+    }
+
+    .ariya-combined-footer .af-license-item img,
+    .ariya-combined-footer .af-license-item iframe {
+        display: block;
+
+        width: auto !important;
+        max-width: 63px !important;
+
+        height: auto !important;
+        max-height: 65px !important;
+
+        object-fit: contain;
+    }
+
+    .ariya-combined-footer .af-license-empty {
+        color: #98aab7;
+
+        font-size: 9px;
+        line-height: 1.7;
+    }
+
+    /* Bottom */
+
+    .ariya-combined-footer .af-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+
+        gap: 7px 16px;
+
+        padding: 13px 24px;
+
+        border-top: 1px solid #e3edf3;
+
+        color: #8395a3;
+
+        background: #f7fafc;
+
+        font-size: 9.5px;
+        line-height: 1.8;
+    }
+
+    .ariya-combined-footer .af-bottom p,
+    .ariya-combined-footer .af-bottom span {
+        margin: 0;
+    }
+
+    .ariya-combined-footer .af-bottom a {
+        color: #128fd1;
+    }
+
+    @media (max-width: 1050px) {
+
+        .ariya-combined-footer .af-features {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+
+        .ariya-combined-footer .af-about {
+            flex-basis: 100%;
+        }
+
+        .ariya-combined-footer .af-license-wrap {
+            flex-basis: 260px;
+        }
+    }
+
+    @media (max-width: 767px) {
 
         .ariya-combined-footer {
-            --af-primary: #0a8acb;
-            --af-dark: #22364b;
-            --af-text: #667788;
-            --af-border: #e8edf2;
-            --af-soft: #f7fafc;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            width: 100%;
-            margin: 28px 0 0 !important;
-            padding: 0 0 12px;
-            clear: both;
-            color: var(--af-dark);
-            background: transparent !important;
+            margin-top: 28px !important;
+            padding-top: 25px;
+            padding-bottom: 86px;
         }
 
-        .ariya-combined-footer a {
-            text-decoration: none;
-        }
-
-        /* هم‌اندازه با کانتینر اصلی سکشن‌های سایت */
         .ariya-combined-footer .af-container {
-            width: calc(100% - 30px);
-            max-width: 1400px;
-            margin: 0 auto;
+            width: calc(100% - 16px);
         }
 
         .ariya-combined-footer .af-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0;
-            margin-bottom: 10px;
-            border: 1px solid var(--af-border);
-            border-radius: 10px;
-            overflow: hidden;
-            background: #fff;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+            margin-bottom: 9px;
         }
 
         .ariya-combined-footer .af-feature {
-            flex: 1 1 220px;
-            min-width: 0;
-            min-height: 58px;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            padding: 9px 12px;
-            background: #fff;
-            border-left: 1px solid var(--af-border);
+            min-height: 76px;
+
+            gap: 8px;
+
+            padding: 10px;
+
+            border-radius: 12px;
         }
 
-        .ariya-combined-footer .af-feature:last-child {
-            border-left: 0;
+        .ariya-combined-footer .af-feature:hover {
+            transform: none;
         }
 
         .ariya-combined-footer .af-feature-icon {
-            width: 32px;
-            height: 32px;
-            flex: 0 0 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            color: var(--af-primary);
-            background: #eef8fc;
+            width: 37px;
+            height: 37px;
+            flex-basis: 37px;
+
+            border-radius: 10px;
         }
 
-        .ariya-combined-footer .af-feature-icon svg,
-        .ariya-combined-footer .af-icon svg,
-        .ariya-combined-footer .af-social svg,
-        .ariya-combined-footer .af-summary svg {
-            width: 17px;
-            height: 17px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 1.8;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        .ariya-combined-footer .af-feature-icon svg {
+            width: 18px;
+            height: 18px;
         }
 
         .ariya-combined-footer .af-feature h3 {
-            margin: 0 0 1px;
-            color: var(--af-dark);
-            font-size: 12px;
-            font-weight: 600;
-            line-height: 1.65;
+            font-size: 10.5px;
         }
 
         .ariya-combined-footer .af-feature p {
-            margin: 0;
-            color: #8a97a4;
-            font-size: 9.5px;
-            line-height: 1.55;
+            font-size: 8.2px;
         }
 
         .ariya-combined-footer .af-panel {
-            border: 1px solid var(--af-border);
-            border-radius: 10px;
-            overflow: hidden;
-            background: #fff !important;
-            box-shadow: none;
+            border-radius: 16px;
         }
 
         .ariya-combined-footer .af-brandbar {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px 18px;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--af-border);
+            gap: 10px;
+            padding: 14px 12px;
         }
 
         .ariya-combined-footer .af-logo {
-            flex: 0 0 auto;
-            display: inline-flex;
-            align-items: center;
+            padding: 7px 10px;
         }
 
         .ariya-combined-footer .af-logo img {
-            display: block;
-            width: auto;
-            max-width: 118px;
-            height: auto;
-            max-height: 46px;
-            object-fit: contain;
+            max-width: 96px;
+            max-height: 38px;
         }
 
         .ariya-combined-footer .af-brandline {
-            flex: 1 1 360px;
-            min-width: 0;
-            margin: 0;
-            color: var(--af-text);
-            font-size: 11.5px;
+            flex-basis: calc(100% - 120px);
+
+            font-size: 9.5px;
             line-height: 1.8;
         }
 
         .ariya-combined-footer .af-socials {
-            flex: 0 1 auto;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
+            flex-basis: 100%;
         }
 
         .ariya-combined-footer .af-social {
-            height: 31px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            padding: 0 8px;
-            border: 1px solid var(--af-border);
-            border-radius: 7px;
-            color: #637487;
-            background: #fff;
-            font-size: 10.5px;
-            transition: .18s ease;
-        }
+            height: 32px;
 
-        .ariya-combined-footer .af-social:hover {
-            color: var(--af-primary);
-            border-color: #c8e3ee;
-            background: #f6fcfe;
+            padding: 0 9px;
+
+            font-size: 9px;
         }
 
         .ariya-combined-footer .af-main {
-            display: flex;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 18px 24px;
-            padding: 18px 16px;
+            display: grid;
+            grid-template-columns: 1fr;
+
+            gap: 13px;
+
+            padding: 18px 12px;
         }
 
         .ariya-combined-footer .af-about {
-            flex: 2 1 390px;
-            min-width: 280px;
+            min-width: 0;
         }
 
         .ariya-combined-footer .af-title {
-            margin: 0;
-            color: var(--af-dark);
-            font-size: 12.5px;
-            font-weight: 650;
-            line-height: 1.8;
+            font-size: 11.5px;
         }
 
         .ariya-combined-footer .af-about-text {
-            margin-top: 6px;
-            color: var(--af-text);
-            font-size: 11px;
-            line-height: 1.9;
+            font-size: 10px;
         }
 
-        .ariya-combined-footer .af-about-text p {
-            margin-bottom: 5px;
-        }
-
-        .ariya-combined-footer .af-about-text p:last-child {
-            margin-bottom: 0;
-        }
-
-        .ariya-combined-footer .af-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 8px;
-        }
-
-        .ariya-combined-footer .af-tags span {
-            min-height: 23px;
-            display: inline-flex;
-            align-items: center;
-            padding: 0 7px;
-            border-radius: 6px;
-            color: #65788a;
-            background: var(--af-soft);
-            font-size: 9.5px;
-        }
-
-        .ariya-combined-footer .af-address-simple {
-            display: block;
-            margin-top: 9px;
-            color: #111827;
-            font-size: 9.5px;
-            font-weight: 400;
-            line-height: 1.85;
-            overflow-wrap: anywhere;
-        }
-
-        .ariya-combined-footer a.af-address-simple:hover {
-            color: var(--af-primary);
-        }
-
-        /* لینک‌ها در دسکتاپ مستقیماً داخل فلکس اصلی قرار می‌گیرند. */
         .ariya-combined-footer .af-links {
-            display: contents;
+            display: flex;
+            flex-direction: column;
+
+            gap: 7px;
+
+            min-width: 0;
         }
 
         .ariya-combined-footer .af-link-group {
-            flex: 1 1 125px;
-            min-width: 110px;
+            width: 100%;
+            min-width: 0;
+
+            border: 1px solid #dce9f1;
+            border-radius: 10px;
+
+            overflow: hidden;
+
+            background: #f9fcfe;
         }
 
         .ariya-combined-footer .af-link-group > :not(summary) {
+            display: none !important;
+        }
+
+        .ariya-combined-footer .af-link-group[open] > :not(summary) {
             display: block !important;
         }
 
         .ariya-combined-footer .af-summary {
-            width: 100%;
-            min-height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 7px;
-            list-style: none;
-            color: var(--af-dark);
-            cursor: default;
+            min-height: 43px;
+
+            padding: 0 11px;
+
+            cursor: pointer;
         }
 
-        .ariya-combined-footer .af-summary::-webkit-details-marker {
+        .ariya-combined-footer .af-summary .af-title {
+            margin: 0;
+            padding: 0;
+        }
+
+        .ariya-combined-footer .af-summary .af-title::after {
             display: none;
         }
 
         .ariya-combined-footer .af-summary svg {
-            display: none;
+            display: block;
+
+            width: 15px;
+            height: 15px;
+
+            color: #4da3d4;
+
+            transition: transform .18s ease;
         }
 
-        .ariya-combined-footer .af-link-list {
-            margin: 5px 0 0;
-            padding: 0;
-            list-style: none;
+        .ariya-combined-footer details[open] .af-summary svg {
+            transform: rotate(180deg);
         }
 
-        .ariya-combined-footer .af-link-list li + li {
-            margin-top: 3px;
-        }
-
-        .ariya-combined-footer .af-link-list a {
-            display: inline-block;
-            color: #728090;
-            font-size: 10.5px;
-            line-height: 1.7;
-            transition: .18s ease;
-        }
-
-        .ariya-combined-footer .af-link-list a:hover {
-            color: var(--af-primary);
-            transform: translateX(-1px);
-        }
-
+        .ariya-combined-footer .af-link-list,
         .ariya-combined-footer .af-empty {
-            margin: 5px 0 0;
-            color: #a1aab3;
-            font-size: 9px;
-            line-height: 1.65;
+            margin: 0;
+
+            padding: 8px 12px 11px;
+
+            border-top: 1px solid #e3edf3;
         }
 
         .ariya-combined-footer .af-license-wrap {
-            flex: 0 1 230px;
-            min-width: 190px;
+            width: 100%;
+            min-width: 0;
         }
 
         .ariya-combined-footer .af-license {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: flex-start;
-            gap: 7px;
-            padding: 0;
-            border: 0;
-            border-radius: 0;
-            text-align: right;
-            background: transparent;
-        }
+            padding: 10px;
 
-        .ariya-combined-footer .af-license-subtitle {
-            margin: 0;
-            color: #a2abb4;
-            font-size: 7px;
-            letter-spacing: .8px;
-        }
-
-        .ariya-combined-footer .af-license-items {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .ariya-combined-footer .af-license-item {
-            width: 64px;
-            min-height: 66px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border: 1px solid var(--af-border);
-            border-radius: 7px;
-            background: #fff;
-        }
-
-        .ariya-combined-footer .af-license-item img,
-        .ariya-combined-footer .af-license-item iframe {
-            display: block;
-            width: auto !important;
-            max-width: 56px !important;
-            height: auto !important;
-            max-height: 58px !important;
-            object-fit: contain;
-        }
-
-        .ariya-combined-footer .af-license-empty {
-            color: #a1aab3;
-            font-size: 9px;
-            line-height: 1.65;
-        }
-
-        .ariya-combined-footer .af-license-contact {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 3px;
-            margin: 0 0 7px;
-            padding: 0 0 7px;
-            border-bottom: 1px solid #eef2f5;
-        }
-
-        .ariya-combined-footer .af-license-contact-row {
-            min-width: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 2px 0;
-            color: #58697a;
-            font-size: 9px;
-            line-height: 1.65;
-        }
-
-        .ariya-combined-footer .af-license-contact-row span {
-            flex: 0 0 auto;
-            color: #909ba6;
-            font-size: 8px;
-        }
-
-        .ariya-combined-footer .af-license-contact-row strong {
-            min-width: 0;
-            color: #263746;
-            font-size: 9px;
-            font-weight: 500;
-            text-align: left;
-            overflow-wrap: anywhere;
-        }
-
-        .ariya-combined-footer a.af-license-contact-row:hover strong {
-            color: var(--af-primary);
+            border-radius: 11px;
         }
 
         .ariya-combined-footer .af-bottom {
+            justify-content: center;
+
+            padding: 11px 10px;
+
+            text-align: center;
+
+            font-size: 8.5px;
+        }
+    }
+
+    @media (max-width: 430px) {
+
+        .ariya-combined-footer .af-features {
+            grid-template-columns: 1fr;
+        }
+
+        .ariya-combined-footer .af-feature {
+            min-height: 67px;
+        }
+
+        .ariya-combined-footer .af-brandline {
+            flex-basis: 100%;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .ariya-combined-footer *,
+        .ariya-combined-footer *::before,
+        .ariya-combined-footer *::after {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+
+    /* ARIYA_FOOTER_MATCH_SITE_BG_V3 */
+
+    /*
+     * خود فوتر رنگ جداگانه ندارد؛
+     * رنگ پس‌زمینه اصلی سایت از زیر آن دیده می‌شود.
+     */
+    .ariya-combined-footer {
+        background: transparent !important;
+        border-top: 0 !important;
+    }
+
+    /*
+     * حذف هاله آبی بزرگ پس‌زمینه
+     */
+    .ariya-combined-footer::before {
+        display: none !important;
+        content: none !important;
+        background: none !important;
+    }
+
+        /* ARIYA_FOOTER_ADDRESS_CLEAN_V1 */
+
+        .ariya-combined-footer .af-address-clean {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 5px 14px;
-            padding: 8px 16px;
-            border-top: 1px solid var(--af-border);
-            color: #8a96a2;
-            font-size: 9.5px;
-            line-height: 1.7;
+            align-items: flex-start;
+            gap: 7px;
+
+            margin-top: 14px;
+
+            padding: 0 !important;
+
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+
+            font-size: 10px;
+            line-height: 1.9;
         }
 
-        .ariya-combined-footer .af-bottom p,
-        .ariya-combined-footer .af-bottom span {
-            margin: 0;
+        .ariya-combined-footer .af-address-clean > i {
+            flex: 0 0 auto;
+
+            margin-top: 2px;
+
+            color: #159fe3;
+
+            font-size: 17px;
+            line-height: 1.5;
         }
 
-        .ariya-combined-footer .af-bottom a {
-            color: var(--af-primary);
+        .ariya-combined-footer .af-address-clean a,
+        .ariya-combined-footer .af-address-clean span {
+            display: inline;
+
+            margin: 0 !important;
+            padding: 0 !important;
+
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
         }
 
-        @media (max-width: 900px) {
-            .ariya-combined-footer .af-feature {
-                flex-basis: 50%;
-            }
-
-            .ariya-combined-footer .af-feature:nth-child(2) {
-                border-left: 0;
-            }
-
-            .ariya-combined-footer .af-feature:nth-child(-n+2) {
-                border-bottom: 1px solid var(--af-border);
-            }
-
-            .ariya-combined-footer .af-about {
-                flex-basis: 100%;
-            }
+        .ariya-combined-footer .af-address-clean a {
+            color: #0787d5;
+            text-decoration: none !important;
         }
 
-        @media (max-width: 767px) {
-            .ariya-combined-footer {
-                margin-top: 22px !important;
-                padding-bottom: 76px;
-            }
-
-            .ariya-combined-footer .af-container {
-                width: calc(100% - 16px);
-            }
-
-            .ariya-combined-footer .af-feature {
-                flex: 1 1 50%;
-                min-height: 53px;
-                padding: 8px;
-            }
-
-            .ariya-combined-footer .af-feature-icon {
-                width: 29px;
-                height: 29px;
-                flex-basis: 29px;
-            }
-
-            .ariya-combined-footer .af-feature h3 {
-                font-size: 10.5px;
-            }
-
-            .ariya-combined-footer .af-feature p {
-                font-size: 8.3px;
-            }
-
-            .ariya-combined-footer .af-brandbar {
-                gap: 8px 12px;
-                padding: 11px 12px;
-            }
-
-            .ariya-combined-footer .af-logo img {
-                max-width: 95px;
-                max-height: 39px;
-            }
-
-            .ariya-combined-footer .af-brandline {
-                flex-basis: calc(100% - 115px);
-                font-size: 10px;
-            }
-
-            .ariya-combined-footer .af-socials {
-                flex-basis: 100%;
-            }
-
-            .ariya-combined-footer .af-social {
-                height: 29px;
-                font-size: 9.5px;
-            }
-
-            .ariya-combined-footer .af-main {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                align-items: start;
-                gap: 8px;
-                padding: 14px 12px;
-            }
-
-            .ariya-combined-footer .af-about {
-                grid-column: 1 / -1;
-                min-width: 0;
-            }
-
-            .ariya-combined-footer .af-links {
-                min-width: 0;
-                display: flex;
-                flex-direction: column;
-                flex-wrap: nowrap;
-                gap: 6px;
-            }
-
-            .ariya-combined-footer .af-link-group {
-                flex: 0 0 auto;
-                width: 100%;
-                min-width: 0;
-                border: 1px solid var(--af-border);
-                border-radius: 7px;
-                overflow: hidden;
-                background: #fff;
-            }
-
-            .ariya-combined-footer .af-link-group > :not(summary) {
-                display: none !important;
-            }
-
-            .ariya-combined-footer .af-link-group[open] > :not(summary) {
-                display: block !important;
-            }
-
-            .ariya-combined-footer .af-summary {
-                min-height: 38px;
-                padding: 0 9px;
-                cursor: pointer;
-            }
-
-            .ariya-combined-footer .af-summary svg {
-                display: block;
-                width: 14px;
-                height: 14px;
-                transition: transform .18s ease;
-            }
-
-            .ariya-combined-footer details[open] .af-summary svg {
-                transform: rotate(180deg);
-            }
-
-            .ariya-combined-footer .af-link-list,
-            .ariya-combined-footer .af-empty {
-                margin: 0;
-                padding: 5px 10px 9px;
-                border-top: 1px solid #f0f3f5;
-            }
-
-            .ariya-combined-footer .af-license-wrap {
-                width: 100%;
-                min-width: 0;
-            }
-
-            .ariya-combined-footer .af-license {
-                width: 100%;
-                padding: 9px;
-                border: 1px solid var(--af-border);
-                border-radius: 7px;
-            }
-
-            .ariya-combined-footer .af-license-contact-row {
-                gap: 4px;
-                font-size: 8.2px;
-            }
-
-            .ariya-combined-footer .af-license-contact-row span {
-                font-size: 7.5px;
-            }
-
-            .ariya-combined-footer .af-license-contact-row strong {
-                font-size: 8px;
-                line-height: 1.45;
-            }
-
-            .ariya-combined-footer .af-bottom {
-                justify-content: center;
-                padding: 8px 10px;
-                text-align: center;
-            }
+        .ariya-combined-footer .af-address-clean a:hover {
+            color: #056eaf;
         }
-
-        @media (max-width: 440px) {
-            .ariya-combined-footer .af-feature {
-                flex-basis: 100%;
-                border-left: 0;
-                border-bottom: 1px solid var(--af-border);
-            }
-
-            .ariya-combined-footer .af-feature:last-child {
-                border-bottom: 0;
-            }
-
-        }
-    </style>
+</style>
 
     <div class="af-container">
         <section class="af-features" aria-label="مزیت‌های فروشگاه">
@@ -755,15 +1243,20 @@
                         <span>ارسال سراسری</span>
                         <span>پشتیبانی خرید</span>
                     </div>
-
                     @if($footerAddress)
-                        @if($addressLink)
-                            <a class="af-address-simple" href="{{ $addressLink }}" target="_blank" rel="noopener">
-                                {!! $footerAddress !!}
-                            </a>
-                        @else
-                            <div class="af-address-simple">{!! $footerAddress !!}</div>
-                        @endif
+                        <div class="af-address-clean">
+                            <i class="mdi mdi-map-marker-outline" aria-hidden="true"></i>
+
+                            @if($addressLink)
+                                <a href="{{ $addressLink }}" target="_blank" rel="noopener">
+                                    {{ trim(strip_tags((string) $footerAddress)) }}
+                                </a>
+                            @else
+                                <span>
+                                    {{ trim(strip_tags((string) $footerAddress)) }}
+                                </span>
+                            @endif
+                        </div>
                     @endif
                 </section>
 
