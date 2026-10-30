@@ -2,16 +2,11 @@
 /vendor/
 /php_error.log
 *.zip
-*.txt
 .env
 *.diff
 *.bat
 *.log
 .idea
-*.sql
-*.sql
-*.sql
-*.sql
 /public/error_log
 
 # Local configuration, generated Laravel files and review artifacts.
@@ -63,3 +58,14 @@ error_log
 /public/ariya-laravel/
 
 *.repaired
+
+# Runtime uploads and machine-specific deployment artifacts.
+/public/uploads/
+/public/upload/
+/public/landing-preview/
+/storage/installed
+/.codex/
+/backup-db.bat
+/*.sql
+*.sql.gz
+*.sql.zip
