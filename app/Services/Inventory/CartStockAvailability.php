@@ -53,6 +53,7 @@ final class CartStockAvailability
         if (!$physical) return ['status' => true, 'errors' => [], 'lines' => [], 'stale_count' => 0];
         try {
             $db = DB::connection('inv');
+            $countedProducts = (new InventoryCountAvailability())->blockedProductIds(array_column($physical, 'product_id'));
             // Match DirectInventoryStockHold::centralWarehouse, including its exact warehouse selection.
             $warehouse = $db->table('warehouses')->where('type', 'central')->where('name', 'انبار مرکزی')->value('id');
             if (!$warehouse) throw new \RuntimeException('Central warehouse missing');
@@ -88,6 +89,12 @@ final class CartStockAvailability
                     }
                 }
                 $results[$id] = CartStockRules::evaluate($line, $available, (bool) $sellable, (bool) $mapped);
+                if ($mapped && in_array((int) $line['product_id'], $countedProducts, true)) {
+                    $results[$id] = array_replace($results[$id], [
+                        'status' => false, 'code' => 'stocktake',
+                        'message' => InventoryCountAvailability::message($results[$id]['label']),
+                    ]);
+                }
             }
             $errors = array_column(array_filter($results, fn ($r) => !$r['status']), 'message');
             return ['status' => $errors === [], 'errors' => array_values($errors), 'lines' => $results, 'stale_count' => 0];

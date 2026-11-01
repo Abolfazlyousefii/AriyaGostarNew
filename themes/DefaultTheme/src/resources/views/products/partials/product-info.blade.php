@@ -145,6 +145,10 @@ $isVariableProduct = $variantPrices->count() > 1;
                     data-default-price="{{ auth()->check() && $defaultDisplayPrice ? $defaultDisplayPrice->salePrice() : 0 }}"
                     data-default-regular-price="{{ auth()->check() && $defaultDisplayPrice ? $defaultDisplayPrice->regularPrice() : 0 }}"
                 >
+                    @if ($stocktakeReview['blocked'] ?? false)
+                        <div class="alert alert-warning" id="product-stocktake-notice" role="alert">{{ $stocktakeReview['message'] }}</div>
+                        <button type="button" class="aex-add-to-cart" disabled>خرید موقتاً متوقف است</button>
+                    @else
                     @auth
                         <div id="stock-preflight-feedback" data-action="{{ route('front.cart.availability', ['product' => $product]) }}" class="alert d-none" role="status" aria-live="polite" style="white-space:pre-line"></div>
                         @if ($automaticBundleOrderBlocked)
@@ -239,6 +243,7 @@ $isVariableProduct = $variantPrices->count() > 1;
                             مشاهده قیمت پس از ورود
                         </a>
                     @endauth
+                    @endif
                 </div>
             </aside>
         </div>

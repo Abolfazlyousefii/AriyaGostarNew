@@ -377,6 +377,8 @@ class ProductController extends Controller
 
         $product->increaseViewCount();
 
+        $stocktakeReview = $this->stocktakeReview($product);
+
         return view('front::products.show', compact(
             'product',
             'related_products',
@@ -386,6 +388,7 @@ class ProductController extends Controller
             'variant_prices',
             'show_prices_chart',
             'reviews',
+            'stocktakeReview',
         ));
     }
 
@@ -500,12 +503,21 @@ class ProductController extends Controller
             ->orderBy('id')
             ->get();
 
+        $stocktakeReview = $this->stocktakeReview($product);
         return view('front::products.partials.product-info', compact(
             'product',
             'selected_price',
             'variant_prices',
-            'attributeGroups'
+            'attributeGroups',
+            'stocktakeReview'
         ));
+    }
+
+    private function stocktakeReview(Product $product): array
+    {
+        return $product->isPhysical()
+            ? app(\App\Services\Inventory\InventoryCountAvailability::class)->forProduct((int) $product->id, (string) $product->title)
+            : ['blocked' => false, 'message' => null];
     }
 
     public function compare($product1, $product2 = null, $product3 = null)
