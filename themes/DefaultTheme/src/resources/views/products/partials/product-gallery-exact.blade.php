@@ -43,3 +43,91 @@
 		<img src="{{ $product->imageUrl('/no-image-product.png') }}" alt="{{ $product->title }}">
 	</div>
 @endif
+
+{{-- ARIYA_PRODUCT_GALLERY_FANCYBOX_ARROWS_V2 --}}
+@push('scripts')
+<script>
+// ARIYA_PRODUCT_GALLERY_FANCYBOX_ARROWS_V2
+// Run only for the dedicated product gallery's large-image link.
+// fancyBox v3 already exists on product pages; no other library is added.
+(function () {
+    'use strict';
+
+    document.addEventListener('click', function (event) {
+        if (event.defaultPrevented || event.button !== 0 ||
+                event.ctrlKey || event.metaKey || event.shiftKey || event.altKey ||
+                !event.target || typeof event.target.closest !== 'function') {
+            return;
+        }
+
+        var trigger = event.target.closest('#aex-gallery-main-link');
+        if (!trigger) {
+            return;
+        }
+
+        var gallery = trigger.closest('#product-gallery');
+        if (!gallery) {
+            return;
+        }
+
+        var $ = window.jQuery;
+        if (!$ || !$.fancybox || typeof $.fancybox.open !== 'function') {
+            // Preserve the existing single-image behavior when fancyBox is unavailable.
+            return;
+        }
+
+        // Read the current DOM on every click: selected colors or product variants
+        // can change the set of images after page load.
+        var thumbs = gallery.querySelectorAll('.aex-gallery-thumb[data-image]');
+        var items = [];
+        var indexes = Object.create(null);
+        var selectedImage = null;
+        var active = gallery.querySelector('.aex-gallery-thumb.is-active[data-image]');
+        if (active) {
+            selectedImage = active.getAttribute('data-image');
+        }
+        if (!selectedImage) {
+            selectedImage = trigger.getAttribute('href');
+        }
+
+        for (var i = 0; i < thumbs.length; i++) {
+            var src = (thumbs[i].getAttribute('data-image') || '').trim();
+            if (!src) {
+                continue;
+            }
+            // Avoid duplicate images (e.g., featured image also present in gallery).
+            if (Object.prototype.hasOwnProperty.call(indexes, src)) {
+                continue;
+            }
+            indexes[src] = items.length;
+            items.push({ src: src, type: 'image' });
+        }
+
+        if (items.length < 2) {
+            // Native Fancybox behavior remains unchanged for single-image products.
+            return;
+        }
+
+        var startIndex = Object.prototype.hasOwnProperty.call(indexes, selectedImage)
+            ? indexes[selectedImage]
+            : 0;
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        // The real multi-image gallery enables fancyBox's existing next/prev
+        // arrow controls, keyboard keys and mobile swipes.
+        $.fancybox.open(items, {
+            arrows: true,
+            loop: true,
+            keyboard: true,
+            touch: true,
+            infobar: true,
+            hash: false,
+            clickContent: false
+        }, startIndex);
+    }, true);
+})();
+</script>
+@endpush

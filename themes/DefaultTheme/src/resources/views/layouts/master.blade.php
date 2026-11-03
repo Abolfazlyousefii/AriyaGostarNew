@@ -895,6 +895,7 @@ and (max-height: 620px) {
 }
 </style>
 {{-- ARIYA-MEGAMENU-NO-HOVER-BG:END --}}
+
 </head>
 
 <body class="has-mobile-bottom-navigation">
@@ -1139,7 +1140,7 @@ and (max-height: 620px) {
         var hidden = hasActivePopup();
         var mobileMode = mobile.matches;
         var margin = null;
-        var settings = { hasIcon: !hidden };
+        var settings = { hasIcon: true }; // ARIYA: native Goftino icon must remain enabled
 
         if (mobileMode) {
             var nav = document.querySelector('.mobile-bottom-nav');
@@ -1248,16 +1249,20 @@ and (max-height: 620px) {
             lastChatState = null;
             scheduleChatSync();
         });
-        // ARIYA_GOFTINO_RESTORE_ON_CLOSE_V1
-        // Goftino may hide its own launcher while the window is open.
-        // Re-sync after closing even when the page DOM has not changed.
+        // ARIYA_GOFTINO_NATIVE_ICON_V5
+        // Restore Goftino's original icon on close, irrespective of stale modal classes.
+        // No custom launcher, CSS, iframe manipulation, or chat open/close override.
         window.addEventListener('goftino_closeWidget', function () {
-            lastChatState = null;
-            scheduleChatSync();
-            window.setTimeout(function () {
+            function restoreNativeIcon() {
                 lastChatState = null;
+                if (window.Goftino && typeof window.Goftino.setWidget === 'function') {
+                    window.Goftino.setWidget({ hasIcon: true });
+                }
                 scheduleChatSync();
-            }, 250);
+            }
+            restoreNativeIcon();
+            window.setTimeout(restoreNativeIcon, 180);
+            window.setTimeout(restoreNativeIcon, 500);
         });
         window.addEventListener('resize', onViewportChange);
         window.addEventListener('orientationchange', onViewportChange);
@@ -1282,6 +1287,7 @@ and (max-height: 620px) {
     }
 })();
 </script>
+
 </body>
 
 </html>

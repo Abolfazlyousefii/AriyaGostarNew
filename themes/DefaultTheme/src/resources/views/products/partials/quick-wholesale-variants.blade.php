@@ -23,6 +23,18 @@
 .ariya-qw-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px; margin: 14px 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
 .ariya-qw-filters__field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 190px; min-width: 0; }
 .ariya-qw-filters__field label { color: #334155; font-size: 13px; font-weight: 700; }
+.ariya-qw-filters__field input { width: 100%; padding: 9px; min-height: 42px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font: inherit; color: #0f172a; }
+.ariya-qw-pager { display:flex; justify-content:center; flex-wrap:wrap; align-items:center; gap:8px; margin:18px 0; }
+.ariya-qw-pager a, .ariya-qw-pager span { min-width:40px; min-height:40px; padding:8px 12px; border:1px solid #cbd5e1; border-radius:9px; text-align:center; font-size:13px; }
+.ariya-qw-pager .is-current { background:#1d4ed8; color:#fff; border-color:#1d4ed8; }
+.ariya-qw-pager a:focus-visible { outline:3px solid #93c5fd; }
+/* Immediate feedback while AJAX pagination is loading. */
+.ariya-qw-pager a.is-loading { display:inline-flex; align-items:center; justify-content:center; gap:7px; background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; pointer-events:none; }
+.ariya-qw-pager a.is-loading::after, .ariya-qw-pager__loader::before { content:""; display:inline-block; box-sizing:border-box; width:16px; height:16px; flex:none; border:2px solid #bfdbfe; border-top-color:#1d4ed8; border-radius:50%; animation:ariya-qw-page-spin .65s linear infinite; }
+.ariya-qw-pager__loader { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; color:#1e40af; background:#eff6ff; border:1px solid #bfdbfe; border-radius:9px; font-size:12px; }
+[data-qw-ajax-zone].is-loading .ariya-qw-catalog__list { opacity:.55; transition:opacity .15s ease; }
+@keyframes ariya-qw-page-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .ariya-qw-pager a.is-loading::after, .ariya-qw-pager__loader::before { animation:none; } }
 .ariya-qw-filters__field select { width: 100%; padding: 9px; min-height: 42px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font: inherit; color: #0f172a; }
 .ariya-qw-filters__apply { min-height: 42px; padding: 9px 20px; border: 0; border-radius: 8px; color: #fff; background: #0f766e; font: inherit; font-weight: 700; cursor: pointer; }
 .ariya-qw-filters__clear { display: inline-flex; align-items: center; min-height: 42px; padding: 9px 8px; color: #475569; font-size: 13px; text-decoration: underline; }
@@ -59,12 +71,18 @@
 </style>
 @endpush
 
-<section class="ariya-qw-catalog" aria-label="فهرست گاردهای سازگار" data-qw-stage08b="1">
+<section class="ariya-qw-catalog" aria-label="فهرست گاردهای سازگار" data-qw-stage08b="1"
+         data-qw-user="{{ auth()->id() ?? 0 }}" data-qw-model="{{ $selected }}">
     <h2>گاردهای سازگار با <span dir="ltr">{{ $selectedLabel }}</span></h2>
     @auth
         {{-- ARIYA_TASK01_STAGE07B_FILTER_UI_V1 --}}
         <form class="ariya-qw-filters" method="GET" action="{{ route('front.quick-wholesale.index') }}" aria-label="فیلتر و مرتب‌سازی گاردها">
-            <input type="hidden" name="model" value="{{ $selectedLabel }}">
+            <input type="hidden" name="model" value="{{ $selected }}">
+            <div class="ariya-qw-filters__field">
+                <label for="ariya-qw-filter-search">جست‌وجو در نام کالا و تنوع</label>
+                <input id="ariya-qw-filter-search" type="search" name="q" maxlength="80"
+                       placeholder="نام گارد، مدل یا برند" value="{{ $catalogSearch }}">
+            </div>
             <div class="ariya-qw-filters__field">
                 <label for="ariya-qw-filter-type">نوع گارد</label>
                 <select id="ariya-qw-filter-type" name="type">
@@ -93,12 +111,15 @@
                 </select>
             </div>
             <button type="submit" class="ariya-qw-filters__apply">اعمال فیلتر</button>
-            @if($catalogFilterType !== 'all' || $catalogBrand !== 'all' || $catalogSort !== 'default')
-                <a class="ariya-qw-filters__clear" href="{{ route('front.quick-wholesale.index', ['model' => $selectedLabel]) }}">حذف فیلترها</a>
+            @if($catalogFilterType !== 'all' || $catalogBrand !== 'all' || $catalogSort !== 'default' || $catalogSearch !== '')
+                <a class="ariya-qw-filters__clear" href="{{ route('front.quick-wholesale.index', ['model' => $selected]) }}">حذف فیلترها</a>
             @endif
         </form>
+        {{-- AJAX swaps only this section; selection summary and submit remain mounted. --}}
+        <div data-qw-ajax-zone aria-live="polite">
         <p class="ariya-qw-catalog__intro" data-qw-catalog-state="authenticated">
-            {{ number_format(count($items)) }} تنوع از مجموع {{ number_format($catalogTotal) }} تنوع سازگار نمایش داده می‌شود.
+            {{ number_format($catalogFilteredTotal) }} تنوع مطابق جست‌وجو و فیلتر از مجموع {{ number_format($catalogTotal) }} تنوع سازگار.
+            صفحه {{ number_format($catalogPage) }} از {{ number_format($catalogLastPage) }}؛ در این صفحه {{ number_format(count($items)) }} تنوع.
             موجودی‌ها لحظه‌ای هستند و پیش از ثبت خرید دوباره بررسی خواهند شد.
         </p>
         @if(count($items) > 0)
@@ -153,7 +174,28 @@
                     </article>
                 @endforeach
             </div>
-            {{-- Display-only selection summary; no cart or order request. --}}
+        @else
+            <p class="ariya-qw-catalog__notice">{{ $catalogTotal > 0 ? 'هیچ گاردی با فیلتر انتخاب‌شده پیدا نشد.' : 'در حال حاضر گارد قابل ارائه‌ای برای این مدل یافت نشد.' }}</p>
+        @endif
+        @if($catalogLastPage > 1)
+            <nav class="ariya-qw-pager" aria-label="صفحه‌بندی گاردها">
+                @if($catalogPage > 1)
+                    <a href="{{ route('front.quick-wholesale.index', array_merge(request()->except('page'), ['model' => $selected, 'page' => $catalogPage - 1])) }}">قبلی</a>
+                @endif
+                @for($number = max(1, $catalogPage - 2); $number <= min($catalogLastPage, $catalogPage + 2); $number++)
+                    @if($number === $catalogPage)
+                        <span class="is-current" aria-current="page">{{ number_format($number) }}</span>
+                    @else
+                        <a href="{{ route('front.quick-wholesale.index', array_merge(request()->except('page'), ['model' => $selected, 'page' => $number])) }}">{{ number_format($number) }}</a>
+                    @endif
+                @endfor
+                @if($catalogPage < $catalogLastPage)
+                    <a href="{{ route('front.quick-wholesale.index', array_merge(request()->except('page'), ['model' => $selected, 'page' => $catalogPage + 1])) }}">بعدی</a>
+                @endif
+            </nav>
+        @endif
+        </div>
+            {{-- Selection summary remains available even when filters yield zero rows. --}}
             <p class="ariya-qw-qty-summary" data-qw-qty-summary role="status" aria-live="polite">
                 <strong data-qw-selected-count>۰</strong> تنوع،
                 <strong data-qw-selected-units>۰</strong> عدد انتخاب شده است.
@@ -166,9 +208,6 @@
                     افزودن گروهی به سبد خرید
                 </button>
             </div>
-        @else
-            <p class="ariya-qw-catalog__notice">{{ $catalogTotal > 0 ? 'هیچ گاردی با فیلتر انتخاب‌شده پیدا نشد.' : 'در حال حاضر گارد قابل ارائه‌ای برای این مدل یافت نشد.' }}</p>
-        @endif
         <p class="ariya-qw-catalog__notice">قیمت و موجودی هنگام افزودن گروهی دوباره در سرور بررسی می‌شوند.</p>
     @else
         <p class="ariya-qw-catalog__notice" data-qw-catalog-state="login-required">
@@ -211,12 +250,40 @@
         return current;
     }
 
+    // Reuse an idempotency key for a retry; a changed selection gets a new key.
+    function submissionSignature(model, items) {
+        var sorted = items.slice().sort(function (a, b) { return a.price_id - b.price_id; });
+        return JSON.stringify({ model: model, items: sorted });
+    }
+
+    function createRequestId(cryptoApi) {
+        if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') return null;
+        var bytes = new Uint8Array(16);
+        cryptoApi.getRandomValues(bytes);
+        bytes[6] = (bytes[6] & 15) | 64;
+        bytes[8] = (bytes[8] & 63) | 128;
+        var hex = Array.prototype.map.call(bytes, function (n) {
+            return n.toString(16).padStart(2, '0');
+        }).join('');
+        return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16),
+            hex.slice(16, 20), hex.slice(20)].join('-');
+    }
+
+    function nextPendingRequest(previous, signature, makeId) {
+        if (previous && previous.signature === signature
+            && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(previous.id)) {
+            return previous;
+        }
+        return { signature: signature, id: makeId() };
+    }
+
     // Node-only test export; in a browser the actual DOM controller runs below.
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
-            validBounds: validBounds,
-            normalizedQuantity: normalizedQuantity,
-            steppedQuantity: steppedQuantity
+            validBounds: validBounds, normalizedQuantity: normalizedQuantity,
+            steppedQuantity: steppedQuantity,
+            submissionSignature: submissionSignature, createRequestId: createRequestId,
+            nextPendingRequest: nextPendingRequest
         };
         return;
     }
@@ -230,31 +297,58 @@
     var submit = catalog.querySelector('[data-qw-submit]');
     var feedback = catalog.querySelector('[data-qw-feedback]');
     var formatter = new Intl.NumberFormat('fa-IR');
+    var storageKey = 'ariya-qw-selected:v1:' + catalog.getAttribute('data-qw-user')
+        + ':' + catalog.getAttribute('data-qw-model');
+    var selections = Object.create(null);
+    var submitting = false;
+    var pendingKey = storageKey + ':pending-v1';
+    var pendingRequest = null;
+    try {
+        pendingRequest = JSON.parse(sessionStorage.getItem(pendingKey) || 'null');
+    } catch (_) { pendingRequest = null; }
+    function savePending() {
+        try {
+            if (pendingRequest) sessionStorage.setItem(pendingKey, JSON.stringify(pendingRequest));
+            else sessionStorage.removeItem(pendingKey);
+        } catch (_) {}
+    }
+
+    try {
+        var restored = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+        if (restored && typeof restored === 'object' && !Array.isArray(restored)) {
+            Object.keys(restored).slice(0, 100).forEach(function (key) {
+                var row = restored[key];
+                if (!/^\d+$/.test(key) || !row || !Number.isSafeInteger(row.quantity)
+                    || row.quantity < 1 || row.quantity > 100000
+                    || !Number.isSafeInteger(row.price) || row.price < 0) return;
+                selections[key] = {
+                    quantity: row.quantity, price: row.price,
+                    label: String(row.label || '').slice(0, 160)
+                };
+            });
+        }
+    } catch (_) { /* Browser storage unavailable: controls still work in this page. */ }
+
+    function persist() {
+        try { sessionStorage.setItem(storageKey, JSON.stringify(selections)); } catch (_) {}
+    }
 
     function boundsFor(control) {
         return validBounds(control.getAttribute('data-min-order'), control.getAttribute('data-max-order'));
     }
 
     function updateSummary() {
-        var selectedTypes = 0;
+        var entries = Object.keys(selections).map(function (id) { return selections[id]; });
         var units = 0;
         var total = 0;
-        controls.forEach(function (control) {
-            var field = control.querySelector('[data-qw-qty-input]');
-            if (!field) return;
-            var quantity = normalizedQuantity(field.value, boundsFor(control));
-            if (quantity > 0) {
-                selectedTypes += 1;
-                units += quantity;
-                var item = control.closest('[data-price-id]');
-                var unitPrice = item ? Number(item.getAttribute('data-unit-price')) : 0;
-                if (Number.isFinite(unitPrice) && unitPrice > 0) total += unitPrice * quantity;
-            }
+        entries.forEach(function (row) {
+            units += row.quantity;
+            total += row.price * row.quantity;
         });
-        if (countOutput) countOutput.textContent = formatter.format(selectedTypes);
+        if (countOutput) countOutput.textContent = formatter.format(entries.length);
         if (unitsOutput) unitsOutput.textContent = formatter.format(units);
         if (totalOutput) totalOutput.textContent = formatter.format(total);
-        if (submit) submit.disabled = selectedTypes === 0;
+        if (submit) submit.disabled = submitting || entries.length === 0 || entries.length > 100;
     }
 
     function apply(control, raw) {
@@ -268,6 +362,20 @@
         field.disabled = !bounds;
         plus.disabled = !bounds || quantity >= bounds.max;
         minus.disabled = !bounds || quantity === 0;
+        var item = control.closest('[data-price-id]');
+        if (item) {
+            var id = item.getAttribute('data-price-id');
+            var price = Number(item.getAttribute('data-unit-price'));
+            if (quantity > 0 && Number.isSafeInteger(price) && price >= 0) {
+                selections[id] = {
+                    quantity: quantity, price: price,
+                    label: (item.querySelector('.ariya-qw-catalog__details strong') || {}).textContent || ''
+                };
+            } else {
+                delete selections[id];
+            }
+            persist();
+        }
         updateSummary();
     }
 
@@ -296,7 +404,119 @@
         if (control) apply(control, event.target.value);
     }, true);
 
-    controls.forEach(function (control) { apply(control, 0); });
+    function restoreVisibleQuantities() {
+        controls = Array.prototype.slice.call(catalog.querySelectorAll('[data-qw-quantity]'));
+        controls.forEach(function (control) {
+            var item = control.closest('[data-price-id]');
+            var saved = item && selections[item.getAttribute('data-price-id')];
+            apply(control, saved ? saved.quantity : 0);
+        });
+        updateSummary();
+    }
+    restoreVisibleQuantities();
+
+    // Progressive enhancement: pagination changes only the server-rendered result region.
+    // The old links still navigate normally when JavaScript is disabled.
+    var ajaxRequest = null;
+    var ajaxSequence = 0;
+    var ajaxStartPath = window.location.pathname;
+
+    function clearAjaxBusy(zone) {
+        if (!zone) return;
+        zone.classList.remove('is-loading');
+        zone.removeAttribute('aria-busy');
+        Array.prototype.forEach.call(zone.querySelectorAll('.ariya-qw-pager a.is-loading'), function (link) {
+            link.classList.remove('is-loading');
+            link.removeAttribute('aria-label');
+        });
+        Array.prototype.forEach.call(zone.querySelectorAll('[data-qw-page-loader]'), function (loader) {
+            loader.remove();
+        });
+    }
+
+    function showAjaxBusy(zone, triggerLink) {
+        clearAjaxBusy(zone);
+        zone.classList.add('is-loading');
+        zone.setAttribute('aria-busy', 'true');
+        var pager = zone.querySelector('.ariya-qw-pager');
+        if (!pager) return;
+        if (triggerLink) {
+            triggerLink.classList.add('is-loading');
+            triggerLink.setAttribute('aria-label', '\u062f\u0631 \u062d\u0627\u0644 \u0628\u0627\u0631\u06af\u0630\u0627\u0631\u06cc \u0635\u0641\u062d\u0647');
+        }
+    }
+
+    function ajaxNavigate(href, pushHistory, triggerLink) {
+        var destination = new URL(href, window.location.href);
+        if (destination.origin !== window.location.origin || destination.pathname !== ajaxStartPath) {
+            if (pushHistory) window.location.assign(destination.href);
+            return;
+        }
+        var zone = catalog.querySelector('[data-qw-ajax-zone]');
+        if (!zone || !window.fetch || !window.DOMParser || !window.AbortController) {
+            if (pushHistory) window.location.assign(destination.href);
+            else window.location.reload();
+            return;
+        }
+        var sequence = ++ajaxSequence;
+        if (ajaxRequest) ajaxRequest.abort();
+        ajaxRequest = new AbortController();
+        showAjaxBusy(zone, triggerLink);
+
+        fetch(destination.href, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+            signal: ajaxRequest.signal
+        }).then(function (response) {
+            if (!response.ok || !String(response.headers.get('content-type') || '').includes('text/html')) {
+                throw new Error('Unexpected pagination response');
+            }
+            return response.text();
+        }).then(function (html) {
+            if (sequence !== ajaxSequence) return;
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var nextCatalog = doc.querySelector('.ariya-qw-catalog[data-qw-stage08b="1"]');
+            var nextZone = nextCatalog && nextCatalog.querySelector('[data-qw-ajax-zone]');
+            if (!nextZone || nextCatalog.getAttribute('data-qw-model') !== catalog.getAttribute('data-qw-model')) {
+                throw new Error('Pagination markup mismatch');
+            }
+            zone.replaceWith(document.importNode(nextZone, true));
+            restoreVisibleQuantities();
+            if (pushHistory) {
+                window.history.pushState({ ariyaQwAjax: true }, '', destination.href);
+            }
+            var newZone = catalog.querySelector('[data-qw-ajax-zone]');
+            if (newZone) newZone.scrollIntoView({ block: 'start', behavior: 'auto' });
+        }).catch(function (error) {
+            if (error.name === 'AbortError' || sequence !== ajaxSequence) return;
+            // Fail closed to normal server navigation rather than showing stale results.
+            if (pushHistory) window.location.assign(destination.href);
+            else window.location.reload();
+        }).finally(function () {
+            if (sequence === ajaxSequence) {
+                ajaxRequest = null;
+                var visibleZone = catalog.querySelector('[data-qw-ajax-zone]');
+                clearAjaxBusy(visibleZone);
+            }
+        });
+    }
+
+    catalog.addEventListener('click', function (event) {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey
+            || event.shiftKey || event.altKey || !(event.target instanceof Element)) return;
+        var link = event.target.closest('.ariya-qw-pager a[href]');
+        if (!link || !catalog.contains(link) || link.hasAttribute('download')
+            || (link.target && link.target !== '_self')) return;
+        event.preventDefault();
+        ajaxNavigate(link.href, true, link);
+    });
+
+    window.addEventListener('popstate', function () {
+        if (window.location.pathname === ajaxStartPath) {
+            ajaxNavigate(window.location.href, false);
+        }
+    });
 
     function showFeedback(message, type) {
         if (!feedback) return;
@@ -305,18 +525,26 @@
     }
 
     function selectedItems() {
-        return controls.map(function (control) {
-            var item = control.closest('[data-price-id]');
-            var field = control.querySelector('[data-qw-qty-input]');
-            var quantity = field ? normalizedQuantity(field.value, boundsFor(control)) : 0;
-            if (!item || quantity < 1) return null;
-            return { price_id: Number(item.getAttribute('data-price-id')), quantity: quantity };
-        }).filter(Boolean);
+        return Object.keys(selections).map(function (id) {
+            return { price_id: Number(id), quantity: selections[id].quantity };
+        }).filter(function (row) {
+            return Number.isSafeInteger(row.price_id) && row.price_id > 0;
+        });
     }
 
     if (submit) submit.addEventListener('click', function () {
         var items = selectedItems();
-        if (!items.length || submit.disabled) return;
+        if (!items.length || submit.disabled || submitting) return;
+        var signature = submissionSignature(@json($selected), items);
+        pendingRequest = nextPendingRequest(pendingRequest, signature, function () {
+            return createRequestId(window.crypto);
+        });
+        if (!pendingRequest.id) {
+            showFeedback('مرورگر شما شناسه امن درخواست را پشتیبانی نمی‌کند. لطفاً مرورگر را به‌روزرسانی کنید.', 'error');
+            return;
+        }
+        savePending();
+        submitting = true;
 
         catalog.querySelectorAll('.is-invalid').forEach(function (item) { item.classList.remove('is-invalid'); });
         submit.disabled = true;
@@ -331,7 +559,7 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') || {}).content || ''
             },
-            body: JSON.stringify({ model: @json($selectedLabel), items: items })
+            body: JSON.stringify({ request_id: pendingRequest.id, model: @json($selected), items: items })
         }).then(function (response) {
             return response.json().catch(function () { return {}; }).then(function (data) {
                 if (!response.ok || data.status !== 'success') {
@@ -347,6 +575,10 @@
                 if (currentCart) currentCart.outerHTML = data.cart;
                 document.dispatchEvent(new CustomEvent('ariya:cart-updated'));
             }
+            pendingRequest = null;
+            savePending();
+            selections = Object.create(null);
+            persist();
             controls.forEach(function (control) { apply(control, 0); });
             showFeedback(data.message || 'کالاها به سبد خرید اضافه شدند.', 'success');
         }).catch(function (error) {
@@ -359,6 +591,7 @@
             }
             showFeedback(error.message || 'خطایی رخ داد؛ انتخاب‌های شما حفظ شدند.', 'error');
         }).finally(function () {
+            submitting = false;
             submit.removeAttribute('aria-busy');
             updateSummary();
         });

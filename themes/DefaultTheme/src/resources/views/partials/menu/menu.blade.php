@@ -107,12 +107,22 @@
         @foreach($menus as $menu)
             @include('front::partials.menu.child-menu')
 
+            {{-- Position quick wholesale immediately after a real "Shop" menu item. --}}
+            @if (trim((string) ($menu->title ?? '')) === 'فروشگاه' && ($menu->type ?? '') !== 'static')
+                <li class="list-item ariya-qw-entry">
+                    <a class="nav-link" href="{{ route('front.quick-wholesale.index') }}">خرید سریع عمده</a>
+                </li>
+            @endif
+
             {{-- ARIYA_TASK02_3_A_01_SHOP_AFTER_CATEGORIES --}}
             @if ($loop->first && ! $hasIndependentShopMenu)
                 <li class="list-item ariya-shop-menu-item">
                     <a class="nav-link" href="{{ route('front.products.index') }}">
                         فروشگاه
                     </a>
+                </li>
+                <li class="list-item ariya-qw-entry">
+                    <a class="nav-link" href="{{ route('front.quick-wholesale.index') }}">خرید سریع عمده</a>
                 </li>
             @endif
         @endforeach
@@ -122,6 +132,9 @@
                 <a class="nav-link" href="{{ route('front.products.index') }}">
                     فروشگاه
                 </a>
+            </li>
+            <li class="list-item ariya-qw-entry">
+                <a class="nav-link" href="{{ route('front.quick-wholesale.index') }}">خرید سریع عمده</a>
             </li>
         @endif
 

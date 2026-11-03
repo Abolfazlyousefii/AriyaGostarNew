@@ -51,6 +51,7 @@
         ]) !!};
     </script>
 
+
 </head>
 <!-- END: Head-->
 
@@ -169,6 +170,7 @@
     <script src="{{ asset(mix('js/app.js')) }}"></script>
     <script src="{{ asset('back/assets/js/echo.js') }}"></script>
     <script src="{{ asset('back/assets/js/web-push.js') }}"></script>
+
 
 
 </body>

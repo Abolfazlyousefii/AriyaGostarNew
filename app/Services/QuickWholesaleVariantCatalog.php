@@ -9,6 +9,28 @@ use Illuminate\Support\Facades\DB;
 /** Read-only variant discovery; does not authorize cart operations. */
 final class QuickWholesaleVariantCatalog
 {
+    public function findForModelId(int $modelId): array
+    {
+        if ($modelId < 1) {
+            return [];
+        }
+        $inventory = DB::connection('inv');
+        $selected = $inventory->table('model_lists')
+            ->where('id', $modelId)->first(['id', 'brand', 'model_name']);
+        if (!$selected) {
+            return [];
+        }
+        $ids = $inventory->table('model_lists')
+            ->where('brand', $selected->brand)
+            ->get(['id', 'model_name'])
+            ->filter(static fn ($row): bool => QuickWholesaleModelDirectory::isCompatible(
+                (string) $selected->brand,
+                (string) $selected->model_name,
+                (string) $row->model_name
+            ))->pluck('id')->all();
+        return $this->findForModelIds($ids);
+    }
+
     public function findForModel(string $selected): array
     {
         // ARIYA_TASK01_STAGE05_VARIANT_SEARCH_V2
@@ -28,9 +50,17 @@ final class QuickWholesaleVariantCatalog
                 )
             )->pluck('id')->all();
 
+        return $this->findForModelIds($modelIds);
+    }
+
+    /** @param array<int,int> $modelIds */
+    private function findForModelIds(array $modelIds): array
+    {
         if (!$modelIds) {
             return [];
         }
+        $inv = DB::connection('inv');
+        $site = DB::connection();
 
         $variants = $inv->table('product_variants')
             ->whereIn('model_list_id', $modelIds)

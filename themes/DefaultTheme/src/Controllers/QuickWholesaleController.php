@@ -5,7 +5,8 @@ namespace Themes\DefaultTheme\src\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Price;
 use App\Services\QuickWholesaleCartPlan;
-use App\Services\QuickWholesalePhoneModelMatcher;
+use App\Services\QuickWholesaleModelDirectory;
+use App\Services\QuickWholesaleRequestFingerprint;
 use App\Services\QuickWholesaleSelectionException;
 use App\Services\QuickWholesaleVariantCatalog;
 use App\Services\Sales\SalesControlService;
@@ -26,7 +27,7 @@ class QuickWholesaleController extends Controller
 
         $selected = is_string($saved) && isset($options[$saved])
             ? $saved
-            : 'iphone:13:base';
+            : (QuickWholesaleModelDirectory::resolve('iPhone 13', $options) ?? (array_key_first($options) ?? ''));
 
         $error = null;
 
@@ -34,7 +35,7 @@ class QuickWholesaleController extends Controller
             $input = $request->query('model');
 
             $key = is_string($input)
-                ? QuickWholesalePhoneModelMatcher::selectedModelKey($input)
+                ? QuickWholesaleModelDirectory::resolve($input, $options)
                 : null;
 
             if ($key !== null && isset($options[$key])) {
@@ -47,9 +48,10 @@ class QuickWholesaleController extends Controller
 
         // ARIYA_TASK01_STAGE05C_READONLY_LIST_V1
         // Match variants from inventory; only authenticated users see stock.
-        $catalogItems = auth()->check()
-            ? app(\App\Services\QuickWholesaleVariantCatalog::class)
-                ->findForModel($options[$selected])
+        $catalogItems = auth()->check() && $selected !== ''
+            ? app(QuickWholesaleVariantCatalog::class)->findForModelId(
+                QuickWholesaleModelDirectory::idFromKey($selected) ?? 0
+            )
             : [];
         // ARIYA_TASK01_STAGE06C_PRICE_IMAGE_V1
         // Authenticated-only display enrichment. Never authorizes checkout.
@@ -132,11 +134,21 @@ class QuickWholesaleController extends Controller
         $catalogItems = \App\Services\QuickWholesaleVariantFilters::apply(
             $catalogItems, $catalogFilterType, $catalogSort, $catalogBrand
         );
+        // Search and paginate only verified, server-priced candidates.
+        $searchInput = $request->query('q', '');
+        $catalogSearch = is_string($searchInput) ? mb_substr(trim($searchInput), 0, 80) : '';
+        $pageInput = $request->query('page', 1);
+        $catalogRequestedPage = is_scalar($pageInput) && ctype_digit((string) $pageInput)
+            ? min(100000, max(1, (int) $pageInput)) : 1;
+        $listing = \App\Services\QuickWholesaleCatalogPage::slice(
+            $catalogItems, $catalogSearch, $catalogRequestedPage, 12, $options[$selected] ?? ''
+        );
+        $catalogItems = $listing['items'];
         return response()
             ->view('front::products.quick-wholesale', [
                 'options' => $options,
                 'selected' => $selected,
-                'selectedLabel' => $options[$selected],
+                'selectedLabel' => $options[$selected] ?? '',
                 'error' => $error,
                 'catalogItems' => $catalogItems,
                 'catalogFilterOptions' => $catalogFilterOptions,
@@ -145,6 +157,10 @@ class QuickWholesaleController extends Controller
                 'catalogBrand' => $catalogBrand,
                 'catalogSort' => $catalogSort,
                 'catalogTotal' => $catalogTotal,
+                'catalogSearch' => $catalogSearch,
+                'catalogFilteredTotal' => $listing['total'],
+                'catalogPage' => $listing['page'],
+                'catalogLastPage' => $listing['last_page'],
             ])
             ->header('Cache-Control', 'private, no-store');
     }
@@ -152,27 +168,63 @@ class QuickWholesaleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'request_id' => ['required', 'uuid', 'max:36'],
             'model' => ['required', 'string', 'max:80'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.price_id' => ['required', 'integer', 'min:1', 'distinct'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+        ], [
+            'request_id.required' => 'برای افزودن گروهی، لطفاً صفحه را به‌روزرسانی کنید.',
         ]);
 
-        $options = $this->modelOptions();
-        $modelKey = QuickWholesalePhoneModelMatcher::selectedModelKey($validated['model']);
-        if ($modelKey === null || !isset($options[$modelKey])) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'مدل گوشی انتخاب‌شده معتبر نیست.',
-            ], 422);
-        }
-
-        $catalogItems = app(QuickWholesaleVariantCatalog::class)
-            ->findForModel($options[$modelKey]);
+        $requestHash = QuickWholesaleRequestFingerprint::hash(
+            $validated['model'], $validated['items']
+        );
         $cart = $request->user()->getCart();
 
         try {
-            $result = DB::transaction(function () use ($validated, $catalogItems, $cart): array {
+            $result = DB::transaction(function () use ($validated, $requestHash, $cart): array {
+                // Serialize all Quick Wholesale submissions to this cart, including different IDs.
+                // This prevents duplicate inserts when concurrent requests see an empty cart.
+                $lockedCart = DB::table('carts')
+                    ->where('id', $cart->id)
+                    ->where('user_id', $cart->user_id)
+                    ->lockForUpdate()
+                    ->first(['id']);
+                if (!$lockedCart) {
+                    throw new QuickWholesaleSelectionException('سبد خرید در دسترس نیست.');
+                }
+
+                $prior = DB::table('ariya_qw_cart_requests')
+                    ->where('cart_id', $cart->id)
+                    ->where('request_id', $validated['request_id'])
+                    ->first(['payload_hash', 'summary_json']);
+
+                if ($prior) {
+                    if (QuickWholesaleRequestFingerprint::decision((string) $prior->payload_hash, $requestHash) === 'conflict') {
+                        return ['conflict' => true];
+                    }
+                    $originalSummary = json_decode((string) $prior->summary_json, true, 512, JSON_THROW_ON_ERROR);
+                    if (!is_array($originalSummary)) {
+                        throw new \RuntimeException('Invalid Quick Wholesale request receipt');
+                    }
+                    return [
+                        'replayed' => true,
+                        'summary' => $originalSummary,
+                        'model_key' => $validated['model'],
+                    ];
+                }
+
+                // For a first submission, resolve the model and verify actual inventory.
+                $options = $this->modelOptions();
+                $modelKey = QuickWholesaleModelDirectory::resolve($validated['model'], $options);
+                if ($modelKey === null || !isset($options[$modelKey])) {
+                    throw new QuickWholesaleSelectionException('مدل گوشی انتخاب‌شده معتبر نیست.');
+                }
+
+                $catalogItems = app(QuickWholesaleVariantCatalog::class)->findForModelId(
+                    QuickWholesaleModelDirectory::idFromKey($modelKey) ?? 0
+                );
                 $priceIds = array_map(
                     static fn (array $item): int => (int) $item['price_id'],
                     $validated['items']
@@ -187,9 +239,7 @@ class QuickWholesaleController extends Controller
                     ->all();
 
                 $plan = QuickWholesaleCartPlan::build(
-                    $validated['items'],
-                    $catalogItems,
-                    $currentQuantities
+                    $validated['items'], $catalogItems, $currentQuantities
                 );
 
                 $prices = Price::query()
@@ -271,10 +321,27 @@ class QuickWholesaleController extends Controller
                     ]);
                 }
 
-                return [
+                $summary = [
                     'selected_count' => count($plan['lines']),
                     'selected_units' => array_sum(array_column($plan['lines'], 'requested_quantity')),
                     'requested_total_toman' => $requestedTotalToman,
+                ];
+
+                // The receipt is committed atomically with cart mutations.
+                // If any validation or write fails, neither the cart nor receipt changes.
+                DB::table('ariya_qw_cart_requests')->insert([
+                    'cart_id' => $cart->id,
+                    'request_id' => $validated['request_id'],
+                    'payload_hash' => $requestHash,
+                    'summary_json' => json_encode($summary, JSON_THROW_ON_ERROR),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                return [
+                    'replayed' => false,
+                    'summary' => $summary,
+                    'model_key' => $modelKey,
                 ];
             }, 3);
         } catch (QuickWholesaleSelectionException $exception) {
@@ -285,14 +352,24 @@ class QuickWholesaleController extends Controller
             ], 422);
         }
 
-        $request->session()->put(self::SESSION_KEY, $modelKey);
+        if (!empty($result['conflict'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'شناسه درخواست قبلاً با انتخاب دیگری ثبت شده است. صفحه را به‌روزرسانی کنید.',
+            ], 409);
+        }
+
+        $request->session()->put(self::SESSION_KEY, $result['model_key']);
         $cart->unsetRelation('products');
         $cart->load('products');
 
         return response()->json([
             'status' => 'success',
-            'message' => 'کالاهای انتخاب‌شده با موفقیت به سبد خرید اضافه شدند.',
-            'summary' => $result,
+            'replayed' => $result['replayed'],
+            'message' => $result['replayed']
+                ? 'این درخواست قبلاً ثبت شده است؛ کالاها دوباره اضافه نشدند.'
+                : 'کالاهای انتخاب‌شده با موفقیت به سبد خرید اضافه شدند.',
+            'summary' => $result['summary'],
             'cart' => view('front::partials.cart')
                 ->with('render_cart', $cart)
                 ->render(),
@@ -301,11 +378,6 @@ class QuickWholesaleController extends Controller
 
     private function modelOptions(): array
     {
-        return [
-            'iphone:13:base' => 'iPhone 13',
-            'iphone:13:mini' => 'iPhone 13 mini',
-            'iphone:13:pro' => 'iPhone 13 Pro',
-            'iphone:13:pro-max' => 'iPhone 13 Pro Max',
-        ];
+        return app(QuickWholesaleModelDirectory::class)->options();
     }
 }

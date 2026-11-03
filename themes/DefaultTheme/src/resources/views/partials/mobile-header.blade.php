@@ -272,6 +272,19 @@
             text-decoration: none !important;
         }
 
+        /* ARIYA_QW_HEADER_ENTRY_V1 */
+        .ariya-mobile-popup__list a.ariya-quick-wholesale-mobile-link {
+            background: #e9f3ff;
+            border-color: #9dc4f4;
+            color: #104f9d;
+            font-weight: 800;
+        }
+        .ariya-mobile-popup__list a.ariya-quick-wholesale-mobile-link:hover,
+        .ariya-mobile-popup__list a.ariya-quick-wholesale-mobile-link:focus-visible {
+            background: #d7eaff;
+            border-color: #7dacdf;
+            color: #083d82;
+        }
         body.ariya-mobile-popup-open {
             overflow: hidden;
         }
@@ -349,7 +362,7 @@
 
         function buildList() {
             /*
-             * Exactly five top-level pages.
+             * Six top-level pages including quick wholesale.
              * Never copy nested product categories into this popup.
              */
 
@@ -389,6 +402,11 @@
                     href: '{{ route('front.pages.show', ['page' => 'wholesale-guide']) }}'
                 },
                 {
+                    text: 'خرید سریع عمده',
+                    href: '{{ route('front.quick-wholesale.index') }}',
+                    quickWholesale: true
+                },
+                {
                     text: 'راهنما و وبلاگ',
                     href: '{{ route('front.posts.index') }}'
                 },
@@ -407,6 +425,10 @@
 
                 a.href = item.href;
                 a.textContent = item.text;
+
+                if (item.quickWholesale) {
+                    a.classList.add('ariya-quick-wholesale-mobile-link');
+                }
 
                 if (item.categorySheet) {
                     a.addEventListener('click', function (event) {

@@ -3,7 +3,8 @@
         <ul class="checkout-summary-summary">
             @php
                 $couponDiscount = $cart->discountCodeTotal();
-                $productDiscount = max(0, $cart->totalDiscount() - $couponDiscount);
+                $vipDiscount = $cart->vipDiscountAmount();
+                $productDiscount = max(0, $cart->totalDiscount() - $couponDiscount - $vipDiscount);
             @endphp
             <li>
                 <span>{{ trans('front::messages.partials.total-amount') }}</span><span>{{ trans('front::messages.currency.prefix') }}{{ number_format($cart->price + $productDiscount) }} {{ trans('front::messages.currency.suffix') }}</span>
@@ -17,6 +18,14 @@
             @if($couponDiscount > 0)
                 <li class="checkout-summary-discount">
                     <span>تخفیف کد تخفیف</span><span>{{ trans('front::messages.currency.prefix') }}{{ number_format($couponDiscount) }} {{ trans('front::messages.currency.suffix') }}</span>
+                </li>
+            @endif
+
+            {{-- ARIYA_VIP_DISCOUNT_V1 --}}
+            @if($vipDiscount > 0)
+                <li class="checkout-summary-discount">
+                    <span>تخفیف مشتری VIP ({{ number_format($cart->vipDiscountPercent(), 2) }}٪)</span>
+                    <span>{{ trans('front::messages.currency.prefix') }}{{ number_format($vipDiscount) }} {{ trans('front::messages.currency.suffix') }}</span>
                 </li>
             @endif
 

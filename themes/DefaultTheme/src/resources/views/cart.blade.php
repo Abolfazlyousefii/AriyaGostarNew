@@ -6,6 +6,12 @@
         <div class="container main-container">
 
             @if($cart && $cart->products()->count())
+                {{-- ARIYA_VIP_DISCOUNT_V1 --}}
+                @if($cart->vipDiscountAmount() > 0)
+                    <div class="alert alert-success" role="status">
+                        تخفیف مشتری VIP شما ({{ number_format($cart->vipDiscountPercent(), 2) }}٪) روی مبلغ کالاها اعمال شده است.
+                    </div>
+                @endif
 
                 @include('front::partials.cart-stock-review')
 

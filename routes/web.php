@@ -106,6 +106,12 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::delete('backups/{backup}', [BackupController::class, 'destroy'])->name('backups.destroy');
 
     // ------------------ users
+    // ARIYA_VIP_DISCOUNT_V1: administrators with users.update permission only.
+    Route::get('vip-customers', [\App\Http\Controllers\Back\VipCustomerController::class, 'index'])->name('vip-customers.index');
+    Route::post('vip-customers', [\App\Http\Controllers\Back\VipCustomerController::class, 'store'])->name('vip-customers.store');
+    Route::post('vip-customers/percent', [\App\Http\Controllers\Back\VipCustomerController::class, 'updatePercent'])->name('vip-customers.percent');
+    Route::post('vip-customers/{user}/badge', [\App\Http\Controllers\Back\VipCustomerController::class, 'updateBadge'])->name('vip-customers.badge');
+    Route::delete('vip-customers/{user}', [\App\Http\Controllers\Back\VipCustomerController::class, 'destroy'])->name('vip-customers.destroy');
     Route::resource('users', UserController::class);
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status.update');
     Route::get('login/{user}', [UserController::class, 'loginAsUser'])->name('users.login');

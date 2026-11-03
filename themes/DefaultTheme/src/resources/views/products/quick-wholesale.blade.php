@@ -52,6 +52,12 @@
     font: inherit;
     color: #0f172a;
 }
+.ariya-model-search{position:relative;margin:10px 0 0}
+.ariya-model-search[hidden],.ariya-model-results[hidden]{display:none!important}
+.ariya-model-search input{width:100%;min-height:50px;box-sizing:border-box;padding:10px 14px;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc;font:inherit;color:#0f172a}
+.ariya-model-results{position:absolute;z-index:40;right:0;left:0;top:100%;max-height:260px;overflow-y:auto;background:white;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 12px 22px #0f172a20;padding:5px}
+.ariya-qw-form .ariya-model-results button{display:block;width:100%;margin:0;min-height:40px;padding:10px;text-align:right;border:0;background:white;color:#0f172a;border-radius:7px}
+.ariya-qw-form .ariya-model-results button:hover,.ariya-qw-form .ariya-model-results button:focus{background:#eff6ff}
 .ariya-qw-form button {
     display: inline-block;
     margin-top: 16px;
@@ -139,13 +145,18 @@
                     <select id="ariya-qw-model" name="model" required>
                         @foreach($options as $key => $label)
                             <option
-                                value="{{ $label }}"
+                                value="{{ $key }}"
                                 {{ $selected === $key ? 'selected' : '' }}
                             >
                                 {{ $label }}
                             </option>
                         @endforeach
                     </select>
+
+                    <div class="ariya-model-search" data-qw-model-search hidden>
+                        <input type="search" id="ariya-model-query" placeholder="مدل گوشی را بنویسید؛ مثلاً آیفون ۱۳" autocomplete="off" maxlength="80" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ariya-model-results">
+                        <div id="ariya-model-results" class="ariya-model-results" role="listbox" aria-label="مدل‌های پیشنهادی" hidden></div>
+                    </div>
 
                     <button type="submit">
                         تأیید مدل گوشی
@@ -172,3 +183,61 @@
     </div>
 </main>
 @endsection
+
+@push('scripts')
+<script>
+(function(){
+'use strict';
+var form=document.querySelector('.ariya-qw-form');
+if(!form)return;
+var select=form.querySelector('#ariya-qw-model');
+var picker=form.querySelector('[data-qw-model-search]');
+var input=form.querySelector('#ariya-model-query');
+var list=form.querySelector('#ariya-model-results');
+if(!select||!picker||!input||!list)return;
+var options=Array.from(select.options).filter(function(o){return o.value;});
+if(!options.length)return;
+function norm(v){return String(v||'').toLowerCase()
+.replace(/[۰-۹]/g,function(c){return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c));})
+.replace(/[٠-٩]/g,function(c){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(c));})
+.replace(/(?:آی\s*فون|ای\s*فون|ايفون|iphone)/g,'iphone')
+.replace(/پرو\s*مکس/g,'pro max').replace(/پرو/g,'pro')
+.replace(/مینی/g,'mini').replace(/مکس/g,'max')
+.replace(/سامسونگ/g,'samsung').replace(/شیائومی|شیاومی/g,'xiaomi')
+.replace(/هوآوی|هواوی/g,'huawei').replace(/آنر|انر/g,'honor')
+.replace(/ریلمی/g,'realme').replace(/گلکسی/g,'galaxy').replace(/ردمی/g,'redmi')
+.replace(/\s+/g,' ').trim();}
+var picked=select.value;
+function close(){list.hidden=true;input.setAttribute('aria-expanded','false');}
+function choose(o){picked=o.value;select.value=o.value;input.value=o.textContent.trim();input.setCustomValidity('');close();}
+function render(){
+list.textContent='';
+var words=norm(input.value).split(' ').filter(Boolean);
+var found=options.filter(function(o){var name=norm(o.textContent);return words.every(function(w){return name.indexOf(w)!==-1;});});
+found.forEach(function(o){
+var b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.textContent=o.textContent.trim();
+b.addEventListener('mousedown',function(e){e.preventDefault();});
+b.addEventListener('click',function(){choose(o);});list.appendChild(b);
+});
+if(!found.length){var e=document.createElement('div');e.textContent='مدلی پیدا نشد';e.style.padding='10px';list.appendChild(e);}
+list.hidden=false;input.setAttribute('aria-expanded','true');
+}
+input.value=select.selectedOptions.length?select.selectedOptions[0].textContent.trim():'';
+input.addEventListener('focus',function(){input.select();render();});
+input.addEventListener('input',function(){picked='';input.setCustomValidity('');render();});
+input.addEventListener('keydown',function(e){
+if(e.key==='Escape'){close();return;}
+if(e.key==='Enter'&&!list.hidden){var first=list.querySelector('button');if(first){e.preventDefault();first.click();}}
+});
+document.addEventListener('click',function(e){if(!picker.contains(e.target))close();});
+form.addEventListener('submit',function(e){
+var found=options.find(function(o){return o.value===picked;});
+if(!found||norm(input.value)!==norm(found.textContent)){
+e.preventDefault();input.setCustomValidity('مدل را از پیشنهادها انتخاب کنید.');input.reportValidity();render();return;
+}
+select.value=picked;
+});
+select.style.display='none';picker.hidden=false;
+})();
+</script>
+@endpush
