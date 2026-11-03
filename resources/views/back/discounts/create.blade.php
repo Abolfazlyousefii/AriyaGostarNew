@@ -113,10 +113,10 @@
                                                         </div>
                                                     </div>
                                                     <div class="row">
-                                                        <div class="col-md-3 direct-hide" style="display: none">
+                                                        <div class="col-md-3 amount direct-hide" style="display: none">
                                                             <div class="form-group">
-                                                                <label>مقدار تخفیف</label>
-                                                                <input type="number" class="form-control" name="price">
+                                                                <label>مبلغ تخفیف ثابت (تومان)</label>
+                                                                <input type="number" class="form-control" name="price" min="1" step="1" placeholder="1500000">
                                                             </div>
                                                         </div>
                                                         <div class="col-md-3 percent" style="display: none">
