@@ -47,8 +47,25 @@ class Cart extends Model
     {
         $price  = $this->discountPrice() + $this->shippingCostAmount();
         $price -= $this->discountCodeTotal();
+        // ARIYA_VIP_DISCOUNT_V1: persists in orders.price (and ERP rial snapshot).
+        $price -= $this->vipDiscountAmount();
 
         return max(0, (int) round($price));
+    }
+
+    // ARIYA_VIP_DISCOUNT_V1: VIP membership is tied to Site user ID, not cart cookie.
+    public function vipDiscountPercent(): float
+    {
+        return \App\Services\VipDiscountService::percentForUser($this->user_id ? (int) $this->user_id : null);
+    }
+
+    public function vipDiscountAmount(): int
+    {
+        return \App\Services\VipDiscountCalculator::amount(
+            $this->discountPrice(),
+            ($this->discount && $this->discount->method === 'carrier') ? 0 : $this->discountCodeTotal(),
+            $this->vipDiscountPercent()
+        );
     }
 
     public function getQuantityAttribute()
@@ -142,7 +159,7 @@ class Cart extends Model
             }
         }
 
-        return $discount + $this->discountCodeTotal();
+        return $discount + $this->discountCodeTotal() + $this->vipDiscountAmount();
     }
 
     public function canUseDiscount($code = null)

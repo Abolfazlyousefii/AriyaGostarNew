@@ -28,6 +28,13 @@
             @can('users')
                 <li class="nav-item has-sub {{ open_class(['admin.users.*']) }}"><a href="#"><i class="feather icon-users"></i><span class="menu-title" > کاربران</span></a>
                     <ul class="menu-content">
+                        {{-- ARIYA_STAGE56G_VIP_MENU_V1 --}}
+                        @can('users.update')
+                            <li class="{{ active_class('admin.vip-customers.*') }}">
+                                <a href="{{ route('admin.vip-customers.index') }}"><i class="feather icon-star"></i><span class="menu-item">مشتریان VIP</span></a>
+                            </li>
+                        @endcan
+
                         @can('users.index')
                             <li class="{{ active_class('admin.users.index') }}">
                                 <a href="{{ route('admin.users.index') }}"><i class="feather icon-circle"></i><span class="menu-item">لیست کاربران</span></a>

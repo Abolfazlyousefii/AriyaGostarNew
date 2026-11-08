@@ -106,6 +106,15 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'A
     Route::delete('backups/{backup}', [BackupController::class, 'destroy'])->name('backups.destroy');
 
     // ------------------ users
+    // ARIYA_STAGE56G_VIP_ADMIN_ROUTES_V1: retain the existing protected admin middleware.
+    Route::middleware(\App\Http\Middleware\EnsureVipSchemaReady::class)->group(function () {
+        Route::get('vip-customers', [\App\Http\Controllers\Back\VipCustomerController::class, 'index'])->name('vip-customers.index');
+        Route::post('vip-customers', [\App\Http\Controllers\Back\VipCustomerController::class, 'store'])->name('vip-customers.store');
+        Route::post('vip-customers/percent', [\App\Http\Controllers\Back\VipCustomerController::class, 'updatePercent'])->name('vip-customers.percent');
+        Route::post('vip-customers/{user}/badge', [\App\Http\Controllers\Back\VipCustomerController::class, 'updateBadge'])->name('vip-customers.badge');
+        Route::delete('vip-customers/{user}', [\App\Http\Controllers\Back\VipCustomerController::class, 'destroy'])->name('vip-customers.destroy');
+    });
+
     Route::resource('users', UserController::class);
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status.update');
     Route::get('login/{user}', [UserController::class, 'loginAsUser'])->name('users.login');
@@ -448,9 +457,6 @@ Route::get('refresh-csrf', function () {
 
 Route::get('torob/products', [ProductController::class, 'torobProductsList']);
 
-Route::get('/test', function () {return
-\App\Models\Inventory\Product::all()->take(4);
-});
 
 // ARIYA_CUSTOMER_JOURNEY_ROUTES_V1: customer events and restricted admin exports.
 Route::post('customer-journey/event', [\App\Http\Controllers\CustomerJourneyEventController::class, 'store'])
